@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.teacher.mapper.TeacherMapper">
+
+    <resultMap id="TeacherEntity" type="com.iecube.community.model.teacher.entity.Teacher">
+        <result column="collage_id" property="collageId"></result>
+        <result column="is_delete" property="isDelete"></result>
+        <result column="origin_filename" property="originFilename"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+    </resultMap>
+
+    <resultMap id="tags" type="com.iecube.community.model.teacher.entity.Tags">
+
+    </resultMap>
+
+    <!--id 属性：表示映射的接口中方法的名称， 直接在标签的内部编写sql语句-->
+    <!--useGeneratedKeys 属性：表示开启某个字段的值递增（一般逐渐递增） keyProperty 属性： 表示将表中的哪个字段作为主键递增-->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO teacher (id, username, email, password, salt, major_id, is_delete,
+                         creator, create_time,  last_modified_user, last_modified_time)
+        VALUES (Null, #{username}, #{email}, #{password}, #{salt}, #{majorId},
+                #{isDelete},  #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
+    </insert>
+
+    <delete id="delete">
+    </delete>
+
+    <select id="findByEmail" resultMap="TeacherEntity">
+        SELECT * FROM teacher WHERE email=#{email}
+    </select>
+
+    <select id="findById" resultMap="TeacherEntity">
+        SELECT * FROM teacher WHERE id=#{id}
+    </select>
+    
+    <select id="findAll" resultMap="TeacherEntity">
+        SELECT * FROM teacher
+    </select>
+
+    <update id="changePassword">
+        UPDATE teacher SET password=#{password} WHERE id=#{id}
+    </update>
+
+    <update id="teacherEnable">
+        UPDATE teacher SET is_delete=0 WHERE id=#{reacherId}
+    </update>
+
+    <update id="teacherDisable">
+        UPDATE teacher SET is_delete=1 WHERE id=#{reacherId}
+    </update>
+
+</mapper>

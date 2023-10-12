@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.npoints.mapper.NPointsMapper">
+
+    <resultMap id="NPointsEntity" type="com.iecube.community.model.npoints.entity.NPoints">
+        <result column="project_id" property="projectId"></result>
+        <result column="project_name" property="projectName"></result>
+        <result column="module_id" property="moduleId"></result>
+        <result column="module_name" property="moduleName"></result>
+        <result column="concept_id" property="conceptId"></result>
+        <result column="concept_name" property="conceptName"></result>
+    </resultMap>
+
+    <resultMap id="case" type="com.iecube.community.model.npoints.entity.Case">
+        <result column="case_id" property="id"></result>
+        <result column="case_name" property="name"></result>
+    </resultMap>
+
+    <resultMap id="module" type="com.iecube.community.model.npoints.entity.Module">
+        <result column="module_id" property="id"></result>
+        <result column="case_id" property="caseId"></result>
+        <result column="name" property="name"></result>
+    </resultMap>
+
+    <resultMap id="concept" type="com.iecube.community.model.npoints.entity.Concept">
+        <result column="concept_id" property="conceptId"></result>
+        <result column="case_id" property="caseId"></result>
+        <result column="name" property="name"></result>
+        <result column="module_id" property="moduleId"></result>
+    </resultMap>
+
+    <resultMap id="link" type="com.iecube.community.model.npoints.entity.Link">
+
+    </resultMap>
+
+    <resultMap id="ConceptVo" type="com.iecube.community.model.npoints.vo.ConceptVo">
+
+    </resultMap>
+
+    <resultMap id="ModuleVo" type="com.iecube.community.model.npoints.vo.ModuleVo">
+
+    </resultMap>
+
+    <resultMap id="CaseVo" type="com.iecube.community.model.npoints.vo.CaseVo">
+
+    </resultMap>
+
+
+    <select id="getByProjectId" resultMap="NPointsEntity">
+        SELECT
+            project_correlation_module.project_id as project_id, project.name as project_name,
+            module_correlation_concept.module_id as module_id, Function_module.name as module_name,
+            module_correlation_concept.concept_id as concept_id, Basic_concept.name as concept_name
+        FROM (((
+                    project INNER JOIN project_correlation_module
+                    ON project.id=project_correlation_module.project_id
+                ) INNER JOIN Function_module
+                    ON project_correlation_module.module_id=Function_module.id
+            ) INNER JOIN module_correlation_concept
+                ON Function_module.id=module_correlation_concept.module_id
+            ) INNER JOIN Basic_concept
+                ON module_correlation_concept.concept_id=Basic_concept.id
+        WHERE (project.id=#{id})
+        ORDER BY Function_module.id;
+    </select>
+
+    <select id="getCaseByCaseId" resultMap="concept">
+        SELECT id AS case_id, name FROM solution_or_case WHERE id=#{caseId};
+    </select>
+
+    <select id="getModuleByCaseId" resultMap="concept">
+        SELECT module.id as module_id, module.name, module_case.case_id
+        FROM module INNER JOIN module_case ON module.id=module_case.module_id
+        WHERE module_case.case_id=#{caseId}
+        ORDER BY module.id;
+    </select>
+
+    <select id="getConceptByCaseId" resultMap="concept">
+        SELECT concept.id as concept_id, concept.name, concept_module.module_id, module_case.case_id
+        FROM (concept INNER JOIN concept_module ON concept.id=concept_module.concept_id)
+            INNER JOIN module_case ON concept_module.module_id=module_case.module_id
+        WHERE module_case.case_id=#{caseId}
+    </select>
+
+    <select id="getTargetByCaseId" resultMap="link">
+        SELECT  module.name AS target FROM module INNER JOIN module_case ON module.id=module_case.module_id WHERE module_case.case_id=#{caseId};
+    </select>
+
+    <select id="getTargetByModuleId" resultMap="link">
+        SELECT concept.name AS target FROM concept_module INNER JOIN concept ON concept.id=concept_module.concept_id WHERE module_id=#{moduleId};
+    </select>
+
+    <select id="getCasesByModuleId" resultMap="case">
+        SELECT case_id FROM module_case WHERE module_id=#{moduleId};
+    </select>
+
+    <select id="getModulesByConceptId" resultMap="module">
+        SELECT module_id FROM concept_module WHERE concept_id=#{conceptId};
+    </select>
+
+    <select id="getAllConcepts" resultMap="ConceptVo">
+        SELECT * FROM concept
+    </select>
+
+    <select id="getAllModules" resultMap="ModuleVo">
+        SELECT * FROM module
+    </select>
+
+    <select id="getAllCases" resultMap="CaseVo">
+        SELECT id, name FROM solution_or_case
+    </select>
+
+    <select id="getModulesByCase" resultMap="ModuleVo">
+        SELECT module.id AS id, module.name AS name
+        FROM `module` INNER JOIN module_case ON module.id=module_case.module_id
+        WHERE module_case.case_id=#{caseId};
+    </select>
+    
+    <select id="getConceptsByModule" resultMap="ConceptVo">
+        SELECT concept.id AS id, concept.name AS name
+        FROM concept INNER JOIN concept_module ON concept.id=concept_module.concept_id
+        WHERE concept_module.module_id=#{moduleId};
+    </select>
+
+    <insert id="addCaseModule">
+        INSERT INTO module_case (module_id,case_id) VALUES (#{moduleId}, #{caseId})
+    </insert>
+
+    <delete id="deleteCaseModule">
+        DELETE FROM module_case WHERE module_id=#{moduleId} AND case_id=#{caseId}
+    </delete>
+</mapper>

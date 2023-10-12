@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.task.mapper.TaskMapper">
+    <resultMap id="Task" type="com.iecube.community.model.task.entity.Task">
+        <result column="project_id" property="projectId"></result>
+        <result column="task_name" property="taskName"></result>
+        <result column="task_cover" property="taskCover"></result>
+        <result column="task_start_time" property="taskStartTime"></result>
+        <result column="task_end_time" property="taskEndTime"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+    </resultMap>
+
+    <resultMap id="TaskVo" type="com.iecube.community.model.task.entity.TaskVo">
+        <result column="project_id" property="projectId"></result>
+        <result column="task_name" property="taskName"></result>
+        <result column="task_start_time" property="taskStartTime"></result>
+        <result column="task_end_time" property="taskEndTime"></result>
+    </resultMap>
+
+    <resultMap id="studentTaskVo" type="com.iecube.community.model.task.entity.StudentTaskVo">
+        <result column="pst_id" property="PSTId"></result>
+        <result column="task_num" property="taskNum"></result>
+        <result column="task_grade" property="taskGrade"></result>
+        <result column="task_status" property="taskStatus"></result>
+
+    </resultMap>
+
+    <resultMap id="StudentTaskDetailVo" type="com.iecube.community.model.task.entity.StudentTaskDetailVo">
+        <result column="pst_id" property="PSTId"></result>
+        <result column="project_id" property="projectId"></result>
+        <result column="student_id" property="studentId"></result>
+        <result column="task_num" property="taskNum"></result>
+        <result column="task_name" property="taskName"></result>
+        <result column="task_grade" property="taskGrade"></result>
+        <result column="task_evaluate" property="taskEvaluate"></result>
+        <result column="task_improvement" property="taskImprovement"></result>
+        <result column="task_content" property="taskContent"></result>
+        <result column="task_status" property="taskStatus"></result>
+        <result column="task_resubmit" property="taskResubmit"></result>
+        <result column="task_start_time" property="taskStartTime"></result>
+        <result column="task_end_time" property="taskEndTime"></result>
+    </resultMap>
+
+
+    <insert id="addProjectTask" useGeneratedKeys="true" keyProperty="id" >
+        INSERT INTO task (id, project_id, num, task_name, task_cover, task_start_time,
+                          task_end_time, creator, create_time, last_modified_user, last_modified_time)
+        VALUES (NULL, #{projectId}, #{num}, #{taskName}, #{taskCover},
+                #{taskStartTime},#{taskEndTime}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
+    </insert>
+
+    <select id="findTaskByProject" resultMap="Task">
+        SELECT * FROM task WHERE project_id=#{projectId}
+    </select>
+
+    <insert id="addStudentTask" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO project_task_student (id, project_id, task_id, student_id, status)
+        VALUES (NULL, #{projectId}, #{taskId}, #{studentId}, #{status})
+    </insert>
+
+    <select id="findTaskByProjectStudent" resultMap="studentTaskVo">
+        SELECT project_task_student.id AS pst_id,
+               task.num AS task_num,
+               project_task_student.grade AS task_grade,
+               project_task_student.status AS task_status
+--                project_task_student.tags AS tags
+        FROM project_task_student INNER JOIN task ON project_task_student.task_id=task.id
+        WHERE (
+            project_task_student.student_id=#{studentId}
+                AND
+            project_task_student.project_id=#{projectId}
+            )
+    </select>
+
+    <select id="findStudentTaskByProjectId" resultMap="StudentTaskDetailVo">
+        SELECT project_task_student.id AS pst_id,
+               project_task_student.project_id AS project_id,
+               project_task_student.student_id AS student_id,
+               project_task_student.grade AS task_grade,
+--                project_task_student.tags AS task_tags,
+               project_task_student.evaluate AS task_evaluate,
+               project_task_student.improvement AS task_improvement,
+               project_task_student.content AS task_content,
+               project_task_student.status AS task_status,
+               project_task_student.resubmit AS task_resubmit,
+               task.num AS task_num, task.task_name AS task_name,
+               task.task_start_time AS task_start_time,
+               task.task_end_time AS task_end_time
+        FROM project_task_student INNER JOIN task ON project_task_student.task_id=task.id
+        WHERE
+            project_task_student.project_id=#{projectId}
+          AND project_task_student.student_id=#{studentId}
+        ORDER BY task_num
+    </select>
+
+    <select id="findStudentTaskByPSTId" resultMap="StudentTaskDetailVo">
+        SELECT project_task_student.id AS pst_id,
+               project_task_student.project_id AS project_id,
+               project_task_student.student_id AS student_id,
+               project_task_student.grade AS task_grade,
+--                project_task_student.tags AS task_tags,
+               project_task_student.evaluate AS task_evaluate,
+               project_task_student.improvement AS task_improvement,
+               project_task_student.content AS task_content,
+               project_task_student.status AS task_status,
+               project_task_student.resubmit AS task_resubmit,
+               task.num AS task_num, task.task_name AS task_name
+        FROM project_task_student INNER JOIN task ON project_task_student.task_id=task.id
+        WHERE
+            project_task_student.id = #{pstId}
+    </select>
+
+    <update id="TeacherModifyProjectStudentTask" parameterType="com.iecube.community.model.task.entity.ProjectStudentTaskQo">
+        UPDATE project_task_student
+        SET grade=#{grade}, improvement=#{improvement}, evaluate=#{evaluate}
+        WHERE id=#{PSTid}
+    </update>
+
+    <select id="findSuggestionByTagName" resultType="java.lang.String">
+        SELECT suggestion FROM tag WHERE name=#{name}
+    </select>
+
+    <select id="findByProjectId" resultMap="TaskVo">
+        SELECT * FROM `task` WHERE project_id=#{projectId}
+    </select>
+
+    <select id="findTaskByPSTId" resultMap="Task">
+        SELECT task.task_start_time,task.task_end_time
+        FROM task INNER JOIN project_task_student ON task.id=project_task_student.task_id
+        WHERE project_task_student.id=#{pstId}
+    </select>
+    <update id="updatePSTStatus">
+        UPDATE project_task_student SET status=#{status} WHERE id=#{id}
+    </update>
+    <update id="updatePSTContent">
+        UPDATE project_task_student SET content=#{content} WHERE id=#{id}
+    </update>
+
+    <update id="updatePSTResubmit">
+        UPDATE project_task_student SET resubmit=#{resubmit} WHERE id=#{id}
+    </update>
+
+    <update id="updatePSTEvaluate">
+        UPDATE project_task_student SET evaluate=#{evaluate} WHERE id=#{id}
+    </update>
+
+    <update id="updatePSTGrade">
+        UPDATE project_task_student SET grade=#{grade} WHERE id=#{id}
+    </update>
+
+
+</mapper>

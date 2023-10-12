@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.task_requirement.mapper.RequirementMapper">
+    <resultMap id="Requirement" type="com.iecube.community.model.task_requirement.entity.Requirement">
+    </resultMap>
+    <select id="getRequirementsByTaskId" resultMap="Requirement">
+        SELECT requirement.id, requirement.name
+        FROM task_requirement INNER JOIN requirement
+            ON task_requirement.requirement_id=requirement.id
+        WHERE task_requirement.task_id=#{taskId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO requirement (id,name) VALUES (NULL,#{name});
+    </insert>
+
+    <insert id="connect" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+            task_requirement (id, task_id, task_template_id, requirement_id)
+        VALUES (NULL, #{taskId}, #{taskTemplateId}, #{requirementId})
+    </insert>
+
+    <select id="getRequirementsByTaskTemplateId" resultMap="Requirement">
+        SELECT requirement.id, requirement.name
+        FROM task_requirement INNER JOIN requirement
+                                         ON task_requirement.requirement_id=requirement.id
+        WHERE task_requirement.task_template_id=#{taskTemplateId}
+    </select>
+
+    <select id="getEntityIdByTaskTemplateId" resultType="java.lang.Integer">
+        SELECT requirement_id FROM task_requirement WHERE task_template_id=#{taskTemplateId}
+    </select>
+
+    <select id="getEntityIdByTaskId" resultType="java.lang.Integer">
+        SELECT requirement_id FROM task_requirement WHERE task_id=#{taskId}
+    </select>
+
+    <delete id="deleteEntityById">
+        DELETE FROM requirement WHERE id=#{id}
+    </delete>
+
+    <delete id="deleteByTaskTemplateId">
+        DELETE FROM task_requirement WHERE task_template_id=#{taskTemplateId}
+    </delete>
+
+    <delete id="deleteByTaskId">
+        DELETE FROM task_requirement WHERE task_id=#{taskId}
+    </delete>
+</mapper>

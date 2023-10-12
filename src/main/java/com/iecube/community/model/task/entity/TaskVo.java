@@ -1,0 +1,24 @@
+package com.iecube.community.model.task.entity;
+
+import com.iecube.community.model.resource.entity.Resource;
+import com.iecube.community.model.task_deliverable_requirement.entity.DeliverableRequirement;
+import com.iecube.community.model.task_reference_link.entity.ReferenceLink;
+import com.iecube.community.model.task_requirement.entity.Requirement;
+import lombok.Data;
+
+import java.util.Date;
+import java.util.List;
+
+@Data
+public class TaskVo {
+    Integer id;
+    Integer projectId;
+    Integer num;
+    String taskName;
+    Date taskStartTime;
+    Date taskEndTime;
+    List<Requirement> taskTargets;
+    List<DeliverableRequirement> taskDeliverables;
+    List<ReferenceLink> taskReferenceLinks;
+    List<Resource> taskReferenceFiles;
+}

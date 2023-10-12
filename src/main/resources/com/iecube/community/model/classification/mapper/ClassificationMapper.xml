@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.classification.mapper.ClassificationMapper">
+    <resultMap id="ClassificationEntityMap" type="com.iecube.community.model.classification.entity.Classification">
+        <!--将表的字段和类的属性不一致的字段进行匹配指定， 名称一致的字段可以省略不写
+            column 表的列    property 类的属性
+            在定义映射规则时 主键是不可以省略的  id 字段不能省略
+        -->
+        <result column="id" property="id"></result>
+        <result column="parent_id" property="parentId"></result>
+        <result column="production_group" property="productionGroup"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO product_classification
+            (id, name, parent_id, production_group, clientele, creator, create_time, last_modified_user, last_modified_time)
+        VALUES (NULL, #{name}, #{parentId}, #{productionGroup}, #{clientele}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
+    </insert>
+
+    <update id="update">
+        UPDATE product_classification SET
+                                          name=#{name},
+                                          parent_id=#{parentId},
+                                          production_group=#{productionGroup},
+                                          clientele=#{clientele},
+                                          last_modified_user=#{lastModifiedUser},
+                                          last_modified_time=#{lastModifiedTime}
+        WHERE id=#{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM product_classification WHERE id=${id}
+    </delete>
+
+    <select id="findById" resultMap="ClassificationEntityMap">
+        SELECT * FROM product_classification WHERE id=#{id}
+    </select>
+
+    <select id="findByParentId" resultMap="ClassificationEntityMap">
+        SELECT * FROM product_classification WHERE parent_id=#{parentId}
+    </select>
+
+    <select id="findNameWithParenId" resultMap="ClassificationEntityMap">
+        SELECT * FROM product_classification WHERE parent_id=#{parentId} and name=#{name}
+    </select>
+
+</mapper>

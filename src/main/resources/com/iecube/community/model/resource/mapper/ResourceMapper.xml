@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.resource.mapper.ResourceMapper">
+
+    <resultMap id="ResourceEntity" type="com.iecube.community.model.resource.entity.Resource">
+        <result column="origin_filename" property="originFilename"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.iecube.community.model.resource.entity.Resource">
+        INSERT INTO resources (id, name, filename, origin_filename, type, creator, create_time,last_modified_user,last_modified_time )
+        VALUES (NULL, #{name}, #{filename}, #{originFilename}, #{type}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM resources WHERE id=#{id}
+    </delete>
+
+    <select id="getByName" resultMap="ResourceEntity">
+        SELECT * FROM resources WHERE name=#{name}
+    </select>
+
+    <select id="getByFileName" resultMap="ResourceEntity">
+        SELECT * FROM resources WHERE filename=#{filename}
+    </select>
+
+    <select id="getById" resultMap="ResourceEntity">
+        SELECT * FROM resources WHERE id=#{id}
+    </select>
+</mapper>

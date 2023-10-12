@@ -1,0 +1,93 @@
+package com.iecube.community.util;
+
+import io.jsonwebtoken.*;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.jdbc.Null;
+import org.springframework.stereotype.Component;
+
+import javax.xml.bind.DatatypeConverter;
+import java.time.Duration;
+import java.util.Date;
+import java.util.Map;
+
+@Component
+@Slf4j
+public class JwtUtil {
+    private String secretKey="asdfghjkl";
+    private Duration expTime = Duration.ofHours(1);
+
+    public String createToken(String subject, Map<String, Object> claims){
+        JwtBuilder jwtBuilder = Jwts.builder();
+        if(claims!=null){
+            jwtBuilder.setClaims(claims);
+        }
+        if(StringUtils.isNotEmpty(subject)){
+            jwtBuilder.setSubject(subject);
+        }
+        long currentMillis = System.currentTimeMillis();
+        jwtBuilder.setIssuedAt(new Date(currentMillis));
+        long millis = expTime.toMillis();
+        if(millis>0){
+            long expMillis = currentMillis+millis;
+            jwtBuilder.setExpiration(new Date(expMillis));
+        }
+        if(StringUtils.isNotEmpty(secretKey)){
+            SignatureAlgorithm signatureAlgorithm=SignatureAlgorithm.HS256;
+            jwtBuilder.signWith(signatureAlgorithm, DatatypeConverter.parseBase64Binary(secretKey));
+        }
+
+        return jwtBuilder.compact();
+    }
+
+    /**
+     * 解析token
+     */
+    public Claims pareToken(String token){
+        try {
+            Claims claims=Jwts.parser()
+                    .setSigningKey(DatatypeConverter.parseBase64Binary(secretKey))
+                    .parseClaimsJws(token).getBody();
+            return claims;
+        } catch (ExpiredJwtException e) {
+            log.error("ExpiredJwtException:{}",e);
+        } catch (UnsupportedJwtException e) {
+            log.error("UnsupportedJwtException:{}",e);
+        } catch (MalformedJwtException e) {
+            log.error("MalformedJwtException:{}",e);
+        } catch (SignatureException e) {
+            log.error("SignatureException:{}",e);
+        } catch (IllegalArgumentException e) {
+            log.error("IllegalArgumentException:{}",e);
+        }
+        return null;
+    }
+
+    /**
+     * 获取用户id
+     * @param token
+     * @return
+     */
+    public String getUserId(String token){
+        Claims claims = pareToken(token);
+        if (claims!=null){
+            return claims.getSubject();
+        }
+        return null;
+    }
+
+    /**
+     * 校验token是否符合要求
+     */
+    public boolean validateToken(String token){
+        try {
+            Claims claims = pareToken(token);
+            Date expTime = claims.getExpiration();
+            return expTime.after(new Date());
+        } catch (Exception e) {
+            log.error("validateToken:{}",e);
+            return false;
+        }
+
+    }
+}

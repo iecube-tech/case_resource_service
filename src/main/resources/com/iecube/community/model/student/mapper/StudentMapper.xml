@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.student.mapper.StudentMapper">
+
+    <resultMap id="StudentEntity" type="com.iecube.community.model.student.entity.Student">
+        <result column="student_id" property="studentId"></result>
+        <result column="student_name" property="studentName"></result>
+        <result column="student_grade" property="studentGrade"></result>
+        <result column="student_class" property="studentClass"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+    </resultMap>
+
+    <resultMap id="StudentDto" type="com.iecube.community.model.student.entity.StudentDto">
+        <result column="student_id" property="studentId"></result>
+        <result column="student_name" property="studentName"></result>
+        <result column="student_grade" property="studentGrade"></result>
+        <result column="student_class" property="studentClass"></result>
+    </resultMap>
+
+    <insert id="addStudent" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO Student (id, email, student_id, student_name, student_class,major_id,status, password, salt,
+                             creator, create_time, last_modified_user, last_modified_time)
+        VALUES (NULL, #{email}, #{studentId}, #{studentName}, #{studentClass}, #{majorId}, #{status}, #{password}, #{salt},
+                   #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime} )
+    </insert>
+
+    <select id="findStudentsLimitByTeacher" resultMap="StudentDto">
+        SELECT Student.id, Student.student_id, Student.student_name,class_and_grade.grade as student_grade,
+               class_and_grade.name as student_class, Major.name as major, Collage.name as collage
+        FROM ((Student INNER JOIN Major ON Student.major_id=Major.id) INNER JOIN Collage ON Major.collage_id=Collage.id)
+                 INNER JOIN class_and_grade ON class_and_grade.id=Student.student_class
+        WHERE Student.creator=#{teacherId}
+        ORDER BY Student.student_id
+        LIMIT #{page},#{pageSize}
+    </select>
+
+    <select id="findAllInStatusByTeacher" resultMap="StudentDto">
+        SELECT Student.id, Student.student_id, Student.student_name,class_and_grade.grade as student_grade,
+               class_and_grade.name as student_class, Major.name as major, Collage.name as collage
+        FROM ((Student INNER JOIN Major ON Student.major_id=Major.id) INNER JOIN Collage ON Major.collage_id=Collage.id)
+            INNER JOIN class_and_grade ON class_and_grade.id=Student.student_class
+        WHERE (Student.creator=#{teacherId} AND Student.status=1)
+        ORDER BY Student.student_id
+    </select>
+
+    <delete id="delete">
+    </delete>
+
+    <select id="getById" resultMap="StudentDto">
+        SELECT Student.id, Student.email, Student.student_id, Student.student_name,class_and_grade.grade as student_grade,
+               class_and_grade.name as student_class, Major.name as major, Collage.name as collage
+        FROM ((Student INNER JOIN Major ON Student.major_id=Major.id) INNER JOIN Collage ON Major.collage_id=Collage.id)
+                 INNER JOIN class_and_grade ON class_and_grade.id=Student.student_class
+        WHERE Student.id=#{id}
+    </select>
+    
+    <select id="getStudentById" resultMap="StudentEntity">
+        SELECT * FROM Student WHERE id=#{id}
+    </select>
+
+    <select id="getByEmail" resultMap="StudentEntity">
+        SELECT * FROM Student WHERE email=#{email}
+    </select>
+
+    <update id="changePassword">
+        UPDATE Student SET password=#{password} WHERE id=#{id}
+    </update>
+
+    <select id="getByStudentId" resultMap="StudentEntity">
+        SELECT * FROM Student WHERE student_id=#{StudentId}
+    </select>
+
+    <select id="studentsNum" resultType="java.lang.Integer">
+        SELECT COUNT(id) FROM Student WHERE creator=#{teacherId} ;
+    </select>
+
+</mapper>

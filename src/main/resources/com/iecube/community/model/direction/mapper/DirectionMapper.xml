@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.direction.mapper.DirectionMapper">
+
+    <resultMap id="DirectionEntity" type="com.iecube.community.model.direction.entity.Direction">
+        <result column="id" property="id"></result>
+        <result column="pm_id" property="pmId"></result>
+        <result column="production_group" property="productionGroup"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO product_direction (id, name, pm_id, production_group, clientele,
+                                       creator, create_time, last_modified_user,
+                                       last_modified_time)
+        VALUES (null, #{name}, #{pmId}, #{productionGroup}, #{clientele}, #{creator},
+                #{createTime}, #{lastModifiedUser},#{lastModifiedTime})
+    </insert>
+
+    <update id="update" >
+        UPDATE product_direction SET
+                                     name=#{name},
+                                     pm_id=#{pmId},
+                                     production_group=#{productionGroup},
+                                     clientele=#{clientele},
+                                     last_modified_user=#{lastModifiedUser},
+                                     last_modified_time=#{lastModifiedTime}
+        WHERE id=#{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM product_direction WHERE id=#{id}
+    </delete>
+    
+    <select id="findById" resultMap="DirectionEntity">
+        SELECT * FROM product_direction WHERE id=#{id}
+    </select>
+    
+    <select id="findByName" resultMap="DirectionEntity">
+        SELECT * FROM product_direction WHERE name=#{name}
+    </select>
+    
+    <select id="findAll"  resultMap="DirectionEntity">
+        SELECT * FROM product_direction
+    </select>
+
+
+</mapper>

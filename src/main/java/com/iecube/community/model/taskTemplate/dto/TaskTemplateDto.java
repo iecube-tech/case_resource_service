@@ -1,0 +1,23 @@
+package com.iecube.community.model.taskTemplate.dto;
+
+import com.iecube.community.model.resource.entity.Resource;
+import com.iecube.community.model.task_deliverable_requirement.entity.DeliverableRequirement;
+import com.iecube.community.model.task_reference_file.entity.TaskReferenceFile;
+import com.iecube.community.model.task_reference_link.entity.ReferenceLink;
+import com.iecube.community.model.task_requirement.entity.Requirement;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+public class TaskTemplateDto {
+    Integer id;
+    Integer contentId;
+    Integer num; //用于一个项目下的任务排序
+    String taskName;
+    String taskCover;
+    List<Requirement> requirementList;
+    List<DeliverableRequirement> deliverableRequirementList;
+    List<ReferenceLink> referenceLinkList;
+    List<Resource> referenceFileList;
+}

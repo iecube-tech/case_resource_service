@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.content.mapper.ContentMapper">
+
+    <resultMap id="ContentEntity" type="com.iecube.community.model.content.entity.Content">
+        <result column="id" property="id"></result>
+        <result column="parent_id" property="parentId"></result>
+        <result column="key_word" property="keyWord"></result>
+        <result column="package_id" property="packageId"></result>
+        <result column="is_delete" property="isDelete"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="creator_type" property="creatorType"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+    </resultMap>
+
+    <resultMap id="taskTemplates" type="com.iecube.community.model.content.entity.taskTemplates">
+        <result column="id" property="id"></result>
+        <result column="content_id" property="contentId"></result>
+        <result column="task_name" property="taskName"></result>
+        <result column="task_cover" property="taskCover"></result>
+        <result column="task_targets" property="taskTargets" typeHandler="com.iecube.community.util.handler.ListToVarcharTypeHandler"></result>
+        <result column="task_deliverables" property="taskDeliverables" typeHandler="com.iecube.community.util.handler.ListToVarcharTypeHandler"></result>
+        <result column="task_start_time" property="taskStartTime"></result>
+        <result column="task_end_time" property="taskEndTime"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+    </resultMap>
+
+    <resultMap id="ResourceVo" type="com.iecube.community.model.resource.entity.ResourceVo">
+        <result column="origin_filename" property="originFilename"></result>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO solution_or_case
+            (id, name, parent_id, cover, introduction, introduce, target, guidance, third, fourth, key_word,completion,
+             is_delete,creator_type, creator, create_time, last_modified_user, last_modified_time)
+        VALUES
+            (NULL, #{name}, #{parentId}, #{cover}, #{introduction}, #{introduce}, #{target}, #{guidance}, #{third}, #{fourth},
+             #{keyWord}, #{completion},#{isDelete},#{creatorType}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
+    </insert>
+
+    <update id="updateCover">
+        UPDATE solution_or_case SET
+                                cover=#{cover},
+                                last_modified_user=#{lastModifiedUser},
+                                last_modified_time=#{lastModifiedTime}
+        WHERE id=#{id}
+    </update>
+    <update id="update" >
+        UPDATE solution_or_case SET
+                                    name=#{name},
+                                    introduction=#{introduction},
+                                    introduce=#{introduce},
+                                    target=#{target},
+                                    last_modified_user=#{lastModifiedUser},
+                                    last_modified_time=#{lastModifiedTime}
+        WHERE id=#{id}
+    </update>
+
+    <update id="contentCompletionUpdate">
+        UPDATE solution_or_case SET
+                                    completion=#{completion},
+                                    last_modified_user=#{lastModifiedUser},
+                                    last_modified_time=#{lastModifiedTime}
+        WHERE id=#{id}
+    </update>
+
+    <update id="delete">
+        UPDATE solution_or_case SET
+                                    is_delete=1,
+                                    last_modified_user=#{lastModifiedUser},
+                                    last_modified_time=#{lastModifiedTime}
+        WHERE id=#{id}
+    </update>
+
+    <select id="getTeacherCreate" resultMap="ContentEntity">
+        SELECT * FROM solution_or_case WHERE creator_type='teacher' AND creator=#{teacherId}
+    </select>
+
+    <select id="findById" resultMap="ContentEntity">
+        SELECT * FROM solution_or_case WHERE id=#{id}
+    </select>
+
+    <select id="findGuidanceById" resultType="java.lang.String">
+        SELECT guidance FROM solution_or_case WHERE id=#{id}
+    </select>
+
+    <select id="findResourcesById" resultMap="ResourceVo">
+        SELECT resources.name AS name, resources.filename AS filename, resources.origin_filename AS origin_filename
+        FROM resources INNER JOIN case_pkg ON case_pkg.pkg_id=resources.id
+        WHERE case_pkg.case_id=#{id};
+    </select>
+
+    <select id="findAll" resultMap="ContentEntity">
+        SELECT id, name, cover, introduction FROM solution_or_case
+    </select>
+
+    <select id="findByTeacherId" resultMap="ContentEntity">
+        SELECT solution_or_case.id, solution_or_case.name, solution_or_case.introduction, solution_or_case.cover
+        FROM solution_or_case INNER JOIN teacher_case ON solution_or_case.id=teacher_case.case_id
+        WHERE teacher_case.teacher_id=#{teacherId};
+    </select>
+
+    <select id="findCaseIdsByTeacherId" resultType="java.lang.Integer">
+        SELECT case_id FROM teacher_case WHERE teacher_id=#{teacherId}
+    </select>
+
+    <select id="findByParentId" resultMap="ContentEntity">
+        SELECT id,name,parent_id, cover,introduction FROM solution_or_case WHERE parent_id=#{parentId}
+    </select>
+
+    <select id="findNotDelByParentId" resultMap="ContentEntity">
+        SELECT id,name,parent_id, cover,introduction FROM solution_or_case WHERE parent_id=#{parentId} and is_delete=0
+    </select>
+
+    <update id="restore" >
+        UPDATE solution_or_case SET
+                                    is_delete=0,
+                                    last_modified_user=#{lastModifiedUser},
+                                    last_modified_time=#{lastModifiedTime}
+        WHERE id=#{id}
+    </update>
+
+    <select id="findLast" resultMap="ContentEntity">
+        select id from solution_or_case order by id desc limit 1
+    </select>
+
+    <insert id="caseAddPkg">
+        INSERT INTO case_pkg (case_id, pkg_name) VALUES (#{caseId},#{pkgName})
+    </insert>
+
+    <insert id="contentAddTaskTemplate" useGeneratedKeys="true" keyProperty="id" parameterType="com.iecube.community.model.content.entity.taskTemplates">
+        INSERT INTO task_templates (id, content_id, num, task_name, task_cover, task_targets, task_deliverables,
+                        task_start_time, task_end_time, creator, create_time, last_modified_user, last_modified_time )
+        VALUES (NULL, #{contentId,},#{num}, #{taskName}, #{taskCover},
+                #{taskTargets, typeHandler=com.iecube.community.util.handler.ListToVarcharTypeHandler},
+                #{taskDeliverables, typeHandler=com.iecube.community.util.handler.ListToVarcharTypeHandler},
+                   #{taskStartTime}, #{taskEndTime}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime} )
+    </insert>
+
+    <select id="findTaskTemplatesByContentId" resultMap="taskTemplates">
+        SELECT * FROM task_templates WHERE content_id=#{contentId}
+    </select>
+
+    <update id="updateGuidance" >
+        UPDATE solution_or_case SET
+                                    guidance=#{guidance},
+                                    last_modified_user=#{lastModifiedUser},
+                                    last_modified_time=#{lastModifiedTime}
+        WHERE id=#{id}
+    </update>
+
+    <insert id="teacherAddContent">
+        INSERT INTO teacher_case (teacher_id, case_id) VALUES (#{teacherId},#{caseId})
+    </insert>
+    
+    <delete id="teacherSubtractContent">
+        DELETE FROM teacher_case WHERE teacher_id=#{teacherId} AND case_id=#{caseId}
+    </delete>
+
+
+
+</mapper>

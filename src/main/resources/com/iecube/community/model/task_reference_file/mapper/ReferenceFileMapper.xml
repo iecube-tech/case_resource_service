@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.task_reference_file.mapper.ReferenceFileMapper">
+    <resultMap id="Resource" type="com.iecube.community.model.resource.entity.Resource">
+        <result column="origin_filename" property="originFilename"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+    </resultMap>
+    <select id="getReferenceFilesByTaskId" resultMap="Resource">
+        SELECT resources.id, resources.name, resources.filename,resources.type, resources.origin_filename
+        FROM resources INNER JOIN task_reference_file
+            ON task_reference_file.resource_id=resources.id
+        WHERE task_reference_file.task_id=#{taskId}
+    </select>
+
+    <insert id="connect" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+            task_reference_file (id, task_id, task_template_id, resource_id)
+        VALUES (null, #{taskId}, #{taskTemplateId}, #{referenceFileId})
+    </insert>
+
+    <select id="getReferenceFilesByTaskTemplateId" resultMap="Resource">
+        SELECT resources.id, resources.name, resources.filename,resources.type, resources.origin_filename
+        FROM resources INNER JOIN task_reference_file
+                                  ON task_reference_file.resource_id=resources.id
+        WHERE task_reference_file.task_template_id=#{taskTemplateId}
+    </select>
+
+    <select id="getResourceIdByTaskTemplateId"  resultType="java.lang.Integer">
+        SELECT resource_id FROM task_reference_file WHERE task_template_id=#{taskTemplateId}
+    </select>
+
+    <select id="getResourceIdByTaskId" resultType="java.lang.Integer">
+        SELECT resource_id FROM task_reference_file WHERE task_id=#{taskId}
+    </select>
+
+    <delete id="deleteByTaskTemplateId">
+        DELETE FROM task_reference_file WHERE task_template_id=#{taskTemplateId}
+    </delete>
+
+    <delete id="deleteByTaskId">
+        DELETE FROM task_reference_file WHERE task_id=#{taskId}
+    </delete>
+</mapper>

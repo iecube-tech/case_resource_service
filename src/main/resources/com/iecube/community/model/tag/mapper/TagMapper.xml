@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.tag.mapper.TagMapper">
+
+    <resultMap id="Tag" type="com.iecube.community.model.tag.entity.Tag">
+        <result column="project_id" property="projectId"></result>
+        <result column="task_num" property="taskNum"></result>
+        <result column="teacher_id" property="teacherId"></result>
+    </resultMap>
+
+    <resultMap id="TagTemplates" type="com.iecube.community.model.tag.entity.TagTemplates">
+        <result column="case_id" property="caseId"></result>
+        <result column="task_num" property="taskNum"></result>
+    </resultMap>
+
+    <resultMap id="TeacherProjectTagVo" type="com.iecube.community.model.tag.vo.TeacherProjectTagVo">
+        <result column="teacher_id" property="teacherId"></result>
+        <result column="project_id" property="projectId"></result>
+        <result column="task_name" property="taskName"></result>
+    </resultMap>
+
+    <select id="getTagsByPSTId" resultMap="Tag">
+        SELECT tag.id,tag.name,tag.suggestion,tag.project_id, tag.task_num, tag.teacher_id FROM tag_pst INNER JOIN tag ON tag_pst.tag_id=tag.id WHERE tag_pst.pst_id=#{pstId}
+    </select>
+
+    <select id="getTagsByTeacherProject" resultMap="Tag">
+        SELECT * FROM tag WHERE (project_id=#{projectId} AND teacher_id=#{teacherId})
+    </select>
+
+    <insert id="addTagToPST">
+        INSERT INTO tag_pst (id, tag_id, pst_id) VALUES (NULL, #{tagId}, #{pstId})
+    </insert>
+
+    <delete id="deletePSTTag">
+        DELETE FROM tag_pst WHERE (tag_id=#{tagId} AND pst_id=#{pstId})
+    </delete>
+
+    <select id="ContentTaskTagTemplate" resultMap="TagTemplates">
+        SELECT * FROM tag_template WHERE (case_id=#{contentId} AND task_num=#{taskNum})
+    </select>
+
+    <insert id="addTagTemplates" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tag_template (id, name, suggestion, case_id, task_num) VALUES  (NULL, #{name}, #{suggestion}, #{caseId}, #{taskNum})
+    </insert>
+
+    <update id="modifyTagTemplates">
+        UPDATE tag_template SET name=#{name}, suggestion=#{suggestion} WHERE id=#{id}
+    </update>
+
+    <delete id="deleteTagTemplate">
+        DELETE FROM tag_template WHERE id=#{id}
+    </delete>
+
+    <select id="contentTagTemplates" resultMap="TagTemplates">
+        SELECT * FROM tag_template WHERE case_id=#{contentId} ORDER BY task_num
+    </select>
+
+    <insert id="addTag" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tag (id, name, suggestion, project_id, task_num, teacher_id)
+        VALUES (NUll, #{name}, #{suggestion}, #{projectId}, #{taskNum}, #{teacherId})
+    </insert>
+
+    <update id="modifyTag">
+        UPDATE tag SET name=#{name} ,suggestion=#{suggestion} WHERE id=#{id}
+    </update>
+
+    <select id="getTeacherProjectTags" resultMap="TeacherProjectTagVo">
+        SELECT tag.id, tag.teacher_id, tag.project_id, tag.name,tag.suggestion,tag.id, tag.task_num, task.task_name
+        FROM `tag` INNER JOIN task ON (tag.project_id=task.project_id AND tag.task_num=task.num)
+        WHERE tag.project_id=#{projectId} AND tag.teacher_id=#{teacherId} ORDER BY tag.task_num
+    </select>
+
+    <delete id="deleteTag">
+        DELETE FROM tag WHERE id=#{id}
+    </delete>
+
+
+<!--    <insert id="" >-->
+<!--        INSERT INTO tag (id, name, suggestion) VALUES (NULL, #{name}, #{suggestion})-->
+<!--    </insert>-->
+
+
+
+<!--    <insert id="">-->
+<!--        INSERT INTO teacher_tag (id, tag_id, teacher_id) VALUES (NULL, #{tagId}, #{teacherId})-->
+<!--    </insert>-->
+
+</mapper>

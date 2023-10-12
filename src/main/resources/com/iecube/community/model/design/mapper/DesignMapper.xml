@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.design.mapper.DesignMapper">
+
+    <resultMap id="CaseTarget" type="com.iecube.community.model.design.entity.CaseTarget">
+        <result column="case_id" property="caseId"></result>
+        <result column="target_name" property="targetName"></result>
+    </resultMap>
+
+    <resultMap id="KnowledgePoint" type="com.iecube.community.model.design.entity.KnowledgePoint">
+        <result column="target_id" property="targetId"></result>
+    </resultMap>
+
+    <insert id="addCaseTarget" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO case_target (id, case_id, target_name) VALUES (NULL, #{caseId}, #{targetName})
+    </insert>
+
+    <delete id="deleteCaseTarget">
+        DELETE FROM case_target WHERE id=#{caseTargetId}
+    </delete>
+
+    <insert id="addKnowledgePoint" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO target_knowledge_point (id, target_id, point) VALUES (NULL, #{targetId}, #{point})
+    </insert>
+
+    <delete id="deleteKnowledgePoint">
+        DELETE FROM target_knowledge_point WHERE id=#{knowledgePointId}
+    </delete>
+
+    <select id="getCaseTargetsByCase" resultMap="CaseTarget">
+        SELECT * FROM case_target WHERE case_id=#{caseId}
+    </select>
+
+    <select id="getKnowledgePointsByTargetId" resultMap="KnowledgePoint">
+        SELECT * FROM target_knowledge_point WHERE target_id=#{targetId}
+    </select>
+
+</mapper>

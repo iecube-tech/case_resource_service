@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.major.mapper.MajorMapper">
+
+    <resultMap id="major" type="com.iecube.community.model.major.entity.Major">
+        <result column="collage_id" property="collageId"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+    </resultMap>
+    <resultMap id="School" type="com.iecube.community.model.major.entity.School">
+    </resultMap>
+    <resultMap id="Collage" type="com.iecube.community.model.major.entity.Collage">
+        <result column="school_id" property="schoolId"></result>
+    </resultMap>
+
+    <resultMap id="ClassAndGrade" type="com.iecube.community.model.major.entity.ClassAndGrade">
+        <result column="major_id" property="majorId"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+    </resultMap>
+
+    <resultMap id="SchoolCollage" type="com.iecube.community.model.major.vo.SchoolCollage">
+        <result column="school_id" property="schoolId"></result>
+        <result column="school_name" property="schoolName"></result>
+        <result column="collage_id" property="collageId"></result>
+        <result column="collage_name" property="collageName"></result>
+    </resultMap>
+
+    <resultMap id="MajorClass" type="com.iecube.community.model.major.vo.MajorClass">
+
+    </resultMap>
+
+    <select id="TeacherMajorClass" resultMap="MajorClass">
+        SELECT Major.id AS majorId, Major.name AS majorName
+        FROM Major INNER JOIN teacher ON teacher.collage_id=Major.collage_id
+        WHERE teacher.id=#{teacherId}
+    </select>
+
+    <select id="getClassesByMajorId" resultMap="ClassAndGrade">
+        SELECT * FROM class_and_grade WHERE class_and_grade.major_id=#{majorId}
+    </select>
+
+    <select id="TeacherMajorId" resultType="java.lang.Integer">
+        SELECT Major.id
+        FROM Major INNER JOIN teacher ON Major.collage_id=teacher.collage_id
+        WHERE Major.name=#{majorName} AND teacher.id=#{teacherId}
+    </select>
+
+    <select id="MajorClassId" resultType="java.lang.Integer">
+        SELECT class_and_grade.id
+        FROM class_and_grade
+        WHERE class_and_grade.name=#{className} AND class_and_grade.grade=#{classGrade} AND class_and_grade.major_id=#{majorId}
+    </select>
+
+    <insert id="addMajor" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO Major (id, name, collage_id, creator, create_time, last_modified_user, last_modified_time)
+        VALUES (NULL, #{name}, #{collageId}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
+    </insert>
+    <insert id="addCollage" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO Collage (id, name, school_id) VALUES (NULL, #{name}, #{schoolId})
+    </insert>
+
+    <insert id="addGradeClass" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO class_and_grade (id, grade, name,major_id, creator, create_time, last_modified_user, last_modified_time)
+        VALUES (NULL, #{grade}, #{name}, #{majorId}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
+    </insert>
+
+    <select id="SchoolCollage" resultMap="SchoolCollage">
+        SELECT School.id AS school_id, School.name AS school_name, Collage.id AS clooage_id, Collage.name AS collage_name
+        FROM `Collage` INNER JOIN `School` ON Collage.school_id=School.id
+        WHERE Collage.id=#{collageId}
+    </select>
+
+    <select id="getSchoolByTeacher" resultMap="School">
+        SELECT School.id, School.name
+        FROM School INNER JOIN Collage ON School.id=Collage.school_id INNER JOIN teacher ON Collage.id=teacher.collage_id
+        WHERE teacher.id=#{teacherId}
+    </select>
+
+    <select id="getCollagesBySchool" resultMap="Collage">
+        SELECT * FROM Collage WHERE school_id=#{schoolId}
+    </select>
+    <select id="getMajorsByCollage" resultMap="major">
+        SELECT * FROM Major WHERE collage_id=#{collageId}
+    </select>
+
+    <select id="schoolList" resultMap="School">
+        SELECT * FROM School
+    </select>
+
+</mapper>

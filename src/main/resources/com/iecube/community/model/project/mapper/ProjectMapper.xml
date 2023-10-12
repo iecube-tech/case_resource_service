@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.project.mapper.ProjectMapper">
+
+    <resultMap id="ProjectEntity" type="com.iecube.community.model.project.entity.Project">
+        <result column="start_time" property="startTime"></result>
+        <result column="end_time" property="endTime"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+    </resultMap>
+
+    <resultMap id="ProjectStudentVo" type="com.iecube.community.model.project.entity.ProjectStudentVo">
+        <result column="student_id" property="studentId"></result>
+        <result column="student_name" property="studentName"></result>
+        <result column="student_grade" property="studentGrade"></result>
+        <result column="ps_id" property="psId"></result>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO project (id, case_id, project_name, introduction, introduce, cover, target,
+                             start_time, end_time, creator, create_time, last_modified_user, last_modified_time)
+        VALUES (NULL,#{caseId}, #{projectName}, #{introduction}, #{introduce}, #{cover}, #{target},
+                   #{startTime}, #{endTime}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
+    </insert>
+
+    <delete id="delete">
+    </delete>
+
+    <select id="findById" resultMap="ProjectEntity">
+        SELECT * FROM project WHERE id=#{id}
+    </select>
+
+    <select id="findByCreator" resultMap="ProjectEntity">
+        SELECT * FROM project WHERE creator=#{teacher}
+    </select>
+
+
+    <insert id="addProjectStudent" useGeneratedKeys="true" keyProperty="id"
+            parameterType="com.iecube.community.model.project.entity.ProjectStudent">
+        INSERT INTO project_student (id, project_id, student_id, creator, create_time) VALUES (NULL, #{projectId}, #{studentId}, #{creator}, #{createTime})
+    </insert>
+
+    <select id="findStudentsByProjectId" resultMap="ProjectStudentVo">
+        SELECT Student.id,Student.student_id,Student.student_name,project_student.grade AS student_grade
+        FROM project_student INNER JOIN Student ON project_student.student_id=Student.id
+        WHERE project_student.project_id=#{projectId};
+    </select>
+
+    <select id="findByStudentId" resultMap="ProjectEntity">
+        SELECT project.id, project.project_name,project.target,project.introduction,project.introduce,
+               project.cover,project.start_time,project.end_time
+        FROM project_student INNER JOIN project ON project_student.project_id=project.id
+        WHERE project_student.student_id=#{id};
+    </select>
+
+    <select id="findStudentIdByProjectId" resultType="java.lang.Integer" >
+        SELECT student_id FROM project_student WHERE project_id=#{projectId}
+    </select>
+
+    <select id="studentNumOfCurrentProject" resultType="java.lang.Integer">
+        SELECT COUNT(id) FROM project_student WHERE project_id=#{projectId}
+    </select>
+
+    <select id="findByCaseId" resultMap="ProjectEntity">
+        SELECT * FROM project WHERE case_id=#{caseId}
+    </select>
+
+    <select id="findProjectStudent" resultMap="ProjectStudentVo" >
+        SELECT Student.id,Student.student_id,Student.student_name,project_student.grade AS student_grade, project_student.id AS ps_id
+        FROM project_student INNER JOIN Student ON project_student.student_id=Student.id
+        WHERE project_student.project_id=#{projectId} AND project_student.student_id=#{studentId}
+    </select>
+
+    <update id="updateProjectStudentGrade">
+        UPDATE project_student SET grade=#{grade} WHERE id=#{id}
+    </update>
+
+</mapper>
