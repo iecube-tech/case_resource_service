@@ -68,7 +68,7 @@ public class ContentController extends ContentBaseController {
     }
 
     @PostMapping("/update_design/{contentId}")
-    public JsonResult<Content> contentAddDesign(@PathVariable Integer contentId,HttpSession session){
+    public JsonResult<Content> contentAddedDesign(@PathVariable Integer contentId,HttpSession session){
         Integer modifiedUser = getUserIdFromSession(session);
         contentService.contentCompletionUpdate(3,contentId,modifiedUser);
         Content content = contentService.findById(contentId);
@@ -76,7 +76,13 @@ public class ContentController extends ContentBaseController {
     }
 
     // 任务模版在taskTemplate
-
+    @PostMapping("/update_task_template/{contentId}")
+    public JsonResult<Content> contentAddedTaskTemplate(@PathVariable Integer contentId,HttpSession session){
+        Integer modifiedUser = getUserIdFromSession(session);
+        contentService.contentCompletionUpdate(4,contentId,modifiedUser);
+        Content content = contentService.findById(contentId);
+        return new JsonResult<>(OK,content);
+    }
     @PostMapping("/update_guidance")
     public JsonResult<Void> updateGuidance(@RequestBody String guidance, @RequestBody Integer id, HttpSession session){
         Integer user = getUserIdFromSession(session);

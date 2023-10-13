@@ -159,6 +159,17 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         taskTemplateMapper.deleteTaskTemplateById(taskTemplateId);
     }
 
+    @Override
+    public void addResourceToTaskTemplate(Integer taskTemplateId, Resource resource) {
+        TaskReferenceFile taskReferenceFile= new TaskReferenceFile();
+        taskReferenceFile.setTaskTemplateId(taskTemplateId);
+        taskReferenceFile.setReferenceFileId(resource.getId());
+        Integer co = referenceFileMapper.connect(taskReferenceFile);
+        if(co != 1){
+            throw new InsertException("插入数据异常");
+        }
+    }
+
 
     protected enum taskCover {
         one(1, "0535d42f6bfb410a99cb1969d4917b97.png"),
