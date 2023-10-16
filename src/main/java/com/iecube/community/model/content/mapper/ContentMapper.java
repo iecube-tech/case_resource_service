@@ -41,7 +41,9 @@ public interface ContentMapper {
 
     Content findLast();
 
-    Integer caseAddPkg(casePkg casePkg);
+    Integer caseAddPkg(Integer caseId, Integer pkgId);
+
+    Integer contentDeletePkg(Integer caseId, Integer pkgId);
 
     Integer contentAddTaskTemplate(taskTemplates taskTemplates);
 

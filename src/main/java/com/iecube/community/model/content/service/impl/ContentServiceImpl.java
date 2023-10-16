@@ -146,6 +146,17 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
+    public void contentAddPkg(Integer id, Resource resource) {
+        contentMapper.caseAddPkg(id, resource.getId());
+    }
+
+    @Override
+    public void contentDeletePkg(Integer id, Integer pkgId) {
+        resourceService.deleteById(pkgId);
+        contentMapper.contentDeletePkg(id, pkgId);
+    }
+
+    @Override
     public List<Content> getTeacherCreate(Integer teacherId) {
         List<Content> contents = contentMapper.getTeacherCreate(teacherId);
         return contents;

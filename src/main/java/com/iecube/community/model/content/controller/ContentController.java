@@ -98,16 +98,28 @@ public class ContentController extends ContentBaseController {
      * 用于上传单个资源包
      * @return
      */
-    @PostMapping("/upload_pkg")
-    public JsonResult<Void> uploadContentPkg(){
-
-        return new JsonResult<>(OK);
+    @PostMapping("/upload_pkg/{contentId}")
+    public JsonResult<List> uploadContentPkg(MultipartFile file, @PathVariable Integer contentId, HttpSession session)throws IOException{
+        Integer creator = getUserIdFromSession(session);
+        Resource resource = resourceService.UploadFile(file,creator);
+        contentService.contentAddPkg(contentId,resource);
+        List<ResourceVo> resources = contentService.findResourcesById(contentId);
+        return new JsonResult<>(OK, resources);
     }
 
-    @GetMapping("/delete_pkg")
-    public JsonResult<Void> deleteContentPkg(){
+    @GetMapping("/delete_pkg/{contentId}/{pkgId}")
+    public JsonResult<List> deleteContentPkg(@PathVariable Integer contentId, @PathVariable Integer pkgId){
+        contentService.contentDeletePkg(contentId,pkgId);
+        List<ResourceVo> resources = contentService.findResourcesById(contentId);
+        return new JsonResult<>(OK,resources);
+    }
 
-        return new JsonResult<>(OK);
+    @GetMapping("/done/{contentId}")
+    public JsonResult<Content> setContentDone(@PathVariable Integer contentId, HttpSession session){
+        Integer modifiedUser = getUserIdFromSession(session);
+        contentService.contentCompletionUpdate(6,contentId,modifiedUser);
+        Content content = contentService.findById(contentId);
+        return new JsonResult<>(OK, content);
     }
 
     @PostMapping("/update")

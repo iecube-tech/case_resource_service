@@ -91,10 +91,14 @@
     </select>
 
     <select id="findResourcesById" resultMap="ResourceVo">
-        SELECT resources.name AS name, resources.filename AS filename, resources.origin_filename AS origin_filename
+        SELECT resources.id AS id, resources.name AS name, resources.filename AS filename, resources.origin_filename AS origin_filename
         FROM resources INNER JOIN case_pkg ON case_pkg.pkg_id=resources.id
         WHERE case_pkg.case_id=#{id};
     </select>
+
+    <delete id="contentDeletePkg">
+        DELETE FROM case_pkg WHERE case_id=#{caseId} AND pkg_id=#{pkgId}
+    </delete>
 
     <select id="findAll" resultMap="ContentEntity">
         SELECT id, name, cover, introduction FROM solution_or_case
@@ -131,7 +135,7 @@
     </select>
 
     <insert id="caseAddPkg">
-        INSERT INTO case_pkg (case_id, pkg_name) VALUES (#{caseId},#{pkgName})
+        INSERT INTO case_pkg (case_id, pkg_id) VALUES (#{caseId},#{pkgId})
     </insert>
 
     <insert id="contentAddTaskTemplate" useGeneratedKeys="true" keyProperty="id" parameterType="com.iecube.community.model.content.entity.taskTemplates">

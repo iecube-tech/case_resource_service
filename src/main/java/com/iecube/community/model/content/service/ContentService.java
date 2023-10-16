@@ -21,6 +21,9 @@ public interface ContentService {
 
     void contentUpdatePoints(Integer id, List<Integer> modules, Integer lastModifiedUser);
 
+    void contentAddPkg(Integer id, Resource resource);
+
+    void contentDeletePkg(Integer id, Integer pkgId);
     List<Content> getTeacherCreate(Integer teacherId);
     Content findById(Integer id);
     String findGuidanceById(Integer id);
