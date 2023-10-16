@@ -3,6 +3,7 @@ package com.iecube.community.model.resource.controller;
 import com.iecube.community.basecontroller.resource.ResourceBaseController;
 import com.iecube.community.model.resource.entity.Resource;
 import com.iecube.community.model.resource.service.ResourceService;
+import com.iecube.community.model.resource.vo.WangEditorRes;
 import com.iecube.community.util.DownloadUtil;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,15 @@ public class ResourceController extends ResourceBaseController {
         return new JsonResult<>(OK, resource);
     }
 
+    @PostMapping ("/wdupimage")
+    public JsonResult<WangEditorRes> WangEditorUploadImage(MultipartFile file) throws IOException{
+        System.out.println(file);
+        Integer creator = 0;
+        Resource resource = resourceService.UploadImage(file,creator);
+        WangEditorRes wangEditorRes = new WangEditorRes();
+        wangEditorRes.setUrl("/dev-api/files/image/"+resource.getFilename());
+        return new JsonResult<>(OK,0,wangEditorRes);
+    }
 
     @PostMapping("/upfile")
     public JsonResult<Resource> UploadFile(MultipartFile file, HttpSession session) throws IOException{

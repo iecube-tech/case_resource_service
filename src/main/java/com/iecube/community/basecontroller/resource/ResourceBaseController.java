@@ -23,6 +23,7 @@ public class ResourceBaseController extends BaseController {
             result.setState(8000);
         }else if (e instanceof FileEmptyException){
             result.setState(8000);
+            result.setErrno(1);
         }else if (e instanceof FileSizeException){
             result.setState(8000);
         }else if (e instanceof FileTypeException){

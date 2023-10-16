@@ -83,11 +83,15 @@ public class ContentController extends ContentBaseController {
         Content content = contentService.findById(contentId);
         return new JsonResult<>(OK,content);
     }
-    @PostMapping("/update_guidance")
-    public JsonResult<Void> updateGuidance(@RequestBody String guidance, @RequestBody Integer id, HttpSession session){
+    @PostMapping("/update_guidance/{contentId}")
+    public JsonResult<Content> updateGuidance(@RequestBody Content data, @PathVariable Integer contentId, HttpSession session){
+        String guidance = data.getGuidance();
+        System.out.println(guidance);
         Integer user = getUserIdFromSession(session);
-        contentService.updateGuidanceById(id, guidance, user);
-        return new JsonResult<>(OK);
+        contentService.updateGuidanceById(contentId, guidance, user);
+        contentService.contentCompletionUpdate(5,contentId,user);
+        Content content = contentService.findById(contentId);
+        return new JsonResult<>(OK,content);
     }
 
     /**

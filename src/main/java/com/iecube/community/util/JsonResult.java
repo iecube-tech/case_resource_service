@@ -9,6 +9,9 @@ public class JsonResult<E> implements Serializable {
     //响应的状态码
     private Integer state;
 
+    //wangEditor响应码
+    private Integer errno;
+
     //响应的描述信息
     private String message;
 
@@ -31,6 +34,13 @@ public class JsonResult<E> implements Serializable {
         this.data = data;
     }
 
+    public JsonResult(Integer state, Integer errno, E data) {
+        this.state = state;
+        this.errno=errno;
+        this.data = data;
+    }
+
+
     public Integer getState() {
         return state;
     }
@@ -38,6 +48,10 @@ public class JsonResult<E> implements Serializable {
     public void setState(Integer state) {
         this.state = state;
     }
+
+    public void setErrno(Integer errno) {this.errno=errno;}
+
+    public Integer getErrno() {return errno;}
 
     public String getMessage() {
         return message;

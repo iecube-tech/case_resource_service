@@ -138,6 +138,9 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     public Resource UploadImage(MultipartFile file, Integer creator) throws IOException{
 //        System.out.println(file);
+        if(file==null){
+            throw new FileEmptyException("文件为空");
+        }
         if (file.isEmpty()){
             throw new FileEmptyException("文件为空");
         }
