@@ -240,8 +240,15 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public List<Content> findByTeacherId(Integer teacherId) {
         List<Content> contents = contentMapper.findByTeacherId(teacherId);
+        List<Content> teacherCreate = contentMapper.getTeacherCreate(teacherId);
+        for(Content c:teacherCreate){
+            if(c.getCompletion()<6){
+                teacherCreate.remove(c);
+            }
+        }
+        contents.addAll(teacherCreate);
         if (contents.size()==0){
-            throw new ContentNotFoundException("未找到数据");
+            throw new ContentNotFoundException("您还没有可用案例");
         }
         return contents;
     }

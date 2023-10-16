@@ -101,7 +101,7 @@
     </delete>
 
     <select id="findAll" resultMap="ContentEntity">
-        SELECT id, name, cover, introduction FROM solution_or_case
+        SELECT id, name, cover, introduction FROM solution_or_case WHERE completion=10
     </select>
 
     <select id="findByTeacherId" resultMap="ContentEntity">
