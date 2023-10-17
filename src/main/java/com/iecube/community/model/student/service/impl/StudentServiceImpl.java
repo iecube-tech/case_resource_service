@@ -323,6 +323,13 @@ public class StudentServiceImpl implements StudentService {
         this.sendEmail(toSendEmail);
     }
 
+    @Override
+    public void deleteStudentById(List<Integer> studentIds) {
+        for(Integer id : studentIds){
+            studentMapper.deleteStudent(id);
+        }
+    }
+
     @Async
     public void sendEmail(List<EmailParams> list){
         emailSender.batchSend(list);

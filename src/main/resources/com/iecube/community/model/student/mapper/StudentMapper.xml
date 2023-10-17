@@ -34,7 +34,7 @@
                class_and_grade.name as student_class, Major.name as major, Collage.name as collage
         FROM ((Student INNER JOIN Major ON Student.major_id=Major.id) INNER JOIN Collage ON Major.collage_id=Collage.id)
                  INNER JOIN class_and_grade ON class_and_grade.id=Student.student_class
-        WHERE Student.creator=#{teacherId}
+        WHERE Student.creator=#{teacherId} AND Student.status=1
         ORDER BY Student.student_id
         LIMIT #{page},#{pageSize}
     </select>
@@ -48,8 +48,9 @@
         ORDER BY Student.student_id
     </select>
 
-    <delete id="delete">
-    </delete>
+    <update id="deleteStudent">
+        UPDATE Student SET status=0 WHERE id=#{id}
+    </update>
 
     <select id="getById" resultMap="StudentDto">
         SELECT Student.id, Student.email, Student.student_id, Student.student_name,class_and_grade.grade as student_grade,
@@ -76,7 +77,7 @@
     </select>
 
     <select id="studentsNum" resultType="java.lang.Integer">
-        SELECT COUNT(id) FROM Student WHERE creator=#{teacherId} ;
+        SELECT COUNT(id) FROM Student WHERE creator=#{teacherId} AND status=1;
     </select>
 
 </mapper>

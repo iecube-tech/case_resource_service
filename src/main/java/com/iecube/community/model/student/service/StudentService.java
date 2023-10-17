@@ -23,4 +23,6 @@ public interface StudentService {
     void addStudent(AddStudentQo addStudentQo, Integer teacherId);
 
     void importByExcel(InputStream in, Integer teacherId);
+
+    void deleteStudentById(List<Integer> studentIds);
 }

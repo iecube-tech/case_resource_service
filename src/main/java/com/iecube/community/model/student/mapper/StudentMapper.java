@@ -21,6 +21,8 @@ public interface StudentMapper {
 
     Integer addStudent(AddStudentDto addStudentDto);
 
+    Integer deleteStudent(Integer id);
+
     List<StudentDto> findStudentsLimitByTeacher(Integer teacherId, Integer page, Integer pageSize);
 
     Integer studentsNum(Integer teacherId);

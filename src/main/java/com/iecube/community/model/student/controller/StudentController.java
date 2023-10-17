@@ -3,6 +3,7 @@ package com.iecube.community.model.student.controller;
 import com.iecube.community.basecontroller.student.StudentBaseController;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.qo.AddStudentQo;
+import com.iecube.community.model.student.qo.DeleteQo;
 import com.iecube.community.model.student.service.StudentService;
 import com.iecube.community.model.teacher.qo.ChangePassword;
 import com.iecube.community.util.DownloadUtil;
@@ -111,6 +112,14 @@ public class StudentController extends StudentBaseController {
         studentService.changePassword(studentId, changePassword.getOldPassword(), changePassword.getNewPassword());
         log.info("{} changePassword",studentId);
         return new JsonResult<>(OK);
+    }
+
+    @PostMapping("/delete")
+    public JsonResult<List> deleteStudent(@RequestBody DeleteQo deleteQo, HttpSession session){
+        studentService.deleteStudentById(deleteQo.getStudentIds());
+        Integer teacherId = getUserIdFromSession(session);
+        List<StudentDto> students = studentService.findAllInStatusByTeacher(teacherId);
+        return new JsonResult<>(OK, students);
     }
 
 
