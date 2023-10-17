@@ -79,7 +79,7 @@
     </update>
 
     <select id="getTeacherCreate" resultMap="ContentEntity">
-        SELECT * FROM solution_or_case WHERE creator_type='teacher' AND creator=#{teacherId}
+        SELECT * FROM solution_or_case WHERE creator_type='teacher' AND creator=#{teacherId} AND is_delete=0
     </select>
 
     <select id="findById" resultMap="ContentEntity">
