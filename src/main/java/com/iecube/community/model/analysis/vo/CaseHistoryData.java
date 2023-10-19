@@ -10,13 +10,13 @@ import java.util.List;
 
 @Data
 public class CaseHistoryData {
-    Integer numberOfParticipant;
-    Integer numberOfCompleter;
-    double historyAverageGrade;
-    List<TaskAverage> TaskAverages;
-    List<TaskMedian> TaskMedians;
+    Integer numberOfParticipant;  //参与人数
+    Integer numberOfCompleter;  // 完成人数
+    double historyAverageGrade; //案例的平均分数
+    List<TaskAverage> TaskAverages; // 任务平均分数
+    List<TaskMedian> TaskMedians; // 历史任务的中位数
 //    List<ProjectTaskStudentsTags> projectTaskStudentsTagsList;
-    List<TaskTagCount> taskTagCountList;
-    List<ListCounter.Occurrence> tagsCount;
+    List<TaskTagCount> taskTagCountList; // 任务的的tag点统计列表
+    List<ListCounter.Occurrence> tagsCount; // tag计数
 
 }

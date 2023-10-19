@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.analysis.mapper.AnalysisMapper">
+
+    <resultMap id="Tag" type="com.iecube.community.model.analysis.vo.TagCountVo">
+        <result column="task_num" property="taskNum"></result>
+    </resultMap>
+
+    <select id="getProjectNumByCase" resultType="java.lang.Integer">
+        SELECT count(id) FROM `project` WHERE case_id=#{caseId}
+    </select>
+
+    <select id="getProjectIdListByCaseId" resultType="java.lang.Integer">
+        SELECT id FROM `project` WHERE case_id=#{caseId}
+    </select>
+
+    <select id="getStudentIdListByProjectId" resultType="java.lang.Integer">
+        SELECT student_id FROM project_student WHERE project_id=#{projectId}
+    </select>
+
+    <select id="getProjectStudentScoreList" resultType="java.lang.Integer">
+        SELECT grade FROM project_student WHERE project_id=#{projectId}
+    </select>
+    
+    <select id="getTaskTemplateNumListByCase" resultType="java.lang.Integer">
+        SELECT num FROM task_templates WHERE content_id=#{caseId} ORDER BY num
+    </select>
+
+    <select id="getTaskIdByProjectAndTaskNum" resultType="java.lang.Integer">
+        SELECT id FROM task WHERE project_id=#{projectId} AND num=#{taskNum}
+    </select>
+
+    <select id="getATaskScoreListByTaskId" resultType="java.lang.Integer">
+        SELECT grade FROM project_task_student WHERE task_id=#{taskId}
+    </select>
+
+    <select id="getPSTIdListByProject" resultType="java.lang.Integer">
+        SELECT id FROM project_task_student WHERE project_id=#{projectId}
+    </select>
+
+    <select id="getTagIdListByPSTId" resultType="java.lang.Integer">
+        SELECT tag_id FROM tag_pst WHERE pst_id=#{pstId}
+    </select>
+
+    <select id="getTagName" resultType="java.lang.String">
+        SELECT name FROM tag WHERE id=#{tagId}
+    </select>
+
+    <select id="getTagSuggestion" resultType="java.lang.String">
+        SELECT suggestion FROM tag WHERE id=#{tagId}
+    </select>
+
+    <select id="getTaskNumByTag" resultType="java.lang.Integer">
+        SELECT task_num FROM tag WHERE id=#{tagId}
+    </select>
+</mapper>

@@ -1,24 +1,26 @@
 package com.iecube.community.model.analysis.service.Impl;
 
 import com.iecube.community.model.analysis.dto.*;
+import com.iecube.community.model.analysis.mapper.AnalysisMapper;
 import com.iecube.community.model.analysis.service.AnalysisService;
 import com.iecube.community.model.analysis.service.ex.NoneOfTheProjectsUnderTheCaseHaveBeenCompleted;
 import com.iecube.community.model.analysis.vo.CaseHistoryData;
 import com.iecube.community.model.analysis.vo.CurrentProjectData;
+import com.iecube.community.model.analysis.vo.ScoreDistributionHistogram;
+import com.iecube.community.model.analysis.vo.TagCountVo;
 import com.iecube.community.model.project.entity.Project;
 import com.iecube.community.model.project.entity.ProjectStudentVo;
 import com.iecube.community.model.project.mapper.ProjectMapper;
 import com.iecube.community.model.tag.entity.Tag;
 import com.iecube.community.model.task.entity.StudentTaskDetailVo;
 import com.iecube.community.model.task.service.TaskService;
+import com.iecube.community.util.ListArrayDeduplication;
 import com.iecube.community.util.ListCounter;
 import com.iecube.community.util.QuickSort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class AnalysisServiceImpl implements AnalysisService {
@@ -28,6 +30,9 @@ public class AnalysisServiceImpl implements AnalysisService {
 
     @Autowired
     private TaskService taskService;
+
+    @Autowired
+    private AnalysisMapper analysisMapper;
 
     @Override
     public CurrentProjectData getCurrentProjectData(Integer projectId) {
@@ -206,6 +211,112 @@ public class AnalysisServiceImpl implements AnalysisService {
             }
         }
         return getAverage(grades);
+    }
+
+    @Override
+    public Integer projectNumByCase(Integer caseId) {
+        analysisMapper.getProjectNumByCase(caseId);
+        return null;
+    }
+
+    @Override
+    public Integer studentNumByCase(Integer caseId) {
+        List <Integer> projectList = analysisMapper.getProjectIdListByCaseId(caseId);
+        List<Integer> students = new ArrayList<>();
+        //可能一个case老师创建了多个project并添加了相同的学生
+        for(Integer id: projectList){
+            List<Integer> student = analysisMapper.getStudentIdListByProjectId(id);
+            students.addAll(student);
+        }
+        // 需要对学生ID列表去重
+        List<Integer> s = ListArrayDeduplication.removeDuplicates(students);
+        return s.size();
+    }
+
+    @Override
+    public ScoreDistributionHistogram ScoreDistributionHistogramOfCase(Integer caseId) {
+        List <Integer> projectList = analysisMapper.getProjectIdListByCaseId(caseId);
+        List<Integer> allScores = new ArrayList<>();
+        for(Integer id: projectList){
+            List<Integer> scoreList = analysisMapper.getProjectStudentScoreList(id);
+            allScores.addAll(scoreList);
+        }
+        ScoreDistributionHistogram scoreDistributionHistogram =  this.GenerateScoreDistributionHistogram(allScores);
+        return scoreDistributionHistogram;
+    }
+
+    private ScoreDistributionHistogram GenerateScoreDistributionHistogram(List<Integer> list){
+        ScoreDistributionHistogram scoreDistributionHistogram = new ScoreDistributionHistogram();
+        List<String> x = Arrays.asList("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80-89", "90-100");
+        scoreDistributionHistogram.setX(x);
+        List<Integer> y = new ArrayList<>(10);
+        for (int i = 0; i < 10; i++) {
+            y.add(0); //将y中每个元素置0
+        }
+        list.removeIf(Objects::isNull);
+        System.out.println(list);
+        for (Integer num : list) {
+            int index = (num == 100) ? 9 : num / 10; // 确定在哪个范围内
+            y.set(index, y.get(index) + 1); // 更新对应范围的数量
+        }
+        scoreDistributionHistogram.setY(y);
+        return scoreDistributionHistogram;
+    }
+
+    @Override
+    public List<ScoreDistributionHistogram> ScoreDistributionHistogramOfCaseEveryTask(Integer caseId) {
+        // 该案例创建的所有的project
+        List <Integer> projectList = analysisMapper.getProjectIdListByCaseId(caseId);
+        // 该案例下的任务模板的数量 按顺序排列的任务编号
+        List<Integer> taskNumListOfThisCase = analysisMapper.getTaskTemplateNumListByCase(caseId);
+        List<List> allOfScoreList=new ArrayList<>();
+        for(Integer num: taskNumListOfThisCase){
+            // 任务1
+            List<Integer> scoreListOfTaskNum = new ArrayList<>();
+            for(Integer projectId: projectList){
+                Integer taskId = analysisMapper.getTaskIdByProjectAndTaskNum(projectId,num);
+                List<Integer> thisProjectTaskNumScoreList=analysisMapper.getATaskScoreListByTaskId(taskId);
+                scoreListOfTaskNum.addAll(thisProjectTaskNumScoreList);
+            }
+            allOfScoreList.add(scoreListOfTaskNum);
+        }
+        List<ScoreDistributionHistogram> scoreDistributionHistogramList = new ArrayList<>();
+        for(List<Integer> scoreList : allOfScoreList){
+            ScoreDistributionHistogram scoreDistributionHistogram = this.GenerateScoreDistributionHistogram(scoreList);
+            scoreDistributionHistogramList.add(scoreDistributionHistogram);
+        }
+        return scoreDistributionHistogramList;
+    }
+
+    @Override
+    public List<TagCountVo> tagCounterOfCase(Integer caseId) {
+        List<Integer> projectList = analysisMapper.getProjectIdListByCaseId(caseId);
+        List<Integer> tagListOfThisCase = new ArrayList<>();
+        for(Integer projectId : projectList) {
+            List<Integer> PSTIdList=analysisMapper.getPSTIdListByProject(projectId);
+            for (Integer pstId : PSTIdList){
+                List<Integer> tagListOfThisPST = analysisMapper.getTagIdListByPSTId(pstId);
+                tagListOfThisCase.addAll(tagListOfThisPST);
+            }
+        }
+
+        Map<Integer, Integer> countMap = new HashMap<>();
+
+        for (Integer num : tagListOfThisCase) {
+            countMap.put(num, countMap.getOrDefault(num, 0) + 1);
+        }
+        List<Map.Entry<Integer, Integer>> countList = new ArrayList<>(countMap.entrySet());
+        List<TagCountVo> tagCountVoList = new ArrayList<>();
+        for (Map.Entry<Integer, Integer>  entry: countList ){
+            TagCountVo tagCountVo = new TagCountVo();
+            tagCountVo.setId(entry.getKey());
+            tagCountVo.setTimes(entry.getValue());
+            tagCountVo.setName(analysisMapper.getTagName(entry.getKey()));
+            tagCountVo.setTaskNum(analysisMapper.getTaskNumByTag(entry.getKey()));
+            tagCountVo.setSuggestion(analysisMapper.getTagSuggestion(entry.getKey()));
+            tagCountVoList.add(tagCountVo);
+        }
+        return tagCountVoList;
     }
 
     public double sameCaseAllProjectsAverageGrade(List<Project> list){

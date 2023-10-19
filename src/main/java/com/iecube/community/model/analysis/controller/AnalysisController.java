@@ -30,4 +30,9 @@ public class AnalysisController extends AnalysisBaseController {
         return new JsonResult<>(OK, caseHistoryData);
     }
 
+    /**
+     * 案例创建了多少project
+     * 根据该案例创建的project总共有多少学生
+     */
+
 }

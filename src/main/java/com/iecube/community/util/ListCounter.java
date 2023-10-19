@@ -1,5 +1,7 @@
 package com.iecube.community.util;
 
+import com.iecube.community.model.tag.entity.Tag;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
