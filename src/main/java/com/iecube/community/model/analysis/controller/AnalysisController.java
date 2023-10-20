@@ -2,6 +2,7 @@ package com.iecube.community.model.analysis.controller;
 
 import com.iecube.community.basecontroller.analysis.AnalysisBaseController;
 import com.iecube.community.model.analysis.service.AnalysisService;
+import com.iecube.community.model.analysis.vo.CaseAnalysis;
 import com.iecube.community.model.analysis.vo.CaseHistoryData;
 import com.iecube.community.model.analysis.vo.CurrentProjectData;
 import com.iecube.community.util.JsonResult;
@@ -34,5 +35,10 @@ public class AnalysisController extends AnalysisBaseController {
      * 案例创建了多少project
      * 根据该案例创建的project总共有多少学生
      */
+    @GetMapping()
+    public JsonResult<CaseAnalysis> caseAnalysis(Integer caseId){
+        CaseAnalysis caseAnalysis = analysisService.getCaseAnalysis(caseId);
+        return new JsonResult<>(OK,caseAnalysis);
+    }
 
 }

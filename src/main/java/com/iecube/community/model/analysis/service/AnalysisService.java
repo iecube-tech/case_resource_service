@@ -1,10 +1,7 @@
 package com.iecube.community.model.analysis.service;
 
 import com.iecube.community.model.analysis.dto.ProjectDate;
-import com.iecube.community.model.analysis.vo.CaseHistoryData;
-import com.iecube.community.model.analysis.vo.CurrentProjectData;
-import com.iecube.community.model.analysis.vo.ScoreDistributionHistogram;
-import com.iecube.community.model.analysis.vo.TagCountVo;
+import com.iecube.community.model.analysis.vo.*;
 import com.iecube.community.util.ListCounter;
 
 import java.util.List;
@@ -30,6 +27,8 @@ public interface AnalysisService {
 
 //    case 下的改进建议列表 计数每一个
     List<TagCountVo>  tagCounterOfCase(Integer caseId);
+
+    CaseAnalysis getCaseAnalysis(Integer caseId);
 
 }
 

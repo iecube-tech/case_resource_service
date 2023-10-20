@@ -4,10 +4,7 @@ import com.iecube.community.model.analysis.dto.*;
 import com.iecube.community.model.analysis.mapper.AnalysisMapper;
 import com.iecube.community.model.analysis.service.AnalysisService;
 import com.iecube.community.model.analysis.service.ex.NoneOfTheProjectsUnderTheCaseHaveBeenCompleted;
-import com.iecube.community.model.analysis.vo.CaseHistoryData;
-import com.iecube.community.model.analysis.vo.CurrentProjectData;
-import com.iecube.community.model.analysis.vo.ScoreDistributionHistogram;
-import com.iecube.community.model.analysis.vo.TagCountVo;
+import com.iecube.community.model.analysis.vo.*;
 import com.iecube.community.model.project.entity.Project;
 import com.iecube.community.model.project.entity.ProjectStudentVo;
 import com.iecube.community.model.project.mapper.ProjectMapper;
@@ -213,12 +210,22 @@ public class AnalysisServiceImpl implements AnalysisService {
         return getAverage(grades);
     }
 
+    /**
+     * 有多少project使用该case
+     * @param caseId
+     * @return
+     */
     @Override
     public Integer projectNumByCase(Integer caseId) {
-        analysisMapper.getProjectNumByCase(caseId);
-        return null;
+        Integer num =  analysisMapper.getProjectNumByCase(caseId);
+        return num;
     }
 
+    /**
+     * 有多少学生参与了这个case
+     * @param caseId
+     * @return
+     */
     @Override
     public Integer studentNumByCase(Integer caseId) {
         List <Integer> projectList = analysisMapper.getProjectIdListByCaseId(caseId);
@@ -233,6 +240,11 @@ public class AnalysisServiceImpl implements AnalysisService {
         return s.size();
     }
 
+    /**
+     * 参与该case的所有人的成绩分布直方图
+     * @param caseId
+     * @return
+     */
     @Override
     public ScoreDistributionHistogram ScoreDistributionHistogramOfCase(Integer caseId) {
         List <Integer> projectList = analysisMapper.getProjectIdListByCaseId(caseId);
@@ -245,6 +257,11 @@ public class AnalysisServiceImpl implements AnalysisService {
         return scoreDistributionHistogram;
     }
 
+    /**
+     * 生成成绩分布直方图
+     * @param list 成绩列表
+     * @return 直方图数据
+     */
     private ScoreDistributionHistogram GenerateScoreDistributionHistogram(List<Integer> list){
         ScoreDistributionHistogram scoreDistributionHistogram = new ScoreDistributionHistogram();
         List<String> x = Arrays.asList("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80-89", "90-100");
@@ -263,6 +280,11 @@ public class AnalysisServiceImpl implements AnalysisService {
         return scoreDistributionHistogram;
     }
 
+    /**
+     *  案例的每一个任务的所有参与人的成绩分布直方图
+     * @param caseId
+     * @return
+     */
     @Override
     public List<ScoreDistributionHistogram> ScoreDistributionHistogramOfCaseEveryTask(Integer caseId) {
         // 该案例创建的所有的project
@@ -288,6 +310,11 @@ public class AnalysisServiceImpl implements AnalysisService {
         return scoreDistributionHistogramList;
     }
 
+    /**
+     * 案例下被评价给学生的所有的tag点的统计信息
+     * @param caseId
+     * @return
+     */
     @Override
     public List<TagCountVo> tagCounterOfCase(Integer caseId) {
         List<Integer> projectList = analysisMapper.getProjectIdListByCaseId(caseId);
@@ -317,6 +344,27 @@ public class AnalysisServiceImpl implements AnalysisService {
             tagCountVoList.add(tagCountVo);
         }
         return tagCountVoList;
+    }
+
+    /**
+     * 直接获取案例的全部数据
+     * @param caseId
+     * @return
+     */
+    @Override
+    public CaseAnalysis getCaseAnalysis(Integer caseId) {
+        CaseAnalysis caseAnalysis = new CaseAnalysis();
+        Integer usedNum = this.projectNumByCase(caseId);
+        Integer studentNum = this.studentNumByCase(caseId);
+        ScoreDistributionHistogram scoreDistributionHistogram = this.ScoreDistributionHistogramOfCase(caseId);
+        List<ScoreDistributionHistogram> scoreDistributionHistogramList = this.ScoreDistributionHistogramOfCaseEveryTask(caseId);
+        List<TagCountVo> tagCountVoList = this.tagCounterOfCase(caseId);
+        caseAnalysis.setUsedTime(usedNum);
+        caseAnalysis.setNumberOfParticipant(studentNum);
+        caseAnalysis.setScoreDistributionHistogram(scoreDistributionHistogram);
+        caseAnalysis.setCaseTaskScoreDistributionHistogram(scoreDistributionHistogramList);
+        caseAnalysis.setTagCounterOfCase(tagCountVoList);
+        return caseAnalysis;
     }
 
     public double sameCaseAllProjectsAverageGrade(List<Project> list){
