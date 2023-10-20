@@ -264,7 +264,7 @@ public class AnalysisServiceImpl implements AnalysisService {
      */
     private ScoreDistributionHistogram GenerateScoreDistributionHistogram(List<Integer> list){
         ScoreDistributionHistogram scoreDistributionHistogram = new ScoreDistributionHistogram();
-        List<String> x = Arrays.asList("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80-89", "90-100");
+        List<String> x = Arrays.asList("<50", "50-59", "60-69", "70-79", "80-89", ">90");
         scoreDistributionHistogram.setX(x);
         List<Integer> y = new ArrayList<>(10);
         for (int i = 0; i < 10; i++) {
@@ -273,7 +273,10 @@ public class AnalysisServiceImpl implements AnalysisService {
         list.removeIf(Objects::isNull);
         System.out.println(list);
         for (Integer num : list) {
-            int index = (num == 100) ? 9 : num / 10; // 确定在哪个范围内
+            int index=0;
+            if(num/10 >= 5) {
+                index = ((num == 100) ? 9 : num / 10) - 4; // 确定在哪个范围内
+            }
             y.set(index, y.get(index) + 1); // 更新对应范围的数量
         }
         scoreDistributionHistogram.setY(y);
