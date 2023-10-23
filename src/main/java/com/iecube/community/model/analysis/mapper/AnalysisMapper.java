@@ -33,4 +33,7 @@ public interface AnalysisMapper {
 
     Integer getTaskNumByTag(Integer tagNum);
 
+    Integer getProjectStudentNum(Integer projectId);
+
+    List<Integer> getTaskListByProject(Integer projectId);
 }

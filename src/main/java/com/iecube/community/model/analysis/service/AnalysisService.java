@@ -28,7 +28,10 @@ public interface AnalysisService {
 //    case 下的改进建议列表 计数每一个
     List<TagCountVo>  tagCounterOfCase(Integer caseId);
 
+    //一个案例的数据统计
     CaseAnalysis getCaseAnalysis(Integer caseId);
+
+    CaseAnalysis getProjectAnalysis(Integer projectId);
 
 }
 

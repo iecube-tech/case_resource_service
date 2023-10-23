@@ -42,6 +42,12 @@ public class ProjectController extends ProjectBaseController {
         return new JsonResult<>(OK, myProjects);
     }
 
+    @GetMapping("/teacher_project")
+    public JsonResult<List> myProject(Integer teacherId){
+        List<Project> myProjects = projectService.myProject(teacherId);
+        return new JsonResult<>(OK, myProjects);
+    }
+
     @GetMapping("/detail")
     public JsonResult<List> projectDetail(Integer projectId){
         List<ProjectStudentVo> students = projectService.projectStudentAndStudentTasks(projectId);

@@ -44,4 +44,10 @@ public class AnalysisController extends AnalysisBaseController {
         return new JsonResult<>(OK,caseAnalysis);
     }
 
+    @GetMapping("/project_analysis")
+    public JsonResult<CaseAnalysis> caseAnalysisJsonResult(Integer projectId){
+        CaseAnalysis projectAnalysis = analysisService.getProjectAnalysis(projectId);
+        return new JsonResult<>(OK, projectAnalysis);
+    }
+
 }

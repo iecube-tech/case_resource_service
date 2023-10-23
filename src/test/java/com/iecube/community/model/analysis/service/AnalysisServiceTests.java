@@ -70,4 +70,9 @@ public class AnalysisServiceTests {
     public void tagCounterOfCase(){
         System.out.println(analysisService.tagCounterOfCase(2));
     }
+
+    @Test
+    public void getProjectAnalysis(){
+        System.out.println(analysisService.getProjectAnalysis(12));
+    }
 }

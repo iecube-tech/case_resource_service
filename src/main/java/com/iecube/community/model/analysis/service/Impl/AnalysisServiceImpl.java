@@ -271,7 +271,7 @@ public class AnalysisServiceImpl implements AnalysisService {
             y.add(0); //将y中每个元素置0
         }
         list.removeIf(Objects::isNull);
-        System.out.println(list);
+//        System.out.println(list);
         for (Integer num : list) {
             int index=0;
             if(num/10 >= 5) {
@@ -368,6 +368,49 @@ public class AnalysisServiceImpl implements AnalysisService {
         caseAnalysis.setCaseTaskScoreDistributionHistogram(scoreDistributionHistogramList);
         caseAnalysis.setTagCounterOfCase(tagCountVoList);
         return caseAnalysis;
+    }
+
+    @Override
+    public CaseAnalysis getProjectAnalysis(Integer projectId) {
+        CaseAnalysis projectAnalysis =  new CaseAnalysis();
+        Integer studentInProject = analysisMapper.getProjectStudentNum(projectId);
+        projectAnalysis.setNumberOfParticipant(studentInProject);
+        List<Integer> projectScoreList = analysisMapper.getProjectStudentScoreList(projectId);
+        ScoreDistributionHistogram scoreDistributionHistogram = GenerateScoreDistributionHistogram(projectScoreList);
+        projectAnalysis.setScoreDistributionHistogram(scoreDistributionHistogram);
+        List<ScoreDistributionHistogram> taskScoreDistributionHistogramList = new ArrayList<>();
+        List<Integer> tasks = analysisMapper.getTaskListByProject(projectId);
+        for(Integer task : tasks){
+            List<Integer> scores = analysisMapper.getATaskScoreListByTaskId(task);
+            ScoreDistributionHistogram taskScoreDistributionHistogram = GenerateScoreDistributionHistogram(scores);
+            taskScoreDistributionHistogramList.add(taskScoreDistributionHistogram);
+        }
+        projectAnalysis.setCaseTaskScoreDistributionHistogram(taskScoreDistributionHistogramList);
+        List<Integer> PSTIdList=analysisMapper.getPSTIdListByProject(projectId);
+        List<Integer> thisProjectTags= new ArrayList<>();
+        for (Integer pstId : PSTIdList){
+            List<Integer> tagListOfThisPST = analysisMapper.getTagIdListByPSTId(pstId);
+            thisProjectTags.addAll(tagListOfThisPST);
+        }
+        Map<Integer, Integer> countMap = new HashMap<>();
+
+        for (Integer num : thisProjectTags) {
+            countMap.put(num, countMap.getOrDefault(num, 0) + 1);
+        }
+        List<Map.Entry<Integer, Integer>> countList = new ArrayList<>(countMap.entrySet());
+        List<TagCountVo> tagCountVoList = new ArrayList<>();
+        for (Map.Entry<Integer, Integer>  entry: countList ){
+            TagCountVo tagCountVo = new TagCountVo();
+            tagCountVo.setId(entry.getKey());
+            tagCountVo.setTimes(entry.getValue());
+            tagCountVo.setName(analysisMapper.getTagName(entry.getKey()));
+            tagCountVo.setTaskNum(analysisMapper.getTaskNumByTag(entry.getKey()));
+            tagCountVo.setSuggestion(analysisMapper.getTagSuggestion(entry.getKey()));
+            tagCountVoList.add(tagCountVo);
+        }
+        projectAnalysis.setTagCounterOfCase(tagCountVoList);
+
+        return projectAnalysis;
     }
 
     public double sameCaseAllProjectsAverageGrade(List<Project> list){

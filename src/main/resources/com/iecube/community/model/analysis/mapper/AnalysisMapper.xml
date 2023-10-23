@@ -56,4 +56,12 @@
     <select id="getTaskNumByTag" resultType="java.lang.Integer">
         SELECT task_num FROM tag WHERE id=#{tagId}
     </select>
+
+    <select id="getProjectStudentNum" resultType="java.lang.Integer">
+        SELECT count(id) FROM `project_student` WHERE project_id=#{projectId}
+    </select>
+
+    <select id="getTaskListByProject" resultType="java.lang.Integer">
+        SELECT id FROM task WHERE project_id=#{projectId} ORDER BY num;
+    </select>
 </mapper>
