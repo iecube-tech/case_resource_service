@@ -25,7 +25,15 @@ public interface ContentService {
 
     void contentDeletePkg(Integer id, Integer pkgId);
     List<Content> getTeacherCreate(Integer teacherId);
+
+    List<Content> getAdminCreate(Integer adminId);
+
+    List<Content> needCheck();
+
+    void check(Integer id, Integer adminId);
+
     Content findById(Integer id);
+
     String findGuidanceById(Integer id);
 
     void updateGuidanceById(Integer id, String guidance, Integer lastModifiedUser);

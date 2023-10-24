@@ -49,7 +49,7 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public Integer addContent(Content content, String userType, Integer lastModifiedUser) {
         content.setParentId(1);
-        content.setCompletion(1);
+        content.setCompletion(0);
         content.setIsDelete(0);
         content.setCreatorType(userType);
         content.setCreator(lastModifiedUser);
@@ -69,7 +69,7 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public void contentUpdateCover(Integer contentId, Resource resource, Integer lastModifiedUser) {
         Content content = this.findById(contentId);
-        if(content.getCover() != null){
+        if(content.getCover() != null && !content.getCover().isEmpty()){
             // 删除原先的cover
             resourceService.deleteResource(content.getCover());
         }
@@ -160,6 +160,23 @@ public class ContentServiceImpl implements ContentService {
     public List<Content> getTeacherCreate(Integer teacherId) {
         List<Content> contents = contentMapper.getTeacherCreate(teacherId);
         return contents;
+    }
+
+    @Override
+    public List<Content> getAdminCreate(Integer adminId) {
+        List<Content> contents = contentMapper.getAdminCreate(adminId);
+        return contents;
+    }
+
+    @Override
+    public List<Content> needCheck() {
+        List<Content> contents = contentMapper.needCheck();
+        return contents;
+    }
+
+    @Override
+    public void check(Integer id, Integer adminId) {
+        contentMapper.check(id,adminId,new Date());
     }
 
     @Override

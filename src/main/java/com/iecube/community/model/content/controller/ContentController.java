@@ -54,8 +54,11 @@ public class ContentController extends ContentBaseController {
      * @return
      */
     @PostMapping("/update")
-    public JsonResult<Content> updateContent(Content content, HttpSession session){
+    public JsonResult<Content> updateContent(@RequestBody Content content, HttpSession session){
+        System.out.println(content);
         Integer modifiedUser = getUserIdFromSession(session);
+        String modifyType = getUserTypeFromSession(session);
+        content.setCreatorType(modifyType);
         contentService.updateContent(content, modifiedUser);
         contentService.contentCompletionUpdate(0,content.getId(),modifiedUser);
         Content c = contentService.findById(content.getId());
@@ -216,6 +219,27 @@ public class ContentController extends ContentBaseController {
         List<Content> contents = contentService.getTeacherCreate(teacherId);
         return new JsonResult<>(OK, contents);
     }
+
+    @GetMapping("/admin_create")
+    public JsonResult<List> getAdminCreate(HttpSession session){
+        Integer adminId = getUserIdFromSession(session);
+        List<Content> contents = contentService.getAdminCreate(adminId);
+        return new JsonResult<>(OK, contents);
+    }
+
+    @GetMapping("/need_check")
+    public JsonResult<List> needCheck(HttpSession session){
+        List<Content> contents = contentService.needCheck();
+        return new JsonResult<>(OK, contents);
+    }
+
+    @GetMapping("/check")
+    public JsonResult<Void> check(Integer contentId, HttpSession session){
+        Integer adminId = getUserIdFromSession(session);
+        contentService.check(contentId,adminId);
+        return new JsonResult<>(OK);
+    }
+
 
     @GetMapping("/by_id")
     public JsonResult<Content> findByID(Integer id){

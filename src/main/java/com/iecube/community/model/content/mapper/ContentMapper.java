@@ -25,6 +25,12 @@ public interface ContentMapper {
 
     List<Content> getTeacherCreate(Integer teacherId);
 
+    List<Content> getAdminCreate(Integer adminId);
+
+    List<Content> needCheck();
+
+    Integer check(Integer id, Integer lastModifiedUser, Date lastModifiedTime);
+
     Content findById(Integer id);
     String findGuidanceById(Integer id);
     List<ResourceVo> findResourcesById(Integer id);

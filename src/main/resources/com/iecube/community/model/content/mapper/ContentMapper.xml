@@ -82,6 +82,21 @@
         SELECT * FROM solution_or_case WHERE creator_type='teacher' AND creator=#{teacherId} AND is_delete=0
     </select>
 
+    <select id="getAdminCreate" resultMap="ContentEntity">
+        SELECT * FROM solution_or_case WHERE creator_type='admin' AND creator=#{teacherId} AND is_delete=0
+    </select>
+
+    <select id="needCheck" resultMap="ContentEntity">
+        SELECT * FROM solution_or_case WHERE completion=6
+    </select>
+
+    <update id="check">
+        UPDATE solution_or_case SET completion=10,
+                                    last_modified_user=#{lastModifiedUser},
+                                    last_modified_time=#{lastModifiedTime}
+        WHERE id=#{id}
+    </update>
+
     <select id="findById" resultMap="ContentEntity">
         SELECT * FROM solution_or_case WHERE id=#{id}
     </select>
