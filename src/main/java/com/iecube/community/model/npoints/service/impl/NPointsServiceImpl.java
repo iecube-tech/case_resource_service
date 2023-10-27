@@ -1,5 +1,6 @@
 package com.iecube.community.model.npoints.service.impl;
 
+import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.npoints.entity.*;
 import com.iecube.community.model.npoints.mapper.NPointsMapper;
 import com.iecube.community.model.npoints.service.NPointsService;
@@ -223,5 +224,13 @@ public class NPointsServiceImpl implements NPointsService {
             moduleConceptVos.add(moduleConceptVo);
         }
         return moduleConceptVos;
+    }
+
+    @Override
+    public void addConcept(ConceptVo conceptVo) {
+        Integer row = nPointsMapper.addConcept(conceptVo);
+        if(row!=1){
+            throw new InsertException("插入数据异常");
+        }
     }
 }

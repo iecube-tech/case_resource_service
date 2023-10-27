@@ -258,9 +258,9 @@ public class ContentServiceImpl implements ContentService {
     public List<Content> findByTeacherId(Integer teacherId) {
         List<Content> contents = contentMapper.findByTeacherId(teacherId);
         List<Content> teacherCreate = contentMapper.getTeacherCreate(teacherId);
-        for(Content c:teacherCreate){
-            if(c.getCompletion()<6){
-                teacherCreate.remove(c);
+        for(int i=0; i<teacherCreate.size(); i++){
+            if(teacherCreate.get(i).getCompletion()<6){
+                teacherCreate.remove(i);
             }
         }
         contents.addAll(teacherCreate);
@@ -290,11 +290,11 @@ public class ContentServiceImpl implements ContentService {
         List<Integer> Subtract = new ArrayList<>();
         Subtract.addAll(oldCases);
         Subtract.removeAll(contentIds);
-        System.out.println("old" + oldCases);
-        System.out.println("cur" +contentIds);
-        System.out.println("sub" + Subtract);
+//        System.out.println("old" + oldCases);
+//        System.out.println("cur" +contentIds);
+//        System.out.println("sub" + Subtract);
         contentIds.removeAll(oldCases);
-        System.out.println("Add" + contentIds);
+//        System.out.println("Add" + contentIds);
         for(Integer i :Subtract){
             contentMapper.teacherSubtractContent(teacherId,i);
         }

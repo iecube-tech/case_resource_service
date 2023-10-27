@@ -25,4 +25,6 @@ public interface NPointsService {
     List<ModuleConceptVo> getAllModuleConcepts();
 
     List<ModuleConceptVo> getModulesByCase(Integer caseId);
+
+    void addConcept(ConceptVo conceptVo);
 }

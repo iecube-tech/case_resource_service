@@ -38,4 +38,6 @@ public interface NPointsMapper {
 
     Integer deleteCaseModule(Integer caseId, Integer moduleId);
     Integer addCaseModule(Integer caseId, Integer moduleId);
+
+    Integer addConcept(ConceptVo conceptVo);
 }

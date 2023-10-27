@@ -132,4 +132,8 @@
     <delete id="deleteCaseModule">
         DELETE FROM module_case WHERE module_id=#{moduleId} AND case_id=#{caseId}
     </delete>
+
+    <insert id="addConcept" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO concept (id,name) VALUES (NUll, #{name})
+    </insert>
 </mapper>

@@ -153,5 +153,9 @@
         UPDATE project_task_student SET grade=#{grade} WHERE id=#{id}
     </update>
 
+    <select id="getProjectTasks" resultMap="TaskVo">
+        SELECT id,task_name,num from task WHERE project_id=#{projectId} ORDER BY num
+    </select>
+
 
 </mapper>

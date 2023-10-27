@@ -439,4 +439,10 @@ public class TaskServiceImpl implements TaskService {
         return taskDetail;
     }
 
+    @Override
+    public List<TaskVo> getProjectTasks(Integer projectId) {
+        List<TaskVo> taskVoList = taskMapper.getProjectTasks(projectId);
+        return taskVoList;
+    }
+
 }

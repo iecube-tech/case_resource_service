@@ -29,4 +29,6 @@ public interface TaskService {
     StudentTaskDetailVo studentSubmitContent(String content, Integer pstId,Integer studentId);
 
     StudentTaskDetailVo studentChangeStatus(Integer pstId);
+
+    List<TaskVo> getProjectTasks(Integer projectId);
 }

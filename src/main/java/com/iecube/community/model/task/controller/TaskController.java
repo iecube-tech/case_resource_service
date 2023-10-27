@@ -3,6 +3,7 @@ package com.iecube.community.model.task.controller;
 import com.iecube.community.basecontroller.task.TaskBaseController;
 import com.iecube.community.model.task.entity.ProjectStudentTaskQo;
 import com.iecube.community.model.task.entity.StudentTaskDetailVo;
+import com.iecube.community.model.task.entity.TaskVo;
 import com.iecube.community.model.task.service.TaskService;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,6 +91,12 @@ public class TaskController extends TaskBaseController {
         Integer studentId= getUserIdFromSession(session);
         StudentTaskDetailVo taskDetail = taskService.studentChangeStatus(pstId);
         return new JsonResult<>(OK, taskDetail);
+    }
+
+    @GetMapping("/project_tasks")
+    public JsonResult<List> getProjectTasks(Integer projectId){
+        List<TaskVo> taskVoList = taskService.getProjectTasks(projectId);
+        return new JsonResult<>(OK,taskVoList);
     }
 
 

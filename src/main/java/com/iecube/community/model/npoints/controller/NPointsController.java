@@ -6,10 +6,7 @@ import com.iecube.community.model.npoints.service.NPointsService;
 import com.iecube.community.model.npoints.vo.*;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import javax.swing.plaf.PanelUI;
@@ -80,6 +77,14 @@ public class NPointsController extends BaseController {
     public JsonResult<List> modulesOfCase(@PathVariable Integer caseId){
         List<ModuleConceptVo> moduleConceptVos = nPointsService.getModulesByCase(caseId);
         return new JsonResult<>(OK,moduleConceptVos);
+    }
+
+    @PostMapping("/add_concept")
+    public JsonResult<List> addConcept(@RequestBody ConceptVo conceptVo){
+        System.out.println(conceptVo);
+        nPointsService.addConcept(conceptVo);
+        List<ConceptVo> allConcepts = nPointsService.getAllConcepts();
+        return new JsonResult<>(OK, allConcepts);
     }
 
 

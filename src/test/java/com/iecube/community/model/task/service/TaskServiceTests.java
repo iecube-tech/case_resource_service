@@ -18,4 +18,9 @@ public class TaskServiceTests {
     public void tasks(){
         System.out.println(taskService.findStudentTaskByProjectId(12,35));
     }
+
+    @Test
+    public void getProjectTasks(){
+        System.out.println(taskService.getProjectTasks(30));
+    }
 }
