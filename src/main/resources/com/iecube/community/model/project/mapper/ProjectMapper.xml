@@ -27,15 +27,20 @@
                    #{startTime}, #{endTime}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
     </insert>
 
-    <delete id="delete">
-    </delete>
+    <update id="delete">
+        UPDATE project SET is_delete=1 WHERE id=#{id}
+    </update>
+
+    <update id="hidden">
+        UPDATE project SET hidden=1 WHERE id=#{id}
+    </update>
 
     <select id="findById" resultMap="ProjectEntity">
         SELECT * FROM project WHERE id=#{id}
     </select>
 
     <select id="findByCreator" resultMap="ProjectEntity">
-        SELECT * FROM project WHERE creator=#{teacher}
+        SELECT * FROM project WHERE creator=#{teacher} AND hidden=0 AND is_delete=0
     </select>
 
 
@@ -54,7 +59,7 @@
         SELECT project.id, project.project_name,project.target,project.introduction,project.introduce,
                project.cover,project.start_time,project.end_time
         FROM project_student INNER JOIN project ON project_student.project_id=project.id
-        WHERE project_student.student_id=#{id};
+        WHERE project_student.student_id=#{id} AND project.is_delete=0
     </select>
 
     <select id="findStudentIdByProjectId" resultType="java.lang.Integer" >

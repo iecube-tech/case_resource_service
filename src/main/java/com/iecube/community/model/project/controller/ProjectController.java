@@ -90,4 +90,16 @@ public class ProjectController extends ProjectBaseController {
         File projectReport = projectService.downloadProjectReport(projectId);
         DownloadUtil.httpDownload(projectReport, response);
     }
+
+    @GetMapping("/delete_project")
+    public JsonResult<Void> deleteProject(Integer projectId){
+        projectService.deleteProject(projectId);
+        return new JsonResult<>(OK);
+    }
+
+    @GetMapping("/hidden_project")
+    public JsonResult<Void> hiddenProject(Integer projectId){
+        projectService.hiddenProject(projectId);
+        return new JsonResult<>(OK);
+    }
 }

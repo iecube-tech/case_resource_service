@@ -11,6 +11,11 @@ import java.util.List;
 public interface ProjectMapper {
     Integer insert(Project project);
     Project findById(Integer id);
+
+    Integer delete(Integer id);
+
+    Integer hidden(Integer id);
+
     Integer addProjectStudent(ProjectStudent pStudent);
     List<Project> findByCreator(Integer teacherId);
     List<ProjectStudentVo> findStudentsByProjectId(Integer projectId);

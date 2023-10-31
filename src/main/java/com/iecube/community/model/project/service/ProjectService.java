@@ -24,4 +24,8 @@ public interface ProjectService {
     File downloadStudentReport(Integer projectId, Integer studentId);
 
     File downloadProjectReport(Integer projectId);
+
+    void deleteProject(Integer projectId);
+
+    void hiddenProject(Integer projectId);
 }

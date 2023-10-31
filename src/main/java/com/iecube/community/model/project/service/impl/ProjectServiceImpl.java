@@ -1,6 +1,7 @@
 package com.iecube.community.model.project.service.impl;
 
 import com.iecube.community.model.auth.service.ex.InsertException;
+import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.content.entity.Content;
 import com.iecube.community.model.tag.service.TagService;
 import com.iecube.community.model.taskTemplate.dto.TaskTemplateDto;
@@ -227,6 +228,22 @@ public class ProjectServiceImpl implements ProjectService {
             return new File(projectReportPath+".zip");
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void deleteProject(Integer projectId) {
+        Integer row = projectMapper.delete(projectId);
+        if(row!= 1){
+            throw new UpdateException("数据更新异常");
+        }
+    }
+
+    @Override
+    public void hiddenProject(Integer projectId) {
+        Integer row = projectMapper.hidden(projectId);
+        if(row!=1){
+            throw new UpdateException("数据更新异常");
         }
     }
 
