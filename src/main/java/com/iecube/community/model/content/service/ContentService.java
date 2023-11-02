@@ -4,6 +4,7 @@ import com.iecube.community.model.content.entity.Content;
 import com.iecube.community.model.content.entity.taskTemplates;
 import com.iecube.community.model.resource.entity.Resource;
 import com.iecube.community.model.resource.entity.ResourceVo;
+import com.iecube.community.model.task.entity.Task;
 import com.iecube.community.model.taskTemplate.dto.TaskTemplateDto;
 
 import java.util.List;
@@ -52,4 +53,6 @@ public interface ContentService {
     List<TaskTemplateDto> findTaskTemplatesByContentId(Integer contentId);
 
     void CaseAccredit(Integer teacherId,List<Integer> contentIds);
+
+    Integer copyOldCaseAsTeacherNewCase(Integer oldCaseId, Integer teacherId, List<Task> taskList);
 }

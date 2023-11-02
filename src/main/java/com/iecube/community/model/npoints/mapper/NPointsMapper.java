@@ -1,5 +1,6 @@
 package com.iecube.community.model.npoints.mapper;
 
+import com.iecube.community.model.npoints.dto.CaseModuleDto;
 import com.iecube.community.model.npoints.entity.*;
 import com.iecube.community.model.npoints.vo.CaseVo;
 import com.iecube.community.model.npoints.vo.ConceptVo;
@@ -40,4 +41,8 @@ public interface NPointsMapper {
     Integer addCaseModule(Integer caseId, Integer moduleId);
 
     Integer addConcept(ConceptVo conceptVo);
+
+    List<CaseModuleDto> getCaseModuleListByCaseId(Integer caseId);
+
+    Integer insertToCaseModule(CaseModuleDto caseModuleDto);
 }

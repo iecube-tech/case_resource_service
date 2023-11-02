@@ -10,12 +10,14 @@ import com.iecube.community.model.content.service.ContentService;
 import com.iecube.community.model.content.service.ex.ContentDidNotDel;
 import com.iecube.community.model.content.service.ex.ContentNotFoundException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
+import com.iecube.community.model.npoints.dto.CaseModuleDto;
 import com.iecube.community.model.npoints.mapper.NPointsMapper;
 import com.iecube.community.model.npoints.service.NPointsService;
 import com.iecube.community.model.npoints.vo.ModuleConceptVo;
 import com.iecube.community.model.resource.entity.Resource;
 import com.iecube.community.model.resource.entity.ResourceVo;
 import com.iecube.community.model.resource.service.ResourceService;
+import com.iecube.community.model.task.entity.Task;
 import com.iecube.community.model.taskTemplate.dto.TaskTemplateDto;
 import com.iecube.community.model.taskTemplate.mapper.TaskTemplateMapper;
 import com.iecube.community.model.taskTemplate.service.TaskTemplateService;
@@ -301,6 +303,42 @@ public class ContentServiceImpl implements ContentService {
         for(Integer i:contentIds){
             contentMapper.teacherAddContent(teacherId,i);
         }
+    }
+
+    /**
+     *
+     * @param oldCaseId
+     * @param teacherId
+     * @param taskList
+     * @return 0 出现异常 创建新案例失败
+     */
+    @Override
+    public Integer copyOldCaseAsTeacherNewCase(Integer oldCaseId, Integer teacherId, List<Task> taskList) {
+        Content oldContent = contentMapper.findById(oldCaseId);
+        oldContent.setId(null);
+        oldContent.setCreatorType("teacher");
+        oldContent.setCreator(teacherId);
+        oldContent.setCreateTime(new Date());
+        oldContent.setLastModifiedUser(teacherId);
+        oldContent.setLastModifiedTime(new Date());
+        Integer row = contentMapper.insert(oldContent);
+        if(row != 1){
+            return 0;
+        }
+        Integer newContentId = oldContent.getId();
+        // 新案例关联知识点
+        List<CaseModuleDto> caseModuleDtoList = nPointsMapper.getCaseModuleListByCaseId(oldCaseId);
+        for(int i=0; i<caseModuleDtoList.size(); i++){
+            caseModuleDtoList.get(i).setCaseId(newContentId);
+            nPointsMapper.insertToCaseModule(caseModuleDtoList.get(i));
+        }
+        // 新案例关联design
+
+        // 新案例关联 新 任务
+
+        // 新案例关联 pkg
+
+        return null;
     }
 
 }

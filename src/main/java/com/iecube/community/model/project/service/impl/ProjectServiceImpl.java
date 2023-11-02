@@ -26,6 +26,7 @@ import com.iecube.community.model.task.entity.Task;
 import com.iecube.community.model.task.entity.TaskVo;
 import com.iecube.community.model.task.mapper.TaskMapper;
 import com.iecube.community.model.task.service.TaskService;
+import com.iecube.community.model.taskTemplate.service.TaskTemplateService;
 import com.iecube.community.util.DeleteFolderUtils;
 import com.iecube.community.util.ZipUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +70,9 @@ public class ProjectServiceImpl implements ProjectService {
     private TaskService taskService;
 
     @Autowired
+    private TaskTemplateService taskTemplateService;
+
+    @Autowired
     private TagMapper tagMapper;
 
     @Autowired
@@ -88,6 +92,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Integer addProject(ProjectDto projectDto, Integer teacherId) {
+//        this.checkProject(projectDto, teacherId);
         Content content = contentService.findById(projectDto.getCaseId());
         // 创建项目
         Project project = new Project();
@@ -139,6 +144,61 @@ public class ProjectServiceImpl implements ProjectService {
         //创建项目tag
         tagService.tagTemplateToTag(projectDto.getCaseId(),projectId,teacherId);
         return projectId;
+    }
+
+    /**
+     * 新增需求， 如果创建project过程中 教师更改了案例的任务列表，那么在后期数据统计分析的过程中该project的数据为无效数据，
+     * 影响整体数据的有效性。为避免该问题，每当有更改原案例的任务的project创建，就从该案例衍生出一个新的案例，为该教师所有
+     * @param projectDto
+     * @param teacherId
+     */
+    private void checkProject(ProjectDto projectDto, Integer teacherId){
+        List<Task> newTasks = projectDto.getTask();
+        List<TaskTemplateDto> oldTask = taskTemplateService.findTaskTemplateByContent(projectDto.getCaseId());
+        System.out.println(newTasks);
+        System.out.println(oldTask);
+        if(newTasks.size()!=oldTask.size()){
+            //new case
+            System.out.println("new case");
+            return;
+        }
+        for(int i=0; i<newTasks.size(); i++){
+            if(newTasks.get(i).getRequirementList().size()!=oldTask.get(i).getRequirementList().size()){
+                //new case
+                System.out.println("new case");
+                return;
+            }
+            for(int j=0; j<newTasks.get(i).getRequirementList().size();j++){
+                if(newTasks.get(i).getRequirementList().get(j).getName() != oldTask.get(i).getRequirementList().get(j).getName()){
+                    //new case
+                    System.out.println("new case");
+                    return;
+                }
+            }
+            if(newTasks.get(i).getDeliverableRequirementList().size()!=oldTask.get(i).getDeliverableRequirementList().size()){
+                //new case
+                System.out.println("new case");
+                return;
+            }
+            for(int j=0; j<newTasks.get(i).getDeliverableRequirementList().size(); i++){
+                if(newTasks.get(i).getDeliverableRequirementList().get(j).getName() != oldTask.get(i).getDeliverableRequirementList().get(j).getName()){
+                    //new case
+                    System.out.println("new case");
+                    return;
+                }
+            }
+        }
+//        return projectDto;
+    }
+
+    /**
+     * 教师更改了案例的原有任务列表，穿件该案例的衍生案例。
+     *  ****设计前预想产生新的问题， 当教师删除掉这个衍生案例后， 已经创建的project是否会有影响。 **重点测试**
+     * @param oldCaseId
+     * @param taskList
+     */
+    private void createNewCase(Integer oldCaseId, List<Task> taskList){
+        //contentService实现
     }
 
     @Override
