@@ -176,7 +176,33 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         two(2, "e6fd432374d147e39bcce187e72bf27c.png"),
         three(3, "efdec9fe617d42ebb9d32097f1cc0f7d.png"),
         four(4, "8063c692d46b410a9577d5b4d995e015.png"),
-        five(5, "093beab33bc841f79107bbcc356faf4e.png");
+        five(5, "093beab33bc841f79107bbcc356faf4e.png"),
+        six(6, "4a8c37ebeeda439181be0b1a8114605f.png"),
+        seven(7, "3230985aec1a4083add7c32ac2af3b29.png"),
+        eight(8, "81abcde2238d41ca84efa155b0f82b75.png"),
+        nine(9, "7dc8354ea0694acd9e3170d8cf3eb877.png"),
+        ten(10, "81e8e0f305a44eb2ac475ca698f3210c.png"),
+        eleven(11, "2fa494fea68446a980ce3bf5238a4328.png"),
+        twelve(12, "44571326bd294b40b04bcedf2b91e353.png"),
+        thirteen(13, "0a8a1c649599412fb6f038b2968fe5fc.png"),
+        fourteen(14, "6404934757b144a4bcbbf3db496870bb.png"),
+        fifteen(15, "ac44237f27ff46a383c5147a5ffe1c7c.png"),
+        sixteen(16, "3e243ad85fbb43b7919db89875f73393.png"),
+        seventeen(17, "27f9386a290e4848b8b8d18f064b4fa5.png"),
+        eighteen(18, "2f7d365e791a423494f8c8bdcef10fa5.png"),
+        nineteen(19, "8227027ecbfc4698b9a6c3157d4dbdec.png"),
+        twenty(20, "f5a997440f7e480295a8bc1f9add599e.png"),
+        twentyOne(21, "bfbb3c5f9aab403bbb2bbc57638c8e41.png"),
+        twentyTwo(22, "15df924401d94281baddcb3963e3964f.png"),
+        twentyThree(23, "68c32f0331c043989505cd3f7b4c82ba.png"),
+        twentyFour(24, "0710dbea3bab4e5d8c9868797c878026.png"),
+        twentyFive(25, "21ed590c42c8477096211e9571c0a46a.png"),
+        twentySix(26, "2de8b32f8e3545ea848b06a2dd5f6e80.png"),
+        twentySeven(27, "584c7cfc96524fc7baef589e31e57527.png"),
+        twentyEight(28, "8b4f9311401946339e5a11640892d562.png"),
+        twentyNine(29, "a3c44461076644f894816eb345695eaa.png"),
+        thirty(30, "042ddfa1ceb1483b805521949fc71ff7.png");
+
 
         private final Integer value;
         private final String filed;

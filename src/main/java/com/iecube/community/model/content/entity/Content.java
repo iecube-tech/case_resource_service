@@ -17,7 +17,7 @@ public class Content extends BaseEntity {
     private String introduce; // 项目案例介绍
     private String target; //项目终极目标
     private String guidance; // 项目案例指导
-    private String third;  // 暂空
+    private String third;  // 0：项目案例   1：课程资源
     private String fourth;  // 暂空
     private String keyWord; // 暂空
     private Integer packageId;

@@ -2,7 +2,10 @@ package com.iecube.community.model.design.service;
 
 import com.iecube.community.model.design.entity.CaseTarget;
 import com.iecube.community.model.design.vo.CaseDesign;
+import com.iecube.community.model.design.vo.CourseDesign;
 import com.iecube.community.model.design.vo.Design;
+
+import java.util.List;
 
 public interface DesignService {
     void addCaseTarget(CaseTarget caseTarget);
@@ -14,4 +17,6 @@ public interface DesignService {
     void addCaseDesign(Integer caseId,Design design);
 
     void deleteCaseDesign(Integer caseTargetId);
+
+    List<CourseDesign> getCourseDesigns(Integer courseId);
 }

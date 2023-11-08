@@ -329,4 +329,20 @@ public class ContentController extends ContentBaseController {
         contentService.CaseAccredit(caseAccreditQo.getTeacherId(), caseAccreditQo.getContentIds());
         return new JsonResult<>(OK);
     }
+
+    /**
+     * 课程资源
+     */
+    @GetMapping("/all_course")
+    public JsonResult<List> allCourse(){
+        List<Content> courses = contentService.allCourse();
+        return new JsonResult<>(OK, courses);
+    }
+
+    @GetMapping("/teacher_course")
+    public JsonResult<List> teacherCourses(HttpSession session){
+        Integer teacherId = getUserIdFromSession(session);
+        List<Content> teacherCourses = contentService.teacherCourse(teacherId);
+        return new JsonResult<>(OK, teacherCourses);
+    }
 }

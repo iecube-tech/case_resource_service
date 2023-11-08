@@ -61,4 +61,8 @@ public interface ContentMapper {
 
     Integer teacherSubtractContent(Integer teacherId, Integer caseId);
 
+    List<Content> allCourse();
+
+    List<Content> teacherCourse(Integer teacherId);
+
 }

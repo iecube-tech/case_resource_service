@@ -38,4 +38,9 @@ public class DesignServiceTests {
         design.setKnowledgePoints(knowledgePointList);
         designService.addCaseDesign(2,design);
     }
+
+    @Test
+    public void getCourseDesigns(){
+        System.out.println(designService.getCourseDesigns(19));
+    }
 }

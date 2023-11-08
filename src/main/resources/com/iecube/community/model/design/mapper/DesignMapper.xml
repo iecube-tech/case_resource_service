@@ -14,6 +14,22 @@
         <result column="target_id" property="targetId"></result>
     </resultMap>
 
+    <resultMap id="GraduationRequirement" type="com.iecube.community.model.design.entity.GraduationRequirement">
+        <result column="course_id" property="courseId"></result>
+    </resultMap>
+
+    <resultMap id="GraduationPoint" type="com.iecube.community.model.design.entity.GraduationPoint">
+        <result column="parent_id" property="parentId"></result>
+    </resultMap>
+
+    <resultMap id="CourseTarget" type="com.iecube.community.model.design.entity.CourseTarget">
+        <result column="parent_id" property="parentId"></result>
+    </resultMap>
+
+    <resultMap id="CourseChapter" type="com.iecube.community.model.design.entity.CourseChapter">
+        <result column="parent_id" property="parentId"></result>
+    </resultMap>
+
     <insert id="addCaseTarget" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO case_target (id, case_id, target_name) VALUES (NULL, #{caseId}, #{targetName})
     </insert>
@@ -36,6 +52,22 @@
 
     <select id="getKnowledgePointsByTargetId" resultMap="KnowledgePoint">
         SELECT * FROM target_knowledge_point WHERE target_id=#{targetId}
+    </select>
+
+    <select id="getGraduationRequirementListByCourseId" resultMap="GraduationRequirement">
+        SELECT * FROM graduation_requirement WHERE course_id=#{courseId}
+    </select>
+
+    <select id="getGraduationPointList" resultMap="GraduationPoint">
+        SELECT * FROM graduation_point WHERE parent_id=#{parentId}
+    </select>
+
+    <select id="getCourseTargetList" resultMap="CourseTarget">
+        SELECT * FROM graduation_course_target WHERE parent_id=#{parentId}
+    </select>
+
+    <select id="getCourseChapterList" resultMap="CourseChapter">
+        SELECT * FROM graduation_course_chapter WHERE parent_id=#{parentId}
     </select>
 
 </mapper>

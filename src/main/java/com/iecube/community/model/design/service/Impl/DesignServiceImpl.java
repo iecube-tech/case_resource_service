@@ -1,11 +1,11 @@
 package com.iecube.community.model.design.service.Impl;
 
 import com.iecube.community.model.auth.service.ex.InsertException;
-import com.iecube.community.model.design.entity.CaseTarget;
-import com.iecube.community.model.design.entity.KnowledgePoint;
+import com.iecube.community.model.design.entity.*;
 import com.iecube.community.model.design.mapper.DesignMapper;
 import com.iecube.community.model.design.service.DesignService;
 import com.iecube.community.model.design.vo.CaseDesign;
+import com.iecube.community.model.design.vo.CourseDesign;
 import com.iecube.community.model.design.vo.Design;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,5 +84,24 @@ public class DesignServiceImpl implements DesignService {
             designMapper.deleteKnowledgePoint(knowledgePoint.getId());
         }
         designMapper.deleteCaseTarget(caseTargetId);
+    }
+
+    @Override
+    public List<CourseDesign> getCourseDesigns(Integer courseId) {
+        List<GraduationRequirement> graduationRequirementList = designMapper.getGraduationRequirementListByCourseId(courseId);
+        List<CourseDesign> courseDesignList = new ArrayList<>();
+        for(GraduationRequirement graduationRequirement : graduationRequirementList){
+            List<GraduationPoint> graduationPointList = designMapper.getGraduationPointList(graduationRequirement.getId());
+            List<CourseTarget> courseTargetList = designMapper.getCourseTargetList(graduationRequirement.getId());
+            List<CourseChapter> courseChapterList = designMapper.getCourseChapterList(graduationRequirement.getId());
+            CourseDesign courseDesign = new CourseDesign();
+            courseDesign.setGraduationRequirementId(graduationRequirement.getId());
+            courseDesign.setGraduationRequirementName(graduationRequirement.getName());
+            courseDesign.setGraduationPointList(graduationPointList);
+            courseDesign.setCourseTargetList(courseTargetList);
+            courseDesign.setCourseChapterList(courseChapterList);
+            courseDesignList.add(courseDesign);
+        }
+        return courseDesignList;
     }
 }

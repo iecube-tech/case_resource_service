@@ -3,6 +3,7 @@ package com.iecube.community.model.design.controller;
 import com.iecube.community.basecontroller.design.DesignBaseController;
 import com.iecube.community.model.design.service.DesignService;
 import com.iecube.community.model.design.vo.CaseDesign;
+import com.iecube.community.model.design.vo.CourseDesign;
 import com.iecube.community.model.design.vo.Design;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,5 +36,11 @@ public class DesignController extends DesignBaseController {
         designService.deleteCaseDesign(caseTargetId);
         CaseDesign caseDesign = designService.getCaseDesign(caseId);
         return new JsonResult<>(OK, caseDesign);
+    }
+
+    @GetMapping("/course_design")
+    public JsonResult<List> getCourseDesign(Integer courseId){
+        List<CourseDesign> courseDesignList = designService.getCourseDesigns(courseId);
+        return new JsonResult<>(OK, courseDesignList);
     }
 }

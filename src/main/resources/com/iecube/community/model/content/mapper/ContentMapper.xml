@@ -79,15 +79,15 @@
     </update>
 
     <select id="getTeacherCreate" resultMap="ContentEntity">
-        SELECT * FROM solution_or_case WHERE creator_type='teacher' AND creator=#{teacherId} AND is_delete=0
+        SELECT * FROM solution_or_case WHERE creator_type='teacher' AND creator=#{teacherId} AND is_delete=0 AND third=0
     </select>
 
     <select id="getAdminCreate" resultMap="ContentEntity">
-        SELECT * FROM solution_or_case WHERE creator_type='admin' AND creator=#{teacherId} AND is_delete=0
+        SELECT * FROM solution_or_case WHERE creator_type='admin' AND creator=#{teacherId} AND is_delete=0 AND third=0
     </select>
 
     <select id="needCheck" resultMap="ContentEntity">
-        SELECT * FROM solution_or_case WHERE completion=6
+        SELECT * FROM solution_or_case WHERE completion=6 AND third=0
     </select>
 
     <update id="check">
@@ -116,13 +116,13 @@
     </delete>
 
     <select id="findAll" resultMap="ContentEntity">
-        SELECT id, name, cover, introduction FROM solution_or_case WHERE completion=10
+        SELECT id, name, cover, introduction FROM solution_or_case WHERE completion=10 AND third=0
     </select>
 
     <select id="findByTeacherId" resultMap="ContentEntity">
         SELECT solution_or_case.id, solution_or_case.name, solution_or_case.introduction, solution_or_case.cover
         FROM solution_or_case INNER JOIN teacher_case ON solution_or_case.id=teacher_case.case_id
-        WHERE teacher_case.teacher_id=#{teacherId};
+        WHERE teacher_case.teacher_id=#{teacherId}
     </select>
 
     <select id="findCaseIdsByTeacherId" resultType="java.lang.Integer">
@@ -182,6 +182,14 @@
         DELETE FROM teacher_case WHERE teacher_id=#{teacherId} AND case_id=#{caseId}
     </delete>
 
+    <select id="allCourse" resultMap="ContentEntity">
+        SELECT id, name, cover, introduction FROM solution_or_case WHERE completion=10 AND third=1
+    </select>
 
+    <select id="teacherCourse" resultMap="ContentEntity">
+        SELECT solution_or_case.id, solution_or_case.name, solution_or_case.introduction, solution_or_case.cover
+        FROM solution_or_case INNER JOIN teacher_case ON solution_or_case.id=teacher_case.case_id
+        WHERE teacher_case.teacher_id=#{teacherId} AND solution_or_case.third=1
+    </select>
 
 </mapper>

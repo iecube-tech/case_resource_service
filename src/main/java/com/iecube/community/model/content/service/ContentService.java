@@ -54,5 +54,9 @@ public interface ContentService {
 
     void CaseAccredit(Integer teacherId,List<Integer> contentIds);
 
+    List<Content> allCourse();
+
+    List<Content> teacherCourse(Integer teacherId);
+
     Integer copyOldCaseAsTeacherNewCase(Integer oldCaseId, Integer teacherId, List<Task> taskList);
 }

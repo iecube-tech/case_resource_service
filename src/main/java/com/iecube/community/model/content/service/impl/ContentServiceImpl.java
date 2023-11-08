@@ -305,6 +305,18 @@ public class ContentServiceImpl implements ContentService {
         }
     }
 
+    @Override
+    public List<Content> allCourse() {
+        List<Content> courses = contentMapper.allCourse();
+        return courses;
+    }
+
+    @Override
+    public List<Content> teacherCourse(Integer teacherId) {
+        List<Content> teacherCourses = contentMapper.teacherCourse(teacherId);
+        return teacherCourses;
+    }
+
     /**
      *
      * @param oldCaseId
