@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.task_back_drop.mapper.BackDropMapper">
+    <resultMap id="BackDrop" type="com.iecube.community.model.task_back_drop.entity.BackDrop">
+    </resultMap>
+
+    <select id="getBackDropByTaskId" resultMap="BackDrop">
+        SELECT back_drop.id, back_drop.name
+        FROM task_back_drop INNER JOIN back_drop
+            ON task_back_drop.back_drop_id=back_drop.id
+        WHERE task_back_drop.task_id=#{taskId}
+    </select>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO back_drop (id, name) VALUES (NULL, #{name})
+    </insert>
+
+    <insert id="connect" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO
+            task_back_drop (id, task_id, task_template_id, back_drop_id)
+        VALUES (null, #{taskId}, #{taskTemplateId}, #{backDropId})
+    </insert>
+
+    <select id="getBackDropByTaskTemplateId" resultMap="BackDrop">
+        SELECT back_drop.id, back_drop.name
+        FROM task_back_drop INNER JOIN back_drop
+            ON task_back_drop.back_drop_id=back_drop.id
+        WHERE task_back_drop.task_template_id=#{taskTemplateId}
+    </select>
+
+    <select id="getEntityIdByTaskTemplateId" resultType="java.lang.Integer">
+        SELECT back_drop_id FROM task_back_drop WHERE task_template_id=#{taskTemplateId}
+    </select>
+
+    <select id="getEntityIdByTaskId" resultType="java.lang.Integer">
+        SELECT back_drop_id FROM task_back_drop WHERE task_id=#{taskId}
+    </select>
+
+    <delete id="deleteEntityById">
+        DELETE FROM back_drop WHERE id=#{id}
+    </delete>
+
+    <delete id="deleteByTaskTemplateId">
+        DELETE FROM task_back_drop WHERE task_template_id=#{taskTemplateId}
+    </delete>
+
+    <delete id="deleteByTaskId">
+        DELETE FROM task_back_drop WHERE task_id=#{taskId}
+    </delete>
+</mapper>

@@ -6,6 +6,9 @@ import com.iecube.community.model.taskTemplate.dto.TaskTemplateDto;
 import com.iecube.community.model.taskTemplate.entity.TaskTemplate;
 import com.iecube.community.model.taskTemplate.mapper.TaskTemplateMapper;
 import com.iecube.community.model.taskTemplate.service.TaskTemplateService;
+import com.iecube.community.model.task_back_drop.entity.BackDrop;
+import com.iecube.community.model.task_back_drop.entity.TaskBackDrop;
+import com.iecube.community.model.task_back_drop.mapper.BackDropMapper;
 import com.iecube.community.model.task_deliverable_requirement.entity.DeliverableRequirement;
 import com.iecube.community.model.task_deliverable_requirement.entity.TaskDeliverableRequirement;
 import com.iecube.community.model.task_deliverable_requirement.mapper.DeliverableRequirementMapper;
@@ -30,6 +33,9 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
 
     @Autowired
     private TaskTemplateMapper taskTemplateMapper;
+
+    @Autowired
+    private BackDropMapper backDropMapper;
 
     @Autowired
     private RequirementMapper requirementMapper;
@@ -60,6 +66,23 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             throw new InsertException("插入数据异常");
         }
         taskTemplateDto.setId(taskTemplate.getId());
+        //backdrop
+        if(taskTemplateDto.getBackDropList().size()>0){
+            for(BackDrop backDrop:taskTemplateDto.getBackDropList()){
+                Integer re = backDropMapper.insert(backDrop);
+                if(re!=1){
+                    throw new InsertException("插入数据异常");
+                }
+                TaskBackDrop taskBackDrop = new TaskBackDrop();
+                taskBackDrop.setTaskTemplateId(taskTemplateDto.getId());
+                taskBackDrop.setBackDropId(backDrop.getId());
+                Integer co = backDropMapper.connect(taskBackDrop);
+                if(co!=1){
+                    throw new InsertException("插入数据异常");
+                }
+            }
+        }
+
         // 任务要求
         if(taskTemplateDto.getRequirementList().size()>0){
             for (Requirement requirement: taskTemplateDto.getRequirementList()){
@@ -126,10 +149,12 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     public List<TaskTemplateDto> findTaskTemplateByContent(Integer contentId) {
         List<TaskTemplateDto> contentTaskTemplates = taskTemplateMapper.getTaskTemplatesByContentId(contentId);
         for(TaskTemplateDto taskTemplateDto:contentTaskTemplates){
+            List<BackDrop> backDropList = backDropMapper.getBackDropByTaskTemplateId(taskTemplateDto.getId());
             List<Requirement> requirementList = requirementMapper.getRequirementsByTaskTemplateId(taskTemplateDto.getId());
             List<DeliverableRequirement> deliverableRequirementList = deliverableRequirementMapper.getDeliverableRequirementByTaskTemplateId(taskTemplateDto.getId());
             List<ReferenceLink> referenceLinkList = referenceLinkMapper.getReferenceLinksByTaskTemplateId(taskTemplateDto.getId());
             List<Resource> referenceFileList = referenceFileMapper.getReferenceFilesByTaskTemplateId(taskTemplateDto.getId());
+            taskTemplateDto.setBackDropList(backDropList);
             taskTemplateDto.setRequirementList(requirementList);
             taskTemplateDto.setDeliverableRequirementList(deliverableRequirementList);
             taskTemplateDto.setReferenceLinkList(referenceLinkList);
@@ -140,9 +165,13 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
 
     @Override
     public void deleteTaskTemplateByID(Integer taskTemplateId, Integer user) {
+        List<Integer> backDrops = backDropMapper.getEntityIdByTaskTemplateId(taskTemplateId);
         List<Integer> requirements = requirementMapper.getEntityIdByTaskTemplateId(taskTemplateId);
         List<Integer> deliverableRequirements = deliverableRequirementMapper.getEntityIdByTaskTemplateId(taskTemplateId);
         List<Integer> referenceLinks = referenceLinkMapper.getEntityIdByTaskTemplateId(taskTemplateId);
+        for(Integer i: backDrops){
+            backDropMapper.deleteEntityById(i);
+        }
         for(Integer i: requirements){
             requirementMapper.deleteEntityById(i);
         }
@@ -152,6 +181,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         for(Integer i:referenceLinks){
             referenceLinkMapper.deleteEntityById(i);
         }
+        backDropMapper.deleteByTaskTemplateId(taskTemplateId);
         requirementMapper.deleteByTaskTemplateId(taskTemplateId);
         deliverableRequirementMapper.deleteByTaskTemplateId(taskTemplateId);
         referenceLinkMapper.deleteByTaskTemplateId(taskTemplateId);

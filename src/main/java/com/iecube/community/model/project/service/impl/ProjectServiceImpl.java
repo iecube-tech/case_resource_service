@@ -92,6 +92,8 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Integer addProject(ProjectDto projectDto, Integer teacherId) {
+//        先判断创建的是课程还是案例
+//        更改案例名称  如果和原来的案例不同  则不动   如果不同，则添加时间后缀
 //        this.checkProject(projectDto, teacherId);
         Content content = contentService.findById(projectDto.getCaseId());
         // 创建项目

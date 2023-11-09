@@ -18,6 +18,9 @@ import com.iecube.community.model.resource.mapper.ResourceMapper;
 import com.iecube.community.model.resource.service.ResourceService;
 import com.iecube.community.model.task.mapper.TaskMapper;
 import com.iecube.community.model.task.service.TaskService;
+import com.iecube.community.model.task_back_drop.entity.BackDrop;
+import com.iecube.community.model.task_back_drop.entity.TaskBackDrop;
+import com.iecube.community.model.task_back_drop.mapper.BackDropMapper;
 import com.iecube.community.model.task_deliverable_requirement.entity.DeliverableRequirement;
 import com.iecube.community.model.task_deliverable_requirement.entity.TaskDeliverableRequirement;
 import com.iecube.community.model.task_deliverable_requirement.mapper.DeliverableRequirementMapper;
@@ -53,6 +56,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Autowired
     private ResourceService resourceService;
+
+    @Autowired
+    private BackDropMapper backDropMapper;
 
     @Autowired
     private RequirementMapper requirementMapper;
@@ -91,6 +97,23 @@ public class TaskServiceImpl implements TaskService {
         if(row!=1){
             throw new InsertException("创建任务异常");
         }
+
+        if(task.getBackDropList().size()>0){
+            for(BackDrop backDrop:task.getBackDropList()){
+                Integer re = backDropMapper.insert(backDrop);
+                if(re!=1){
+                    throw new InsertException("插入数据异常");
+                }
+                TaskBackDrop taskBackDrop = new TaskBackDrop();
+                taskBackDrop.setTaskId(task.getId());
+                taskBackDrop.setBackDropId(backDrop.getId());
+                Integer co = backDropMapper.connect(taskBackDrop);
+                if(co!=1){
+                    throw new InsertException("关联任务-背景异常");
+                }
+            }
+        }
+
         if(task.getRequirementList().size()>0){
             for (Requirement requirement : task.getRequirementList()){
                 Integer re = requirementMapper.insert(requirement);
@@ -315,6 +338,8 @@ public class TaskServiceImpl implements TaskService {
     public List<TaskVo> studentGetProjectTasks(Integer projectId) {
         List<TaskVo> tasks = taskMapper.findByProjectId(projectId);
         for(TaskVo task :tasks){
+            List<BackDrop> backDropList = backDropMapper.getBackDropByTaskId(task.getId());
+            task.setBackDrops(backDropList);
             List<Requirement> requirements = requirementMapper.getRequirementsByTaskId(task.getId());
             task.setTaskTargets(requirements);
             List<DeliverableRequirement> deliverableRequirements = deliverableRequirementMapper.getDeliverableRequirementByTaskId(task.getId());

@@ -1,6 +1,7 @@
 package com.iecube.community.model.task.entity;
 
 import com.iecube.community.model.resource.entity.Resource;
+import com.iecube.community.model.task_back_drop.entity.BackDrop;
 import com.iecube.community.model.task_deliverable_requirement.entity.DeliverableRequirement;
 import com.iecube.community.model.task_reference_link.entity.ReferenceLink;
 import com.iecube.community.model.task_requirement.entity.Requirement;
@@ -17,6 +18,7 @@ public class TaskVo {
     String taskName;
     Date taskStartTime;
     Date taskEndTime;
+    List<BackDrop> backDrops;
     List<Requirement> taskTargets;
     List<DeliverableRequirement> taskDeliverables;
     List<ReferenceLink> taskReferenceLinks;
