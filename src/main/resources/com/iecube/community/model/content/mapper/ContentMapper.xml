@@ -122,7 +122,7 @@
     <select id="findByTeacherId" resultMap="ContentEntity">
         SELECT solution_or_case.id, solution_or_case.name, solution_or_case.introduction, solution_or_case.cover
         FROM solution_or_case INNER JOIN teacher_case ON solution_or_case.id=teacher_case.case_id
-        WHERE teacher_case.teacher_id=#{teacherId}
+        WHERE teacher_case.teacher_id=#{teacherId} AND solution_or_case.third=0
     </select>
 
     <select id="findCaseIdsByTeacherId" resultType="java.lang.Integer">
