@@ -66,6 +66,13 @@ public class ProjectController extends ProjectBaseController {
         return new JsonResult<>(OK,projects);
     }
 
+    @GetMapping("/mycourse")
+    public JsonResult<List> studentCourse(HttpSession session){
+        Integer studentId = getUserIdFromSession(session);
+        List<Project> courses = projectService.findCourseByStudentId(studentId);
+        return new JsonResult<>(OK, courses);
+    }
+
     @GetMapping("/project")
     public JsonResult<Project> GetProject(Integer projectId){
         Project project = projectService.findProjectById(projectId);

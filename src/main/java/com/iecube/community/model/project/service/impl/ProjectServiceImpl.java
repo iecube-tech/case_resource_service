@@ -246,6 +246,12 @@ public class ProjectServiceImpl implements ProjectService {
         return projects;
     }
 
+    @Override
+    public List<Project> findCourseByStudentId(Integer id) {
+        List<Project> courseList = projectMapper.findCourseByStudentId(id);
+        return courseList;
+    }
+
     public StudentProjectVo studentProjectDetail(Integer projectId){
         Project project = projectMapper.findById(projectId);
         StudentProjectVo studentProject = new StudentProjectVo();

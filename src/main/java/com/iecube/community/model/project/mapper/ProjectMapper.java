@@ -23,6 +23,8 @@ public interface ProjectMapper {
     List<Integer> findStudentIdByProjectId(Integer projectId);
     List<Project> findByStudentId(Integer id);
 
+    List<Project> findCourseByStudentId(Integer id);
+
     Integer studentNumOfCurrentProject(Integer projectId);
 
     List<Project> findByCaseId(Integer caseId);

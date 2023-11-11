@@ -17,6 +17,8 @@ public interface ProjectService {
 
     List<Project> findProjectByStudentId(Integer id);
 
+    List<Project> findCourseByStudentId(Integer id);
+
     StudentProjectVo studentProjectDetail(Integer projectId);
 
     Project findProjectById(Integer id);
