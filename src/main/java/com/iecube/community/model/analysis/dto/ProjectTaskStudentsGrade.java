@@ -7,5 +7,5 @@ import java.util.List;
 @Data
 public class ProjectTaskStudentsGrade {
     Integer taskNum;
-    List<Integer> gradeList;
+    List<Double> gradeList;
 }

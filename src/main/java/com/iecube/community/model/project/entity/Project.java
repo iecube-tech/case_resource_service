@@ -9,6 +9,7 @@ import java.util.Date;
 public class Project extends BaseEntity {
     Integer id;
     Integer caseId;
+    Integer caseType;   // case表中的third  区分是 课程还是案例
     String projectName;
     String introduction; //简介
     String introduce; // 介绍

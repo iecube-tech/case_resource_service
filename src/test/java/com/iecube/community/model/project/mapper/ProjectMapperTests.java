@@ -60,6 +60,6 @@ public class ProjectMapperTests {
 
     @Test
     public  void updateProjectStudentGrade(){
-        projectMapper.updateProjectStudentGrade(42, 83);
+        projectMapper.updateProjectStudentGrade(42, 83.0);
     }
 }

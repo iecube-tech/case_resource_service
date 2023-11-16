@@ -12,7 +12,7 @@ public class ProjectStudentTask {
     Integer projectId;
     Integer taskId;
     Integer studentId;
-    Integer grade;
+    Double grade;
     List<String> tags;
     String evaluate;
     String improvement;

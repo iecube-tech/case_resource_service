@@ -12,12 +12,12 @@
 
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
         INSERT INTO
-            task_templates (id, content_id, num, task_name, task_cover, creator, create_time, last_modified_user, last_modified_time)
-        VALUES (null, #{contentId}, #{num}, #{taskName}, #{taskCover}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
+            task_templates (id, content_id, num, weighting, task_name, task_cover, creator, create_time, last_modified_user, last_modified_time)
+        VALUES (null, #{contentId}, #{num}, #{weighting}, #{taskName}, #{taskCover}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
     </insert>
 
     <select id="getTaskTemplatesByContentId" resultMap="taskTemplateDto">
-        SELECT id, content_id, num, task_name, task_cover FROM `task_templates` WHERE content_id=#{contentId} ORDER BY num
+        SELECT id, content_id, num, weighting, task_name, task_cover FROM `task_templates` WHERE content_id=#{contentId} ORDER BY num
     </select>
 
     <delete id="deleteTaskTemplateById">

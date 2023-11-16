@@ -15,6 +15,7 @@ public class TaskVo {
     Integer id;
     Integer projectId;
     Integer num;
+    Double weighting;
     String taskName;
     Date taskStartTime;
     Date taskEndTime;

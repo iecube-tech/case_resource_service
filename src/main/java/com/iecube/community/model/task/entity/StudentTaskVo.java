@@ -9,7 +9,7 @@ import java.util.List;
 public class StudentTaskVo {
     Integer PSTId;
     Integer taskNum;
-    Integer taskGrade;
+    Double taskGrade;
     Integer taskStatus;
     List<Tag> tags;
 }

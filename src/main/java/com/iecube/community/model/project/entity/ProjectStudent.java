@@ -10,7 +10,7 @@ public class ProjectStudent extends BaseEntity {
     Integer id;
     Integer projectId;
     Integer studentId;
-    Integer grade;
+    Double grade;
     List<String> tags;
     String evaluate;
     String improvement;

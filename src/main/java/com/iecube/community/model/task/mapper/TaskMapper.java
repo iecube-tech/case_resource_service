@@ -31,7 +31,7 @@ public interface TaskMapper {
 
     Integer updatePSTResubmit(Integer id, Integer resubmit);
     Integer updatePSTEvaluate(Integer id, String evaluate);
-    Integer updatePSTGrade(Integer id, Integer grade);
+    Integer updatePSTGrade(Integer id, Double grade);
     Task findTaskByPSTId(Integer pstId);
     List<TaskVo> getProjectTasks(Integer projectId);
 }

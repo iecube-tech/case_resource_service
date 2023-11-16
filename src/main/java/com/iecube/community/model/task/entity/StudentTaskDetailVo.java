@@ -16,7 +16,7 @@ public class StudentTaskDetailVo {
     Integer projectId;
     Integer taskNum;
     String taskName;
-    Integer taskGrade;
+    Double taskGrade;
     List<Tag> taskTags;
     String taskEvaluate;
     String taskImprovement;

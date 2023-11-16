@@ -39,6 +39,11 @@
         SELECT * FROM project WHERE id=#{id}
     </select>
 
+    <select id="findCaseTypeByCaseId" resultType="java.lang.Integer">
+        SELECT third FROM solution_or_case WHERE id=#{case_id}
+    </select>
+
+
     <select id="findByCreator" resultMap="ProjectEntity">
         SELECT * FROM project WHERE creator=#{teacher} AND hidden=0 AND is_delete=0
     </select>

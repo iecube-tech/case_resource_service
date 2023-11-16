@@ -271,6 +271,8 @@ public class ProjectServiceImpl implements ProjectService {
         if(project == null){
             throw new ProjectNotFoundException("任务未找到");
         }
+        Integer caseType = projectMapper.findCaseTypeByCaseId(project.getCaseId());
+        project.setCaseType(caseType);
         return project;
     }
 

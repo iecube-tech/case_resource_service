@@ -6,14 +6,14 @@ import java.util.Random;
 
 public class QuickSort {
 
-    public static void quickSort(List<Integer> list) {
+    public static void quickSort(List<Double> list) {
         if (list == null || list.size() <= 1) {
             return ;
         }
         quickSort(list, 0, list.size() - 1);
     }
 
-    private static void quickSort(List<Integer> list, int low, int high) {
+    private static void quickSort(List<Double> list, int low, int high) {
         if (low < high) {
             int pivotIndex = partition(list, low, high);
             quickSort(list, low, pivotIndex - 1);
@@ -21,8 +21,8 @@ public class QuickSort {
         }
     }
 
-    private static int partition(List<Integer> list, int low, int high) {
-        int pivot = list.get(high);  // 取最后一个元素作为基准
+    private static int partition(List<Double> list, int low, int high) {
+        double pivot = list.get(high);  // 取最后一个元素作为基准
         int i = low;
         for (int j = low; j < high; j++) {
             if (list.get(j) < pivot) {
@@ -34,8 +34,8 @@ public class QuickSort {
         return i;
     }
 
-    private static void swap(List<Integer> list, int i, int j) {
-        int temp = list.get(i);
+    private static void swap(List<Double> list, int i, int j) {
+        double temp = list.get(i);
         list.set(i, list.get(j));
         list.set(j, temp);
     }

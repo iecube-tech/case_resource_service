@@ -12,6 +12,8 @@ public interface ProjectMapper {
     Integer insert(Project project);
     Project findById(Integer id);
 
+    Integer findCaseTypeByCaseId(Integer caseId);
+
     Integer delete(Integer id);
 
     Integer hidden(Integer id);
@@ -31,5 +33,5 @@ public interface ProjectMapper {
 
     ProjectStudentVo findProjectStudent(Integer projectId, Integer studentId);
 
-    Integer updateProjectStudentGrade(Integer id, Integer grade);
+    Integer updateProjectStudentGrade(Integer id, Double grade);
 }

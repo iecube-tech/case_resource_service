@@ -16,6 +16,7 @@ public class Task extends BaseEntity {
     Integer id;
     Integer projectId;
     Integer num; //用于一个项目下的任务排序
+    Double weighting;
     String taskName;
     String taskCover;
     List<BackDrop> backDropList;

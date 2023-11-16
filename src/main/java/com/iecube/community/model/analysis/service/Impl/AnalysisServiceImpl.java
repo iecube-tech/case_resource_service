@@ -64,14 +64,14 @@ public class AnalysisServiceImpl implements AnalysisService {
         List<String> allTags = new ArrayList<>();
         for (int i=0; i<tasksOfAllProjectStudents.get(0).size(); i++){
             //第i个任务 的所有分数列表
-            List<Integer> grades = new ArrayList<>();
+            List<Double> grades = new ArrayList<>();
             List<String> tags = new ArrayList<>();
             int num = 0;
             for (int j=0; j<tasksOfAllProjectStudents.size(); j++){
                 if(tasksOfAllProjectStudents.get(j).get(i).getTaskGrade()!=null){
                     grades.add(tasksOfAllProjectStudents.get(j).get(i).getTaskGrade());
                 }else{
-                    grades.add(0);
+                    grades.add(0.0);
                 }
                 if(tasksOfAllProjectStudents.get(j).get(i).getTaskStatus()==1){
                     num++;
@@ -150,7 +150,7 @@ public class AnalysisServiceImpl implements AnalysisService {
             for (int i=0; i<projectDataList.get(0).getProjectTaskStudentsGradeList().size(); i++){
                 //第i个任务
                 //所有项目的第i个任务的成绩列表 tag点列表
-                List<Integer> grades = new ArrayList<>();
+                List<Double> grades = new ArrayList<>();
                 List<String> tags=new ArrayList<>();
                 for(int j=0; j<projectDataList.size();j++){
                     grades.addAll(projectDataList.get(j).getProjectTaskStudentsGradeList().get(i).getGradeList());
@@ -199,10 +199,10 @@ public class AnalysisServiceImpl implements AnalysisService {
     @Override
     public double currentProjectAverageGrade(Integer projectId){
         List<ProjectStudentVo> studentVos = projectMapper.findStudentsByProjectId(projectId);
-        List<Integer> grades = new ArrayList<>();
+        List<Double> grades = new ArrayList<>();
         for(ProjectStudentVo studentVo:studentVos){
             if(studentVo.getStudentGrade() == null){
-                grades.add(0);
+                grades.add(0.0);
             }else{
                 grades.add(studentVo.getStudentGrade());
             }
@@ -414,13 +414,13 @@ public class AnalysisServiceImpl implements AnalysisService {
     }
 
     public double sameCaseAllProjectsAverageGrade(List<Project> list){
-        List<Integer> allGrades = new ArrayList<>();
+        List<Double> allGrades = new ArrayList<>();
         for (Project project : list){
             List<ProjectStudentVo> studentVos = projectMapper.findStudentsByProjectId(project.getId());
-            List<Integer> grades = new ArrayList<>();
+            List<Double> grades = new ArrayList<>();
             for(ProjectStudentVo studentVo:studentVos){
                 if(studentVo.getStudentGrade() == null){
-                    grades.add(0);
+                    grades.add(0.0);
                 }else{
                     grades.add(studentVo.getStudentGrade());
                 }
@@ -430,7 +430,7 @@ public class AnalysisServiceImpl implements AnalysisService {
         return getAverage(allGrades);
     }
 
-    public static double getMedian(List<Integer> list) {
+    public static double getMedian(List<Double> list) {
         if (list == null || list.size() == 0) {
             return 0;
         }
@@ -445,13 +445,13 @@ public class AnalysisServiceImpl implements AnalysisService {
         }
     }
 
-    public static double getAverage(List<Integer> list) {
+    public static double getAverage(List<Double> list) {
         if (list == null || list.isEmpty()) {
             return 0;
         }
 
         double sum = 0;
-        for (int num : list) {
+        for (double num : list) {
             sum += num;
         }
         double average =  sum / list.size();

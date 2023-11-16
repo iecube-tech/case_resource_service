@@ -15,7 +15,7 @@ public class ProjectStudentVo {
     Integer id;  //学生信息表的id
     String studentId; // 学号
     String studentName;
-    Integer studentGrade;
+    Double studentGrade;
     List<StudentTaskVo> studentTasks;
     List<String> suggestion;
 }

@@ -33,7 +33,7 @@
         SELECT id FROM task WHERE project_id=#{projectId} AND num=#{taskNum}
     </select>
 
-    <select id="getATaskScoreListByTaskId" resultType="java.lang.Integer">
+    <select id="getATaskScoreListByTaskId" resultType="java.lang.Double">
         SELECT grade FROM project_task_student WHERE task_id=#{taskId}
     </select>
 
