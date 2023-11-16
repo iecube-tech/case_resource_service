@@ -15,6 +15,7 @@ public class StudentTaskDetailVo {
     Integer studentId;
     Integer projectId;
     Integer taskNum;
+    Double weighting;
     String taskName;
     Double taskGrade;
     List<Tag> taskTags;

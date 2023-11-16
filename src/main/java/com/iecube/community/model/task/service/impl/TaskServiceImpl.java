@@ -285,15 +285,13 @@ public class TaskServiceImpl implements TaskService {
         Integer projectId = studentTaskDetailVo.getProjectId();
         ProjectStudentVo ps = projectMapper.findProjectStudent(projectId,studentId);
         List<StudentTaskDetailVo> studentTaskDetailVoList = this.findStudentTaskByProjectId(projectId,studentId);
-        List<Double> grades = new ArrayList<>();
-        for( StudentTaskDetailVo taskDetailVo: studentTaskDetailVoList){
+        double psNewGrade = 0.0;
+        for(StudentTaskDetailVo taskDetailVo: studentTaskDetailVoList){
             if(taskDetailVo.getTaskGrade() != null){
-                grades.add(taskDetailVo.getTaskGrade());
-            }else {
-                grades.add(0.0);
+                double grade = (taskDetailVo.getWeighting()/100) * taskDetailVo.getTaskGrade();
+                psNewGrade = psNewGrade + grade;
             }
         }
-        double psNewGrade = getAverage(grades);
         projectMapper.updateProjectStudentGrade(ps.getPsId(),psNewGrade);
         return null;
     }

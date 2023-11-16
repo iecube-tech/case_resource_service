@@ -89,7 +89,9 @@
                project_task_student.content AS task_content,
                project_task_student.status AS task_status,
                project_task_student.resubmit AS task_resubmit,
-               task.num AS task_num, task.task_name AS task_name,
+               task.num AS task_num,
+               task.task_name AS task_name,
+               task.weighting AS weighting,
                task.task_start_time AS task_start_time,
                task.task_end_time AS task_end_time
         FROM project_task_student INNER JOIN task ON project_task_student.task_id=task.id
@@ -110,7 +112,8 @@
                project_task_student.content AS task_content,
                project_task_student.status AS task_status,
                project_task_student.resubmit AS task_resubmit,
-               task.num AS task_num, task.task_name AS task_name
+               task.num AS task_num, task.task_name AS task_name,
+               task.weighting AS weighting
         FROM project_task_student INNER JOIN task ON project_task_student.task_id=task.id
         WHERE
             project_task_student.id = #{pstId}
