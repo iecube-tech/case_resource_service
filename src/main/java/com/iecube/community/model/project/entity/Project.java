@@ -17,4 +17,5 @@ public class Project extends BaseEntity {
     String target; //项目目标
     Date startTime;
     Date endTime;
+    Double grade;
 }

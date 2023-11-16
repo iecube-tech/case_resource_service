@@ -62,7 +62,7 @@
 
     <select id="findByStudentId" resultMap="ProjectEntity">
         SELECT project.id, project.project_name,project.target,project.introduction,project.introduce,
-               project.cover,project.start_time,project.end_time
+               project.cover,project.start_time,project.end_time,project_student.grade
         FROM (project_student INNER JOIN project ON project_student.project_id=project.id) INNER JOIN solution_or_case
             ON project.case_id=solution_or_case.id
         WHERE project_student.student_id=#{id} AND project.is_delete=0 AND solution_or_case.third=0
@@ -70,7 +70,7 @@
 
     <select id="findCourseByStudentId" resultMap="ProjectEntity">
         SELECT project.id, project.project_name,project.target,project.introduction,project.introduce,
-               project.cover,project.start_time,project.end_time
+               project.cover,project.start_time,project.end_time,project_student.grade
         FROM (project_student INNER JOIN project ON project_student.project_id=project.id) INNER JOIN solution_or_case
                                                                                                       ON project.case_id=solution_or_case.id
         WHERE project_student.student_id=#{id} AND project.is_delete=0 AND solution_or_case.third=1
