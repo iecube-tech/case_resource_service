@@ -56,6 +56,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         taskTemplate.setContentId(taskTemplateDto.getContentId());
         taskTemplate.setTaskName(taskTemplateDto.getTaskName());
         taskTemplate.setNum(taskTemplateDto.getNum());
+        taskTemplate.setWeighting(taskTemplateDto.getWeighting());
         taskTemplate.setTaskCover(taskCover.codeOf(taskTemplateDto.getNum()).getFiled());
         taskTemplate.setCreator(user);
         taskTemplate.setLastModifiedUser(user);

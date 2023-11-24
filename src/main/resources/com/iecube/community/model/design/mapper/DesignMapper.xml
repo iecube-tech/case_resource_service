@@ -70,4 +70,36 @@
         SELECT * FROM graduation_course_chapter WHERE parent_id=#{parentId}
     </select>
 
+    <insert id="addGraduationRequirement" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO graduation_requirement (id, name, course_id) VALUES (NULL, #{name}, #{courseId})
+    </insert>
+
+    <insert id="addGraduationPoint" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO graduation_point (id, name, parent_id) VALUES (NUll, #{name}, #{parentId})
+    </insert>
+
+    <insert id="addCourseTarget" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO graduation_course_target (id, name, parent_id) VALUES (NUll, #{name}, #{parentId})
+    </insert>
+
+    <insert id="addCourseChapter" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO graduation_course_chapter (id, name, parent_id) VALUES (NUll, #{name}, #{parentId})
+    </insert>
+
+    <delete id="deleteGraduationRequirement">
+        DELETE FROM graduation_requirement WHERE id=#{id}
+    </delete>
+
+    <delete id="deleteGraduationPoint">
+        DELETE FROM graduation_point WHERE parent_id=#{parentId}
+    </delete>
+
+    <delete id="deleteCourseTarget">
+        DELETE FROM graduation_course_target WHERE parent_id=#{parentId}
+    </delete>
+
+    <delete id="deleteCourseChapter">
+        DELETE FROM graduation_course_chapter WHERE parent_id=#{parentId}
+    </delete>
+
 </mapper>

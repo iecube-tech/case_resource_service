@@ -19,4 +19,21 @@ public interface DesignMapper {
     List<GraduationPoint> getGraduationPointList(Integer parentId);
     List<CourseTarget> getCourseTargetList(Integer parentId);
     List<CourseChapter> getCourseChapterList(Integer parentId);
+
+    Integer addGraduationRequirement(GraduationRequirement graduationRequirement);
+
+    Integer addGraduationPoint(GraduationPoint graduationPoint);
+
+    Integer addCourseTarget(CourseTarget courseTarget);
+
+    Integer addCourseChapter(CourseChapter courseChapter);
+
+
+    Integer deleteGraduationRequirement(Integer id);
+
+    Integer deleteGraduationPoint(Integer parentId);
+
+    Integer deleteCourseTarget(Integer parentId);
+
+    Integer deleteCourseChapter(Integer parentId);
 }

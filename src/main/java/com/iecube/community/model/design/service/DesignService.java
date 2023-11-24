@@ -1,6 +1,7 @@
 package com.iecube.community.model.design.service;
 
 import com.iecube.community.model.design.entity.CaseTarget;
+import com.iecube.community.model.design.qo.CourseDesignQo;
 import com.iecube.community.model.design.vo.CaseDesign;
 import com.iecube.community.model.design.vo.CourseDesign;
 import com.iecube.community.model.design.vo.Design;
@@ -19,4 +20,8 @@ public interface DesignService {
     void deleteCaseDesign(Integer caseTargetId);
 
     List<CourseDesign> getCourseDesigns(Integer courseId);
+
+    void addCourseDesign(Integer caseId, CourseDesignQo courseDesignQo);
+
+    void deleteCourseDesign(Integer id);
 }
