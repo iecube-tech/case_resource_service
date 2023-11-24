@@ -114,6 +114,17 @@ public class ContentController extends ContentBaseController {
     }
 
     /**
+     * 课程知识点的更新
+     */
+    @PostMapping("/add_fourth/{contentId}")
+    public JsonResult<Resource> contentUpdateFourth(@PathVariable Integer contentId,MultipartFile file,HttpSession session)throws IOException{
+        Integer modifiedUser = getUserIdFromSession(session);
+        Resource resource = resourceService.UploadImage(file,modifiedUser);
+        contentService.contentUpdateFourth(contentId,resource,modifiedUser);
+        return new JsonResult<>(OK,resource);
+    }
+
+    /**
      * 第四步
      * @param contentId
      * @param session
@@ -344,5 +355,12 @@ public class ContentController extends ContentBaseController {
         Integer teacherId = getUserIdFromSession(session);
         List<Content> teacherCourses = contentService.teacherCourse(teacherId);
         return new JsonResult<>(OK, teacherCourses);
+    }
+
+    @GetMapping("/teacher_create_course")
+    public JsonResult<List> teacherCreateCourse(HttpSession session){
+        Integer teacherId = getUserIdFromSession(session);
+        List<Content> teacherCreateCourseList = contentService.teacherCreateCourseList(teacherId);
+        return new JsonResult<>(OK,teacherCreateCourseList);
     }
 }

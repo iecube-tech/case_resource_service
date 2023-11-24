@@ -31,7 +31,7 @@ public class Content extends BaseEntity {
  * ********************************
  * 教师端需要开放新增案例而引入该字段
  * 取值：
- * 0：创建content name （parentId） introduction introduce target 具有初始值
+ * 0：创建content name （parentId） third introduction introduce target 具有初始值
  * 1：上传了封面图片  cover 有值
  * 2：完成了教学知识点设计
  * 3: 完成了教学匹配关系设计

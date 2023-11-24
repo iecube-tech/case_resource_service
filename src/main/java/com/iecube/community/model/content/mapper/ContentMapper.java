@@ -17,6 +17,8 @@ public interface ContentMapper {
 
     Integer updateCover(Integer id, String cover, Integer lastModifiedUser, Date lastModifiedTime);
 
+    Integer updateFourth(Integer id, String fourth, Integer lastModifiedUser, Date lastModifiedTime);
+
     Integer updateGuidance(Integer id, String guidance, Integer lastModifiedUser, Date lastModifiedTime);
 
     Integer delete(Integer id, Integer lastModifiedUser, Date lastModifiedTime);
@@ -65,4 +67,5 @@ public interface ContentMapper {
 
     List<Content> teacherCourse(Integer teacherId);
 
+    List<Content> teacherCreateCourseList(Integer creator);
 }

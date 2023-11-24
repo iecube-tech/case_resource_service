@@ -14,6 +14,8 @@ public interface ContentService {
 
     void contentUpdateCover(Integer contentId, Resource resource, Integer lastModifiedUser);
 
+    void contentUpdateFourth(Integer contentId, Resource resource, Integer lastModifiedUser);
+
     void updateContent(Content content, Integer lastModifiedUser);
 
     void deleteContent(Integer id, Integer lastModifiedUser);
@@ -57,6 +59,8 @@ public interface ContentService {
     List<Content> allCourse();
 
     List<Content> teacherCourse(Integer teacherId);
+
+    List<Content> teacherCreateCourseList(Integer teacherId);
 
     Integer copyOldCaseAsTeacherNewCase(Integer oldCaseId, Integer teacherId, List<Task> taskList);
 }

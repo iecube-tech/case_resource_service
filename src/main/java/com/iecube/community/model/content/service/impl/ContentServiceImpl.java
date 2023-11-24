@@ -82,6 +82,19 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
+    public void contentUpdateFourth(Integer contentId, Resource resource, Integer lastModifiedUser) {
+        Content content = this.findById(contentId);
+        if(content.getFourth() != null && !content.getFourth().isEmpty()){
+            // 删除原先的cover
+            resourceService.deleteResource(content.getFourth());
+        }
+        Integer row = contentMapper.updateFourth(contentId, resource.getFilename(),lastModifiedUser, new Date());
+        if(row!=1){
+            throw new UpdateException("更新数据异常");
+        }
+    }
+
+    @Override
     public void updateContent(Content content, Integer lastModifiedUser) {
         content.setLastModifiedTime(new Date());
         content.setLastModifiedUser(lastModifiedUser);
@@ -315,6 +328,12 @@ public class ContentServiceImpl implements ContentService {
     public List<Content> teacherCourse(Integer teacherId) {
         List<Content> teacherCourses = contentMapper.teacherCourse(teacherId);
         return teacherCourses;
+    }
+
+    @Override
+    public List<Content> teacherCreateCourseList(Integer teacherId) {
+        List<Content> teacherCreateCourseList = contentMapper.teacherCreateCourseList(teacherId);
+        return teacherCreateCourseList;
     }
 
     /**
