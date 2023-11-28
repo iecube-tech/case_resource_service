@@ -327,6 +327,8 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public List<Content> teacherCourse(Integer teacherId) {
         List<Content> teacherCourses = contentMapper.teacherCourse(teacherId);
+        List<Content> teacherCreatedCourses = contentMapper.teacherCreatedCourse(teacherId);
+        teacherCourses.addAll(teacherCreatedCourses);
         return teacherCourses;
     }
 

@@ -68,4 +68,6 @@ public interface ContentMapper {
     List<Content> teacherCourse(Integer teacherId);
 
     List<Content> teacherCreateCourseList(Integer creator);
+
+    List<Content> teacherCreatedCourse(Integer creator);
 }

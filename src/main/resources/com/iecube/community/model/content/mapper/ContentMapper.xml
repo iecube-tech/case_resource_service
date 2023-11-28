@@ -198,11 +198,17 @@
     <select id="teacherCourse" resultMap="ContentEntity">
         SELECT solution_or_case.id, solution_or_case.name, solution_or_case.introduction, solution_or_case.cover
         FROM solution_or_case INNER JOIN teacher_case ON solution_or_case.id=teacher_case.case_id
-        WHERE teacher_case.teacher_id=#{teacherId} AND solution_or_case.third=1
+        WHERE teacher_case.teacher_id=#{teacherId} AND solution_or_case.third=1 AND solution_or_case.is_delete=0
     </select>
 
     <select id="teacherCreateCourseList" resultMap="ContentEntity">
         SELECT * FROM solution_or_case WHERE creator_type='teacher' AND creator=#{creator} AND is_delete=0 AND third=1
     </select>
+
+
+    <select id="teacherCreatedCourse" resultMap="ContentEntity">
+        SELECT * FROM solution_or_case WHERE creator_type='teacher' AND creator=#{creator} AND is_delete=0 AND third=1 AND completion>=6
+    </select>
+
 
 </mapper>

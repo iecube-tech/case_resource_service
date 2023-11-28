@@ -30,22 +30,24 @@
     </insert>
 
     <select id="findStudentsLimitByTeacher" resultMap="StudentDto">
-        SELECT Student.id, Student.student_id, Student.student_name,class_and_grade.grade as student_grade,
+        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.grade as student_grade,
                class_and_grade.name as student_class, Major.name as major, Collage.name as collage
         FROM ((Student INNER JOIN Major ON Student.major_id=Major.id) INNER JOIN Collage ON Major.collage_id=Collage.id)
                  INNER JOIN class_and_grade ON class_and_grade.id=Student.student_class
-        WHERE Student.creator=#{teacherId} AND Student.status=1
-        ORDER BY Student.student_id
+        WHERE Student.major_id in (SELECT id FROM Major WHERE collage_id=(SELECT collage_id FROM teacher WHERE id=#{teacherId}))
+          AND Student.status=1
+        ORDER BY student_class,student_id
         LIMIT #{page},#{pageSize}
     </select>
 
     <select id="findAllInStatusByTeacher" resultMap="StudentDto">
-        SELECT Student.id, Student.student_id, Student.student_name,class_and_grade.grade as student_grade,
+        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.grade as student_grade,
                class_and_grade.name as student_class, Major.name as major, Collage.name as collage
         FROM ((Student INNER JOIN Major ON Student.major_id=Major.id) INNER JOIN Collage ON Major.collage_id=Collage.id)
             INNER JOIN class_and_grade ON class_and_grade.id=Student.student_class
-        WHERE (Student.creator=#{teacherId} AND Student.status=1)
-        ORDER BY Student.student_id
+        WHERE Student.major_id in (SELECT id FROM Major WHERE collage_id=(SELECT collage_id FROM teacher WHERE id=#{teacherId}))
+            AND Student.status=1
+        ORDER BY student_class,student_id
     </select>
 
     <update id="deleteStudent">
@@ -77,7 +79,9 @@
     </select>
 
     <select id="studentsNum" resultType="java.lang.Integer">
-        SELECT COUNT(id) FROM Student WHERE creator=#{teacherId} AND status=1;
+        SELECT COUNT(Student.id)
+        FROM Student
+        WHERE major_id in (SELECT id FROM Major WHERE collage_id=(SELECT collage_id FROM teacher WHERE id=#{teacherId})) AND status=1
     </select>
 
 </mapper>
