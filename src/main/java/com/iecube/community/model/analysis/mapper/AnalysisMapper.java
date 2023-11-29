@@ -36,4 +36,13 @@ public interface AnalysisMapper {
     Integer getProjectStudentNum(Integer projectId);
 
     List<Integer> getTaskListByProject(Integer projectId);
+
+    List<Double> getClassHour(Integer projectId);
+
+    List<Double> getTotalClassHour(Integer projectId);
+
+    List<Double> getCompletedClassHour(Integer projectId);
+
+
+    List<Double> getRedaOVerClassHour(Integer projectId);
 }

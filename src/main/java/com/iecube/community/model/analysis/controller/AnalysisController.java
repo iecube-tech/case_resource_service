@@ -1,6 +1,7 @@
 package com.iecube.community.model.analysis.controller;
 
 import com.iecube.community.basecontroller.analysis.AnalysisBaseController;
+import com.iecube.community.model.analysis.dto.ProjectClassHour;
 import com.iecube.community.model.analysis.service.AnalysisService;
 import com.iecube.community.model.analysis.vo.CaseAnalysis;
 import com.iecube.community.model.analysis.vo.CaseHistoryData;
@@ -48,6 +49,12 @@ public class AnalysisController extends AnalysisBaseController {
     public JsonResult<CaseAnalysis> caseAnalysisJsonResult(Integer projectId){
         CaseAnalysis projectAnalysis = analysisService.getProjectAnalysis(projectId);
         return new JsonResult<>(OK, projectAnalysis);
+    }
+
+    @GetMapping("/project_class_hour")
+    public JsonResult<ProjectClassHour> projectClassHourJsonResult(Integer projectId){
+        ProjectClassHour projectClassHour = analysisService.getProjectClassHour(projectId);
+        return new JsonResult<>(OK, projectClassHour);
     }
 
 }

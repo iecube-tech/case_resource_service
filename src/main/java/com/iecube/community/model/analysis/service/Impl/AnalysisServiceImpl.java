@@ -413,6 +413,26 @@ public class AnalysisServiceImpl implements AnalysisService {
         return projectAnalysis;
     }
 
+    @Override
+    public ProjectClassHour getProjectClassHour(Integer projectId) {
+        ProjectClassHour projectClassHour = new ProjectClassHour();
+        List<Double> taskClassHourList = analysisMapper.getClassHour(projectId);
+        Double classHour = getAdd(taskClassHourList);
+        projectClassHour.setClassHour(classHour);
+        List<Double> totalClassHourList = analysisMapper.getTotalClassHour(projectId);
+        Double totalClassHour = classHour*totalClassHourList.size()/taskClassHourList.size();
+        projectClassHour.setTotalClassHour(totalClassHour);
+        List<Double> completedClassHourList = analysisMapper.getCompletedClassHour(projectId);
+        List<Double> redaOVerClassHourList = analysisMapper.getRedaOVerClassHour(projectId);
+        Double completedClassHour = getAdd(completedClassHourList);
+        Double redaOVerClassHour = getAdd(redaOVerClassHourList);
+        projectClassHour.setCompletedClassHour(completedClassHour);
+        projectClassHour.setRedaOVerClassHour(redaOVerClassHour);
+        projectClassHour.setCompletedPercent((double)Math.round((completedClassHour/totalClassHour)*100));
+        projectClassHour.setRedaOverPercent((double)Math.round((redaOVerClassHour/totalClassHour)*100));
+        return projectClassHour;
+    }
+
     public double sameCaseAllProjectsAverageGrade(List<Project> list){
         List<Double> allGrades = new ArrayList<>();
         for (Project project : list){
@@ -458,5 +478,16 @@ public class AnalysisServiceImpl implements AnalysisService {
         return Math.round(average * 100.0) / 100.0;
     }
 
+
+    public static double getAdd(List<Double> list){
+        if (list == null || list.isEmpty()) {
+            return 0;
+        }
+        double sum = 0;
+        for (double num : list) {
+            sum += num;
+        }
+        return sum;
+    }
 
 }

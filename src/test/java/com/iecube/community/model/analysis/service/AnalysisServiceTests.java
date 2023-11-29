@@ -75,4 +75,9 @@ public class AnalysisServiceTests {
     public void getProjectAnalysis(){
         System.out.println(analysisService.getProjectAnalysis(12));
     }
+
+    @Test
+    public void getProjectClassHour(){
+        System.out.println(analysisService.getProjectClassHour(46));
+    }
 }

@@ -6,6 +6,7 @@
 <mapper namespace="com.iecube.community.model.task.mapper.TaskMapper">
     <resultMap id="Task" type="com.iecube.community.model.task.entity.Task">
         <result column="project_id" property="projectId"></result>
+        <result column="class_hour" property="classHour"></result>
         <result column="task_name" property="taskName"></result>
         <result column="task_cover" property="taskCover"></result>
         <result column="task_start_time" property="taskStartTime"></result>
@@ -17,6 +18,7 @@
 
     <resultMap id="TaskVo" type="com.iecube.community.model.task.entity.TaskVo">
         <result column="project_id" property="projectId"></result>
+        <result column="class_hour" property="classHour"></result>
         <result column="task_name" property="taskName"></result>
         <result column="task_start_time" property="taskStartTime"></result>
         <result column="task_end_time" property="taskEndTime"></result>
@@ -36,6 +38,7 @@
         <result column="student_id" property="studentId"></result>
         <result column="task_num" property="taskNum"></result>
         <result column="task_name" property="taskName"></result>
+        <result column="class_hour" property="classHour"></result>
         <result column="task_grade" property="taskGrade"></result>
         <result column="task_evaluate" property="taskEvaluate"></result>
         <result column="task_improvement" property="taskImprovement"></result>
@@ -48,9 +51,9 @@
 
 
     <insert id="addProjectTask" useGeneratedKeys="true" keyProperty="id" >
-        INSERT INTO task (id, project_id, num, weighting, task_name, task_cover, task_start_time,
+        INSERT INTO task (id, project_id, num, weighting, class_hour, task_name, task_cover, task_start_time,
                           task_end_time, creator, create_time, last_modified_user, last_modified_time)
-        VALUES (NULL, #{projectId}, #{num}, #{weighting}, #{taskName}, #{taskCover},
+        VALUES (NULL, #{projectId}, #{num}, #{weighting},#{classHour}, #{taskName}, #{taskCover},
                 #{taskStartTime},#{taskEndTime}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
     </insert>
 
@@ -67,6 +70,7 @@
         SELECT project_task_student.id AS pst_id,
                task.num AS task_num,
                task.weighting AS weighting,
+               task.class_hour AS class_hour,
                project_task_student.grade AS task_grade,
                project_task_student.status AS task_status
 --                project_task_student.tags AS tags
@@ -92,6 +96,7 @@
                task.num AS task_num,
                task.task_name AS task_name,
                task.weighting AS weighting,
+               task.class_hour AS class_hour,
                task.task_start_time AS task_start_time,
                task.task_end_time AS task_end_time
         FROM project_task_student INNER JOIN task ON project_task_student.task_id=task.id
@@ -113,7 +118,8 @@
                project_task_student.status AS task_status,
                project_task_student.resubmit AS task_resubmit,
                task.num AS task_num, task.task_name AS task_name,
-               task.weighting AS weighting
+               task.weighting AS weighting,
+               task.class_hour AS class_hour,
         FROM project_task_student INNER JOIN task ON project_task_student.task_id=task.id
         WHERE
             project_task_student.id = #{pstId}

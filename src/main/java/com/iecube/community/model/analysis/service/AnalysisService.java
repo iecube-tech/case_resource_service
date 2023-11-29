@@ -1,5 +1,6 @@
 package com.iecube.community.model.analysis.service;
 
+import com.iecube.community.model.analysis.dto.ProjectClassHour;
 import com.iecube.community.model.analysis.dto.ProjectDate;
 import com.iecube.community.model.analysis.vo.*;
 import com.iecube.community.util.ListCounter;
@@ -32,6 +33,8 @@ public interface AnalysisService {
     CaseAnalysis getCaseAnalysis(Integer caseId);
 
     CaseAnalysis getProjectAnalysis(Integer projectId);
+
+    ProjectClassHour getProjectClassHour(Integer projectId);
 
 }
 
