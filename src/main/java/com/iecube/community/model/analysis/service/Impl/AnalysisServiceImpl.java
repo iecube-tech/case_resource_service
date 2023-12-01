@@ -114,6 +114,8 @@ public class AnalysisServiceImpl implements AnalysisService {
         if(allTags.size()>0){
             tagsCount = ListCounter.countOccurrences(allTags);
         }
+        List<Integer> projectGradeList = analysisMapper.getProjectStudentScoreList(projectId);
+        currentProjectData.setProjectGradeList(projectGradeList);
         currentProjectData.setPersonnelDistributions(personnelDistributionList);
         currentProjectData.setTaskAverages(taskAverageList);
         currentProjectData.setTaskMedians(taskMedianList);

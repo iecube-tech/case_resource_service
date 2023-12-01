@@ -17,4 +17,5 @@ public class CurrentProjectData {
     List<ProjectTaskStudentsGrade> projectTaskStudentsGradeList;
     List<ProjectTaskStudentsTags> projectTaskStudentsTagsList;
     List<ListCounter.Occurrence> tagsCount;
+    List<Integer> projectGradeList;
 }
