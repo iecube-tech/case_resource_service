@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.duplicate_checking.mapper.DuplicateCheckingMapper">
+
+    <resultMap id="studentPDFFile" type="com.iecube.community.model.duplicate_checking.dto.TaskStudentPDFFile">
+        <result column="project_id" property="projectId"></result>
+        <result column="task_id" property="taskId"></result>
+        <result column="student_id" property="studentId"></result>
+        <result column="pst_id" property="pstId"></result>
+        <result column="resource_id" property="resourceId"></result>
+        <result column="file_name" property="fileName"></result>
+    </resultMap>
+
+    <select id="getTaskIdByPSTId" resultType="java.lang.Integer">
+        SELECT task_id FROM `project_task_student` WHERE id=#{pstId};
+    </select>
+
+    <select id="getPSTIdsByTaskId" resultType="java.lang.Integer">
+        SELECT id FROM project_task_student WHERE task_id=#{taskId};
+    </select>
+
+    <select id="getStudentFileListByPSTId" resultMap="studentPDFFile">
+        SELECT project_task_student.project_id,project_task_student.task_id,project_task_student.student_id,
+               project_task_student.id AS pst_id,resources.id AS resource_id,resources.filename AS file_name
+        FROM (pst_resource INNER JOIN resources ON pst_resource.resource_id=resources.id)
+             INNER JOIN project_task_student on pst_resource.pst_id=project_task_student.id
+        WHERE pst_resource.pst_id=#{pstId} AND resources.type='application/pdf';
+    </select>
+</mapper>

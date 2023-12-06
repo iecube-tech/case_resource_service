@@ -61,16 +61,14 @@ public class PdfFilesContentRepeatability {
         while(startIndex<text.length()){
             int endIndex = Math.min(startIndex+CharSize, text.length());
             String content = text.substring(startIndex,endIndex);
-            char[] charArray = content.toCharArray();
-            for (char c : charArray){
-                hashSet.add((int) c);
-            }
+//            hashSet.add(content);
+            hashSet.add(content.hashCode());
             startIndex += CharSize;
         }
         return hashSet;
     }
 
-    public double getSimilarity(File pdfFileA, File pdfFileB) {
+    public static double getSimilarity(File pdfFileA, File pdfFileB) {
         // 判断文件是不是pdf文件
         if(!(getFileTypeByExtension(pdfFileA.getName()).equals("pdf") && getFileTypeByExtension(pdfFileA.getName()).equals("pdf"))){
             return 0;
@@ -80,16 +78,21 @@ public class PdfFilesContentRepeatability {
 //        String textA = extractTextFromPDF(pdfFileA);
 //        String textB = extractTextFromPDF(pdfFileB);
         HashSet<Integer> hashSet1 = getTextHashSet(textA);
-        HashSet<Integer> hashSet2 = getTextHashSet(textB);
+        HashSet<Integer> hashSet2 = new HashSet<>();
 
-        // 分母   两个文本hash后 长度 之和
+        for(int i=0; i<CharSize; i++){
+            HashSet<Integer> hashSetB = getTextHashSet(textB);
+            hashSet2.addAll(hashSetB);
+            if(textB!=null && textB.length()>1){
+                textB = textB.substring(1);
+            }
+
+        }
+        // 分母  所求文件的总长度
         HashSet<Integer> union = new HashSet<>(hashSet1);
-        union.addAll(hashSet2);
-
         // 重复的内容 的 集合
         HashSet<Integer> intersection = new HashSet<>(hashSet1);
         intersection.retainAll(hashSet2);
-
         double similarity = (double) intersection.size() / (double) union.size() * 100;
         return similarity;
     }
