@@ -14,6 +14,16 @@ public class DuplicateCheckingServiceTests {
 
     @Test
     public void DuplicateCheckingByPSTid(){
-        duplicateCheckingService.DuplicateCheckingByPSTid(309);
+        duplicateCheckingService.DuplicateCheckingByPSTid(1310);
+    }
+
+    @Test
+    public  void getRepetitiveRateByTask(){
+        System.out.println(duplicateCheckingService.getRepetitiveRateByTask(322));
+    }
+
+    @Test
+    public  void regenerate(){
+        System.out.println(duplicateCheckingService.regenerate(322));
     }
 }

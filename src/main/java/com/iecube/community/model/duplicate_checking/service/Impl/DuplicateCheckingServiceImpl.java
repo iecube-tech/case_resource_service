@@ -1,11 +1,16 @@
 package com.iecube.community.model.duplicate_checking.service.Impl;
 
+import com.iecube.community.model.duplicate_checking.dto.Similarity;
 import com.iecube.community.model.duplicate_checking.dto.TaskStudentPDFFile;
 import com.iecube.community.model.duplicate_checking.entity.RepetitiveRate;
 import com.iecube.community.model.duplicate_checking.mapper.DuplicateCheckingMapper;
 import com.iecube.community.model.duplicate_checking.service.DuplicateCheckingService;
+import com.iecube.community.model.duplicate_checking.service.ex.NoPDFFilesException;
+import com.iecube.community.model.duplicate_checking.service.ex.NoRepetitiveRateVoException;
+import com.iecube.community.model.duplicate_checking.vo.RepetitiveRateVo;
 import com.iecube.community.util.PdfFilesContentRepeatability;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -16,12 +21,14 @@ import java.util.List;
 @Service
 public class DuplicateCheckingServiceImpl implements DuplicateCheckingService {
 
+    @Value("${resource-location}/file")
+    private String files;
+
     @Autowired
     private DuplicateCheckingMapper duplicateCheckingMapper;
 
     @Override
-    public Void DuplicateCheckingByPSTid(Integer pstId) {
-        Integer taskId = duplicateCheckingMapper.getTaskIdByPSTId(pstId);
+    public Void DuplicateCheckingByTaskId(Integer taskId) {
         List<Integer> pstIdList = duplicateCheckingMapper.getPSTIdsByTaskId(taskId);
         List<TaskStudentPDFFile> TaskAllStudentsFiles = new ArrayList<>();
         for(Integer id:pstIdList){
@@ -31,11 +38,11 @@ public class DuplicateCheckingServiceImpl implements DuplicateCheckingService {
             }
         }
         if(TaskAllStudentsFiles.size()<=1){
-            return null;
+            throw new NoPDFFilesException("没有可以对比的文件");
         }
         for(TaskStudentPDFFile studentFile: TaskAllStudentsFiles){
             for (TaskStudentPDFFile contrastFile:TaskAllStudentsFiles){
-                if(studentFile.getFileName().equals(contrastFile.getFileName())){
+                if(studentFile.getStudentId() == contrastFile.getStudentId()){
                     continue;
                 }
                 RepetitiveRate repetitiveRate = new RepetitiveRate();
@@ -48,15 +55,38 @@ public class DuplicateCheckingServiceImpl implements DuplicateCheckingService {
                 repetitiveRate.setContrastStudentId(contrastFile.getStudentId());
                 repetitiveRate.setContrastResourceId(contrastFile.getResourceId());
                 repetitiveRate.setContrastFileName(contrastFile.getFileName());
-                File fileA = new File(""+studentFile.getFileName());
-                File fileB = new File("" + contrastFile.getFileName());
-                Double res = PdfFilesContentRepeatability.getSimilarity(fileA,fileB);
-                repetitiveRate.setRepetitiveRate(res);
-                //插入数据库
+                File fileA = new File(this.files, studentFile.getFileName());
+                File fileB = new File(this.files, contrastFile.getFileName());
+                Similarity similarity = PdfFilesContentRepeatability.getSimilarity(fileA,fileB);
+                repetitiveRate.setRepetitiveRate(similarity.getSimilarity());
+                repetitiveRate.setRepetitiveContent(similarity.getContent());
+                duplicateCheckingMapper.insertRepetitiveRate(repetitiveRate);
             }
         }
-
-        System.out.println(TaskAllStudentsFiles);
         return null;
     }
+
+    @Override
+    public Void DuplicateCheckingByPSTid(Integer pstId){
+        Integer taskId = duplicateCheckingMapper.getTaskIdByPSTId(pstId);
+        this.DuplicateCheckingByTaskId(taskId);
+        return null;
+    }
+
+    @Override
+    public List<RepetitiveRateVo> getRepetitiveRateByTask(Integer taskId){
+        List<RepetitiveRateVo> repetitiveRateVoList = duplicateCheckingMapper.getRepetitiveRateVoByTaskId(taskId);
+        if(repetitiveRateVoList.size()==0){
+            throw new NoRepetitiveRateVoException("没有该案例的数据");
+        }
+        return repetitiveRateVoList;
+    }
+
+    @Override
+    public Void regenerate(Integer taskId) {
+        duplicateCheckingMapper.deleteRepetitiveRate(taskId);
+        this.DuplicateCheckingByTaskId(taskId);
+        return null;
+    }
+
 }

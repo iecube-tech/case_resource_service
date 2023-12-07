@@ -5,6 +5,7 @@ import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
 import com.iecube.community.model.resource.service.ex.*;
 import com.iecube.community.util.JsonResult;
+import com.iecube.community.util.ex.SystemException;
 import org.apache.tomcat.util.http.fileupload.impl.SizeLimitExceededException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -31,6 +32,9 @@ public class ResourceBaseController extends BaseController {
         }else if (e instanceof SizeLimitExceededException){
             result.setState(8000);
             result.setMessage("文件太大，控制单个文件小于1GB");
+        } else if (e instanceof SystemException) {
+            result.setState(404);
+            result.setMessage("文件未找到");
         }
         return result;
     }

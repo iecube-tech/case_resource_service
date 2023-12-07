@@ -13,4 +13,6 @@ public interface ResourceService {
     void deleteResource(String filename);
 
     void deleteById(Integer id);
+
+    Resource getResourceByFilename(String filename);
 }

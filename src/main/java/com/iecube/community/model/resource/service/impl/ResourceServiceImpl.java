@@ -189,6 +189,12 @@ public class ResourceServiceImpl implements ResourceService {
         this.deleteResource(resource);
     }
 
+    @Override
+    public Resource getResourceByFilename(String filename) {
+        Resource resource = resourceMapper.getByFileName(filename);
+        return resource;
+    }
+
     private void deleteResource(Resource resource){
         if(resource == null){
             throw new ResourceNotFoundException("文件未找到");

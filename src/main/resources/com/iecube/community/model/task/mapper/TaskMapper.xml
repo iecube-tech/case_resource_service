@@ -119,7 +119,7 @@
                project_task_student.resubmit AS task_resubmit,
                task.num AS task_num, task.task_name AS task_name,
                task.weighting AS weighting,
-               task.class_hour AS class_hour,
+               task.class_hour AS class_hour
         FROM project_task_student INNER JOIN task ON project_task_student.task_id=task.id
         WHERE
             project_task_student.id = #{pstId}

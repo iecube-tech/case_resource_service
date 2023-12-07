@@ -1,6 +1,7 @@
 package com.iecube.community.util;
 
 
+import com.iecube.community.model.duplicate_checking.dto.Similarity;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 
@@ -16,7 +17,7 @@ public class PdfFilesContentRepeatability {
     private static final Pattern NON_CHINESE_CHAR_PATTERN = Pattern.compile("[^\\p{IsHan}]");
 
     //分割字符的长度
-    private static final Integer CharSize=16;
+    private static final Integer CharSize=32;
 
     /**
      * 获取pdf文件的文本内容
@@ -28,7 +29,6 @@ public class PdfFilesContentRepeatability {
             PDDocument document = PDDocument.load(file);
             PDFTextStripper stripper = new PDFTextStripper();
             String text = stripper.getText(document);
-            System.out.println(text);
             document.close();
             return text;
         } catch (IOException e) {
@@ -55,33 +55,41 @@ public class PdfFilesContentRepeatability {
         return "Unknown";
     }
 
-    private static HashSet<Integer> getTextHashSet(String text){
-        HashSet<Integer> hashSet = new HashSet<>();
+    private static HashSet<String> getTextHashSet(String text){
+        HashSet<String> hashSet = new HashSet<>();
         int startIndex = 0;
         while(startIndex<text.length()){
             int endIndex = Math.min(startIndex+CharSize, text.length());
             String content = text.substring(startIndex,endIndex);
-//            hashSet.add(content);
-            hashSet.add(content.hashCode());
+            hashSet.add(content);
+//            hashSet.add(content.hashCode());
             startIndex += CharSize;
         }
         return hashSet;
     }
 
-    public static double getSimilarity(File pdfFileA, File pdfFileB) {
+    /**
+     * fileA 对照 fileB， fileA的重复率为 double res
+     * @param pdfFileA pdf文件 要计算重复率的文件
+     * @param pdfFileB pdf文件 A 和 B 对比， A有百分之多少 是和B重复的
+     * @return
+     */
+    public static Similarity getSimilarity(File pdfFileA, File pdfFileB) {
+        Similarity similarity = new Similarity();
         // 判断文件是不是pdf文件
         if(!(getFileTypeByExtension(pdfFileA.getName()).equals("pdf") && getFileTypeByExtension(pdfFileA.getName()).equals("pdf"))){
-            return 0;
+            similarity.setSimilarity(0);
+            return similarity;
         }
         String textA = preprocessText(extractTextFromPDF(pdfFileA));
         String textB = preprocessText(extractTextFromPDF(pdfFileB));
 //        String textA = extractTextFromPDF(pdfFileA);
 //        String textB = extractTextFromPDF(pdfFileB);
-        HashSet<Integer> hashSet1 = getTextHashSet(textA);
-        HashSet<Integer> hashSet2 = new HashSet<>();
+        HashSet<String> hashSet1 = getTextHashSet(textA);
+        HashSet<String> hashSet2 = new HashSet<>();
 
         for(int i=0; i<CharSize; i++){
-            HashSet<Integer> hashSetB = getTextHashSet(textB);
+            HashSet<String> hashSetB = getTextHashSet(textB);
             hashSet2.addAll(hashSetB);
             if(textB!=null && textB.length()>1){
                 textB = textB.substring(1);
@@ -89,11 +97,13 @@ public class PdfFilesContentRepeatability {
 
         }
         // 分母  所求文件的总长度
-        HashSet<Integer> union = new HashSet<>(hashSet1);
+        HashSet<String> union = new HashSet<>(hashSet1);
         // 重复的内容 的 集合
-        HashSet<Integer> intersection = new HashSet<>(hashSet1);
+        HashSet<String> intersection = new HashSet<>(hashSet1);
         intersection.retainAll(hashSet2);
-        double similarity = (double) intersection.size() / (double) union.size() * 100;
+        double res = (double) intersection.size() / (double) union.size() * 100;
+        similarity.setContent(intersection.toString());
+        similarity.setSimilarity(res);
         return similarity;
     }
 }

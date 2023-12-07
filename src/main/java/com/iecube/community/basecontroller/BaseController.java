@@ -1,5 +1,9 @@
 package com.iecube.community.basecontroller;
 
+import com.iecube.community.util.JsonResult;
+import com.iecube.community.util.ex.SystemException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+
 import javax.servlet.http.HttpSession;
 
 public class BaseController {
@@ -23,5 +27,15 @@ public class BaseController {
 
     public final String getUserTypeFromSession(HttpSession session){
         return session.getAttribute("type").toString();
+    }
+
+    @ExceptionHandler
+    public JsonResult<Void> handleException(Throwable e){
+        JsonResult<Void> result = new JsonResult<>(e);
+        if(e instanceof SystemException) {
+            result.setState(404);
+            result.setMessage("文件未找到");
+        }
+        return result;
     }
 }

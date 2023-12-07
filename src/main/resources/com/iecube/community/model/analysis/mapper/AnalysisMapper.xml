@@ -78,7 +78,7 @@
     <select id="getCompletedClassHour" resultType="java.lang.Double">
         SELECT task.class_hour
         FROM `project_task_student` INNER JOIN `task` ON project_task_student.task_id=task.id
-        WHERE project_task_student.project_id=#{projectId} AND project_task_student.status>=1
+        WHERE project_task_student.project_id=#{projectId} AND project_task_student.status>1
     </select>
 
     <select id="getRedaOVerClassHour" resultType="java.lang.Double">

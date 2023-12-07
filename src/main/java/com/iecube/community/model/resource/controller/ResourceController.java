@@ -82,8 +82,8 @@ public class ResourceController extends ResourceBaseController {
      */
     @GetMapping("image/{fileName}")
     public void GetImage(@PathVariable String fileName, HttpServletResponse response){
-//        Resource resource = resourceService.getByName(name);
-        DownloadUtil.httpDownload(new File(this.image, fileName),  response);
+        Resource resource = resourceService.getResourceByFilename(fileName);
+        DownloadUtil.httpDownload(new File(this.image, fileName), resource.getOriginFilename(), response);
     }
 
     /**
@@ -93,8 +93,8 @@ public class ResourceController extends ResourceBaseController {
      */
     @GetMapping("file/{fileName}")
     public void GetFile(@PathVariable String fileName, HttpServletResponse response){
-//        Resource resource = resourceService.getByName(name);
-        DownloadUtil.httpDownload(new File(this.files, fileName), response);
+        Resource resource = resourceService.getResourceByFilename(fileName);
+        DownloadUtil.httpDownload(new File(this.files, fileName), resource.getOriginFilename(), response);
     }
 
 }

@@ -14,6 +14,24 @@
         <result column="file_name" property="fileName"></result>
     </resultMap>
 
+    <resultMap id="RepetitiveRateVo" type="com.iecube.community.model.duplicate_checking.vo.RepetitiveRateVo">
+        <result column="project_id" property="projectId"></result>
+        <result column="task_id" property="taskId"></result>
+        <result column="pst_id" property="pstId"></result>
+        <result column="student_id" property="studentId"></result>
+        <result column="student_name" property="studentName"></result>
+        <result column="resource_id" property="resourceId"></result>
+        <result column="file_name" property="fileName"></result>
+        <result column="origin_filename" property="originFilename"></result>
+        <result column="contrast_student_id" property="contrastStudentId"></result>
+        <result column="contrast_student_name" property="contrastStudentName"></result>
+        <result column="contrast_resource_id" property="contrastResourceId"></result>
+        <result column="contrast_file_name" property="contrastFileName"></result>
+        <result column="contrast_origin_filename" property="contrastOriginFilename"></result>
+        <result column="repetitive_rate" property="repetitiveRate"></result>
+        <result column="repetitive_content" property="repetitiveContent"></result>
+    </resultMap>
+
     <select id="getTaskIdByPSTId" resultType="java.lang.Integer">
         SELECT task_id FROM `project_task_student` WHERE id=#{pstId};
     </select>
@@ -29,4 +47,40 @@
              INNER JOIN project_task_student on pst_resource.pst_id=project_task_student.id
         WHERE pst_resource.pst_id=#{pstId} AND resources.type='application/pdf';
     </select>
+
+    <insert id="insertRepetitiveRate" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO repetitive_rate (id, project_id, task_id, student_id, pst_id, resource_id, file_name,contrast_student_id,
+                                     contrast_resource_id, contrast_file_name, repetitive_rate, repetitive_content)
+        VALUES (NULL,#{projectId},#{taskId},#{studentId},#{pstId},#{resourceId},#{fileName},#{contrastStudentId},
+                #{contrastResourceId},#{contrastFileName},#{repetitiveRate},#{repetitiveContent})
+    </insert>
+
+    <select id="getRepetitiveRateVoByTaskId" resultMap="RepetitiveRateVo">
+        SELECT repetitive_rate.id,
+               repetitive_rate.project_id,
+               repetitive_rate.task_id,
+               repetitive_rate.pst_id,
+               repetitive_rate.student_id,
+               Student.student_name,
+               repetitive_rate.resource_id,
+               repetitive_rate.file_name,
+               resources.origin_filename,
+               repetitive_rate.contrast_student_id,
+               ContrastStudent.student_name AS contrast_student_name,
+               repetitive_rate.contrast_resource_id,
+               repetitive_rate.contrast_file_name,
+               ContrastResource.origin_filename AS contrast_origin_filename,
+               repetitive_rate.repetitive_rate,
+               repetitive_rate.repetitive_content
+        FROM repetitive_rate
+                 JOIN Student ON repetitive_rate.student_id = Student.id
+                 JOIN Student AS ContrastStudent ON repetitive_rate.contrast_student_id = ContrastStudent.id
+                 JOIN resources ON repetitive_rate.resource_id = resources.id
+                 JOIN resources AS ContrastResource ON repetitive_rate.contrast_resource_id = ContrastResource.id
+        WHERE repetitive_rate.task_id=#{taskId}
+    </select>
+
+    <delete id="deleteRepetitiveRate">
+        DELETE FROM repetitive_rate WHERE task_id=#{taskId}
+    </delete>
 </mapper>

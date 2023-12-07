@@ -6,6 +6,8 @@ import com.iecube.community.model.project.entity.ProjectDto;
 import com.iecube.community.model.project.entity.ProjectStudentVo;
 import com.iecube.community.model.project.entity.StudentProjectVo;
 import com.iecube.community.model.project.service.ProjectService;
+import com.iecube.community.model.resource.entity.Resource;
+import com.iecube.community.model.resource.service.ResourceService;
 import com.iecube.community.util.DownloadUtil;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,9 @@ public class ProjectController extends ProjectBaseController {
 
     @Autowired
     private ProjectService projectService;
+
+    @Autowired
+    private ResourceService resourceService;
 
     @PostMapping("/add")
     public JsonResult<Integer> addProject(@RequestBody ProjectDto projectDto, HttpSession session){
@@ -89,13 +94,15 @@ public class ProjectController extends ProjectBaseController {
     @GetMapping("/student_report")
     public void downloadStudentReport(Integer projectId, Integer studentId, HttpServletResponse response){
         File studentReport = projectService.downloadStudentReport(projectId,studentId);
-        DownloadUtil.httpDownload(studentReport, response);
+        Resource resource = resourceService.getResourceByFilename(studentReport.getName());
+        DownloadUtil.httpDownload(studentReport,resource.getOriginFilename(), response);
     }
 
     @GetMapping("/project_report")
     public void downloadProjectReport(Integer projectId, HttpServletResponse response){
         File projectReport = projectService.downloadProjectReport(projectId);
-        DownloadUtil.httpDownload(projectReport, response);
+        Resource resource = resourceService.getResourceByFilename(projectReport.getName());
+        DownloadUtil.httpDownload(projectReport,resource.getOriginFilename(), response);
     }
 
     @GetMapping("/delete_project")
