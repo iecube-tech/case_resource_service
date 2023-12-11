@@ -164,7 +164,7 @@
     </update>
 
     <select id="getProjectTasks" resultMap="TaskVo">
-        SELECT id,task_name,num,weight from task WHERE project_id=#{projectId} ORDER BY num
+        SELECT id,task_name,num,weighting from task WHERE project_id=#{projectId} ORDER BY num
     </select>
 
 

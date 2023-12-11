@@ -38,8 +38,9 @@ public class DuplicateCheckingServiceImpl implements DuplicateCheckingService {
             }
         }
         if(TaskAllStudentsFiles.size()<=1){
-            throw new NoPDFFilesException("没有可以对比的文件");
+            throw new NoPDFFilesException("本任务/实验下没有可以对比的文件");
         }
+
         for(TaskStudentPDFFile studentFile: TaskAllStudentsFiles){
             for (TaskStudentPDFFile contrastFile:TaskAllStudentsFiles){
                 if(studentFile.getStudentId() == contrastFile.getStudentId()){
