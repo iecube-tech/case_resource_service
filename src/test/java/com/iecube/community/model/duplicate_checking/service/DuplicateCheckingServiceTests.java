@@ -14,16 +14,16 @@ public class DuplicateCheckingServiceTests {
 
     @Test
     public void DuplicateCheckingByPSTid(){
-        duplicateCheckingService.DuplicateCheckingByPSTid(1310);
+        duplicateCheckingService.DuplicateCheckingByPSTid(1308);
     }
 
     @Test
-    public  void getRepetitiveRateByTask(){
+    public void getRepetitiveRateByTask(){
         System.out.println(duplicateCheckingService.getRepetitiveRateByTask(322));
     }
 
     @Test
-    public  void regenerate(){
-        System.out.println(duplicateCheckingService.regenerate(322));
+    public  void getRepetitiveRateByPstId(){
+        System.out.println(duplicateCheckingService.getRepetitiveRateByPstId(1308));
     }
 }

@@ -78,9 +78,40 @@
                  JOIN resources ON repetitive_rate.resource_id = resources.id
                  JOIN resources AS ContrastResource ON repetitive_rate.contrast_resource_id = ContrastResource.id
         WHERE repetitive_rate.task_id=#{taskId}
+        ORDER BY pst_id, repetitive_rate DESC
+    </select>
+
+    <select id="getRepetitiveRateVoByPstId" resultMap="RepetitiveRateVo">
+        SELECT repetitive_rate.id,
+               repetitive_rate.project_id,
+               repetitive_rate.task_id,
+               repetitive_rate.pst_id,
+               repetitive_rate.student_id,
+               Student.student_name,
+               repetitive_rate.resource_id,
+               repetitive_rate.file_name,
+               resources.origin_filename,
+               repetitive_rate.contrast_student_id,
+               ContrastStudent.student_name AS contrast_student_name,
+               repetitive_rate.contrast_resource_id,
+               repetitive_rate.contrast_file_name,
+               ContrastResource.origin_filename AS contrast_origin_filename,
+               repetitive_rate.repetitive_rate,
+               repetitive_rate.repetitive_content
+        FROM repetitive_rate
+                 JOIN Student ON repetitive_rate.student_id = Student.id
+                 JOIN Student AS ContrastStudent ON repetitive_rate.contrast_student_id = ContrastStudent.id
+                 JOIN resources ON repetitive_rate.resource_id = resources.id
+                 JOIN resources AS ContrastResource ON repetitive_rate.contrast_resource_id = ContrastResource.id
+        WHERE repetitive_rate.pst_id=#{pstId}
+        ORDER BY pst_id, repetitive_rate DESC
     </select>
 
     <delete id="deleteRepetitiveRate">
         DELETE FROM repetitive_rate WHERE task_id=#{taskId}
+    </delete>
+
+    <delete id="deleteRepetitiveRateByPstId">
+        DELETE FROM repetitive_rate WHERE pst_id=#{pstId}
     </delete>
 </mapper>
