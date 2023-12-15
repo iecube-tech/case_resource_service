@@ -13,6 +13,7 @@ public class RepetitiveRateVo {
     Integer resourceId;
     String fileName;
     String originFilename;
+    Integer contrastPstId;
     Integer contrastStudentId;
     String contrastStudentName;
     Integer contrastResourceId;

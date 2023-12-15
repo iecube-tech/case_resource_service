@@ -11,6 +11,7 @@ public class RepetitiveRate {
     Integer pstId;
     Integer resourceId;
     String fileName;
+    Integer contrastPstId;
     Integer contrastStudentId;
     Integer contrastResourceId;
     String contrastFileName;

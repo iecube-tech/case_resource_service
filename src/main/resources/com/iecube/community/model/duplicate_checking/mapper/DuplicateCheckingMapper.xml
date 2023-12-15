@@ -23,6 +23,7 @@
         <result column="resource_id" property="resourceId"></result>
         <result column="file_name" property="fileName"></result>
         <result column="origin_filename" property="originFilename"></result>
+        <result column="contrast_pst_id" property="contrastPstId"></result>
         <result column="contrast_student_id" property="contrastStudentId"></result>
         <result column="contrast_student_name" property="contrastStudentName"></result>
         <result column="contrast_resource_id" property="contrastResourceId"></result>
@@ -50,9 +51,9 @@
 
     <insert id="insertRepetitiveRate" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO repetitive_rate (id, project_id, task_id, student_id, pst_id, resource_id, file_name,contrast_student_id,
-                                     contrast_resource_id, contrast_file_name, repetitive_rate, repetitive_content)
+                                     contrast_pst_id,contrast_resource_id, contrast_file_name, repetitive_rate, repetitive_content)
         VALUES (NULL,#{projectId},#{taskId},#{studentId},#{pstId},#{resourceId},#{fileName},#{contrastStudentId},
-                #{contrastResourceId},#{contrastFileName},#{repetitiveRate},#{repetitiveContent})
+                #{contrastPstId},#{contrastResourceId},#{contrastFileName},#{repetitiveRate},#{repetitiveContent})
     </insert>
 
     <select id="getRepetitiveRateVoByTaskId" resultMap="RepetitiveRateVo">
@@ -65,6 +66,7 @@
                repetitive_rate.resource_id,
                repetitive_rate.file_name,
                resources.origin_filename,
+               repetitive_rate.contrast_pst_id,
                repetitive_rate.contrast_student_id,
                ContrastStudent.student_name AS contrast_student_name,
                repetitive_rate.contrast_resource_id,
@@ -91,6 +93,7 @@
                repetitive_rate.resource_id,
                repetitive_rate.file_name,
                resources.origin_filename,
+               repetitive_rate.contrast_pst_id,
                repetitive_rate.contrast_student_id,
                ContrastStudent.student_name AS contrast_student_name,
                repetitive_rate.contrast_resource_id,

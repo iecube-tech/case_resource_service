@@ -58,6 +58,7 @@ public class DuplicateCheckingServiceImpl implements DuplicateCheckingService {
                 repetitiveRate.setPstId(studentFile.getPstId());
                 repetitiveRate.setResourceId(studentFile.getResourceId());
                 repetitiveRate.setFileName(studentFile.getFileName());
+                repetitiveRate.setContrastPstId(contrastFile.getPstId());
                 repetitiveRate.setContrastStudentId(contrastFile.getStudentId());
                 repetitiveRate.setContrastResourceId(contrastFile.getResourceId());
                 repetitiveRate.setContrastFileName(contrastFile.getFileName());
@@ -108,6 +109,7 @@ public class DuplicateCheckingServiceImpl implements DuplicateCheckingService {
                 repetitiveRate.setPstId(studentFile.getPstId());
                 repetitiveRate.setResourceId(studentFile.getResourceId());
                 repetitiveRate.setFileName(studentFile.getFileName());
+                repetitiveRate.setContrastPstId(contrastFile.getPstId());
                 repetitiveRate.setContrastStudentId(contrastFile.getStudentId());
                 repetitiveRate.setContrastResourceId(contrastFile.getResourceId());
                 repetitiveRate.setContrastFileName(contrastFile.getFileName());
