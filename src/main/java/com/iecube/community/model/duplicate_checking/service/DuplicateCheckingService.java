@@ -12,4 +12,6 @@ public interface DuplicateCheckingService {
     List<RepetitiveRateVo>  getRepetitiveRateByTask(Integer taskId);
 
     List<RepetitiveRateVo> getRepetitiveRateByPstId(Integer pstId);
+
+    List<RepetitiveRateVo> getRepetitiveRateVoByResourceId(Integer resourceId);
 }

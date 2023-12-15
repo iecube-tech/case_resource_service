@@ -24,10 +24,16 @@ public class DuplicateCheckingController extends DuplicateCheckingBaseController
         List<RepetitiveRateVo> res  = duplicateCheckingService.getRepetitiveRateByTask(taskId);
         return new JsonResult<>(OK,res);
     }
-    @GetMapping("/bi_pstid")
-    public JsonResult<List> getDupBYPstId(Integer pstId){
+    @GetMapping("/by_pstid")
+    public JsonResult<List> getDupByPstId(Integer pstId){
         List<RepetitiveRateVo> res = duplicateCheckingService.getRepetitiveRateByPstId(pstId);
-        return new JsonResult<>(OK);
+        return new JsonResult<>(OK, res);
+    }
+
+    @GetMapping("/by_resource")
+    public JsonResult<List> getDupByStudent(Integer resourceId){
+        List<RepetitiveRateVo> res = duplicateCheckingService.getRepetitiveRateVoByResourceId(resourceId);
+        return new JsonResult<>(OK, res);
     }
 
     @PostMapping("/gen")

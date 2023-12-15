@@ -151,6 +151,12 @@ public class DuplicateCheckingServiceImpl implements DuplicateCheckingService {
         return repetitiveRateVoList;
     }
 
+    @Override
+    public List<RepetitiveRateVo> getRepetitiveRateVoByResourceId(Integer resourceId) {
+        List<RepetitiveRateVo> repetitiveRateVoList = duplicateCheckingMapper.getRepetitiveRateVoByResourceId(resourceId);
+        return repetitiveRateVoList;
+    }
+
     /**
      * 重新生成任务查重数据
      * @param taskId

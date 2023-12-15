@@ -106,6 +106,12 @@ public class StudentController extends StudentBaseController {
         return new JsonResult<>(OK, studentDto);
     }
 
+    @GetMapping("/by_id")
+    public JsonResult<StudentDto> getMyStudentDto(Integer studentId){
+        StudentDto studentDto = studentService.my(studentId);
+        return new JsonResult<>(OK, studentDto);
+    }
+
     @PostMapping("/change_password")
     public JsonResult<Void> changePassword(@RequestBody ChangePassword changePassword, HttpSession session){
         Integer studentId= getUserIdFromSession(session);

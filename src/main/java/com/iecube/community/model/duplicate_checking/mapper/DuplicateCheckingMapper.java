@@ -18,6 +18,7 @@ public interface DuplicateCheckingMapper {
     Integer insertRepetitiveRate(RepetitiveRate repetitiveRate);
 
     List<RepetitiveRateVo> getRepetitiveRateVoByTaskId(Integer taskId);
+    List<RepetitiveRateVo> getRepetitiveRateVoByResourceId(Integer resourceId);
 
     Integer deleteRepetitiveRate(Integer taskId);
     Integer deleteRepetitiveRateByPstId(Integer pstId);
