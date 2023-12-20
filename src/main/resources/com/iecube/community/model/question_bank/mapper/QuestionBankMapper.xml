@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.question_bank.mapper.QuestionBankMapper">
+
+    <resultMap id="Question" type="com.iecube.community.model.question_bank.entity.Question">
+        <result column="task_template_id" property="taskTemplateId"></result>
+    </resultMap>
+
+    <resultMap id="Solution" type="com.iecube.community.model.question_bank.entity.Solution">
+        <result column="question_id" property="questionId"></result>
+        <result column="is_solution" property="isSolution"></result>
+    </resultMap>
+
+    <resultMap id="QuestionVo" type="com.iecube.community.model.question_bank.vo.QuestionVo">
+        <result column="task_template_id" property="taskTemplateId"></result>
+    </resultMap>
+
+    <insert id="addQuestion" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO question (id, task_template_id, name, solve, difficulty)
+        VALUES (NULL, #{taskTemplateId}, #{name}, #{solve}, #{difficulty})
+    </insert>
+
+    <insert id="addSolution" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO solution (id, question_id, name, is_solution)
+        VALUES (NULL, #{questionId}, #{name}, #{isSolution})
+    </insert>
+
+    <update id="updateQuestion">
+        UPDATE question SET name=#{name}, solve=#{solve},difficulty=#{difficulty}
+        WHERE id=#{id}
+    </update>
+
+    <update id="updateSolution">
+        UPDATE solution SET name=#{name}, is_solution=#{isSolution}
+        WHERE id=#{id}
+    </update>
+
+    <delete id="deleteQuestion">
+        DELETE FROM question WHERE id=#{questionId}
+    </delete>
+
+    <delete id="deleteSolution">
+        DELETE FROM solution WHERE id=#{solutionId}
+    </delete>
+
+    <select id="getQuestionById" resultMap="Question">
+        SELECT * FROM question WHERE id=#{questionId}
+    </select>
+
+    <select id="getSolutionById" resultMap="Solution">
+        SELECT * FROM solution WHERE id=#{solutionId}
+    </select>
+
+    <select id="getSolutionByQuestion" resultMap="Solution">
+        SELECT * FROM solution WHERE question_id=#{questionId}
+    </select>
+
+    <select id="getQuestionVoByTaskTemplate" resultMap="QuestionVo">
+        SELECT * FROM question WHERE task_template_id=#{taskTemplateId}
+    </select>
+</mapper>
