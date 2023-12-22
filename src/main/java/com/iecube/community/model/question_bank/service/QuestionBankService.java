@@ -10,6 +10,10 @@ public interface QuestionBankService {
 
     void taskTemplateAddQuestion(Question question);
 
+    List<QuestionVo> taskTemplateAddQuestionVo(QuestionVo questionVo);
+
+    List<QuestionVo> taskTemplateUpdateQuestionVo(QuestionVo questionVo);
+
     void questionAddSolution(Solution solution);
 
     void updateQuestion(Question question);

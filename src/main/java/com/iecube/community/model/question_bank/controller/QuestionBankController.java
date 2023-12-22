@@ -23,6 +23,18 @@ public class QuestionBankController extends QuestionBankBaseController {
         return new JsonResult<>(OK, questionVoList);
     }
 
+    @PostMapping("/add_qs")
+    public JsonResult<List> taskTemplateAddQuestionVo(@RequestBody QuestionVo questionVo){
+        List<QuestionVo> questionVoList = questionBankService.taskTemplateAddQuestionVo(questionVo);
+        return new JsonResult<>(OK,questionVoList);
+    }
+
+    @PostMapping("/update_qs")
+    public JsonResult<List> taskTemplateUpdateQuestionVo(@RequestBody QuestionVo questionVo){
+        List<QuestionVo> questionVoList= questionBankService.taskTemplateUpdateQuestionVo(questionVo);
+        return new JsonResult<>(OK, questionVoList);
+    }
+
     @PostMapping("/add_question")
     public JsonResult<Void> taskTemplateAddQuestion(@RequestBody Question question){
         questionBankService.taskTemplateAddQuestion(question);

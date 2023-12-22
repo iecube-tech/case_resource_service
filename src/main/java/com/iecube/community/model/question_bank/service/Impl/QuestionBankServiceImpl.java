@@ -27,6 +27,46 @@ public class QuestionBankServiceImpl implements QuestionBankService {
     }
 
     @Override
+    public List<QuestionVo> taskTemplateAddQuestionVo(QuestionVo questionVo) {
+        System.out.println(questionVo);
+        Question question = new Question();
+        question.setName(questionVo.getName());
+        question.setTaskTemplateId(questionVo.getTaskTemplateId());
+        question.setSolve(questionVo.getSolve());
+        question.setDifficulty(questionVo.getDifficulty());
+        question.setId(questionVo.getId());
+        Integer res = questionBankMapper.addQuestion(question);
+        if(res!=1){
+            throw new InsertException("插入数据异常");
+        }
+        for(Solution solution:questionVo.getSolutions()){
+            solution.setQuestionId(question.getId());
+            Integer res2 =  questionBankMapper.addSolution(solution);
+            if(res2!=1){
+                throw new InsertException("插入数据异常");
+            }
+        }
+        List<QuestionVo> questionVoList = this.getTaskTemplateQuestions(questionVo.getTaskTemplateId());
+        return questionVoList;
+
+    }
+
+    @Override
+    public List<QuestionVo> taskTemplateUpdateQuestionVo(QuestionVo questionVo) {
+        System.out.println(questionVo);
+        Question question = new Question();
+        question.setName(questionVo.getName());
+        question.setTaskTemplateId(questionVo.getTaskTemplateId());
+        question.setSolve(questionVo.getSolve());
+        question.setDifficulty(questionVo.getDifficulty());
+        question.setId(questionVo.getId());
+        this.updateQuestion(question);
+        List<QuestionVo> questionVoList = this.getTaskTemplateQuestions(questionVo.getTaskTemplateId());
+
+        return questionVoList;
+    }
+
+    @Override
     public void questionAddSolution(Solution solution){
         Integer res=questionBankMapper.addSolution(solution);
         if(res!=1){
