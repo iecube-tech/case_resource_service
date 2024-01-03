@@ -94,15 +94,13 @@ public class ProjectController extends ProjectBaseController {
     @GetMapping("/student_report")
     public void downloadStudentReport(Integer projectId, Integer studentId, HttpServletResponse response){
         File studentReport = projectService.downloadStudentReport(projectId,studentId);
-        Resource resource = resourceService.getResourceByFilename(studentReport.getName());
-        DownloadUtil.httpDownload(studentReport,resource.getOriginFilename(), response);
+        DownloadUtil.httpDownload(studentReport,studentReport.getName(), response);
     }
 
     @GetMapping("/project_report")
     public void downloadProjectReport(Integer projectId, HttpServletResponse response){
         File projectReport = projectService.downloadProjectReport(projectId);
-        Resource resource = resourceService.getResourceByFilename(projectReport.getName());
-        DownloadUtil.httpDownload(projectReport,resource.getOriginFilename(), response);
+        DownloadUtil.httpDownload(projectReport,projectReport.getName(), response);
     }
 
     @GetMapping("/delete_project")

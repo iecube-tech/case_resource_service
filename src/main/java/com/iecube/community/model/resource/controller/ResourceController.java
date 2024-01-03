@@ -83,7 +83,8 @@ public class ResourceController extends ResourceBaseController {
     @GetMapping("image/{fileName}")
     public void GetImage(@PathVariable String fileName, HttpServletResponse response){
         Resource resource = resourceService.getResourceByFilename(fileName);
-        DownloadUtil.httpDownload(new File(this.image, fileName), resource.getOriginFilename(), response);
+//        DownloadUtil.httpDownload(new File(this.image, fileName), resource.getOriginFilename(), response);
+        DownloadUtil.httpDownload(new File(this.image, fileName), response);
     }
 
     /**

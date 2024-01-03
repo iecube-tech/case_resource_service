@@ -353,14 +353,22 @@ public class ProjectServiceImpl implements ProjectService {
 //                        System.out.println(source);
                         File target = new File(StudentReportPath.toString(), taskResource.getResource().getOriginFilename());
 //                        System.out.println(target);
-                        FileCopyUtils.copy(source,target);
-                        log.info("cp--"+source+"--to--"+target);
+                        try{
+                            FileCopyUtils.copy(source,target);
+                            log.info("cp--"+source+"--to--"+target);
+                        }catch (IOException e ){
+                            log.error(e.getMessage());
+                        }
                     }
                     if(taskResource.getReadOver()!=null){
                         File source = new File(files, taskResource.getReadOver().getFilename());
                         File target = new File(StudentReportPath.toString(), taskResource.getReadOver().getOriginFilename());
-                        FileCopyUtils.copy(source,target);
-                        log.info("cp--"+source+"--to--"+target);
+                        try{
+                            FileCopyUtils.copy(source,target);
+                            log.info("cp--"+source+"--to--"+target);
+                        }catch (IOException e){
+                            log.error(e.getMessage());
+                        }
                     }
                 }
             }

@@ -2,6 +2,7 @@ package com.iecube.community.model.question_bank.service;
 
 import com.iecube.community.model.question_bank.entity.Question;
 import com.iecube.community.model.question_bank.entity.Solution;
+import com.iecube.community.model.question_bank.qo.SubmitQo;
 import com.iecube.community.model.question_bank.vo.QuestionVo;
 
 import java.util.List;
@@ -25,4 +26,9 @@ public interface QuestionBankService {
     void deleteQuestion(Integer questionId);
 
     List<QuestionVo> getTaskTemplateQuestions(Integer taskTemplateId);
+
+    // 学生端
+    List<QuestionVo> getQuestions(Integer pstId);
+
+    List<QuestionVo> submitQuestion(List<SubmitQo> submitQoList, Integer pstId);
 }

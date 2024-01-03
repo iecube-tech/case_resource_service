@@ -53,7 +53,7 @@ public class DownloadUtil {
                 LOGGER.error("不支持的编码类型", e);
                 throw new RuntimeException("不支持的编码类型");
             }
-            response.setHeader("Content-disposition", "attachment; filename*=UTF-8''" + filename);
+            response.setHeader("Content-disposition", "attachment; filename*=UTF-8''" + filename); // 打开还是下载
         }
         try {
             consumer.accept(response.getOutputStream());

@@ -15,6 +15,7 @@
     </resultMap>
 
     <resultMap id="QuestionVo" type="com.iecube.community.model.question_bank.vo.QuestionVo">
+        <result column="question_id" property="questionId"></result>
         <result column="task_template_id" property="taskTemplateId"></result>
     </resultMap>
 
@@ -61,4 +62,52 @@
     <select id="getQuestionVoByTaskTemplate" resultMap="QuestionVo">
         SELECT * FROM question WHERE task_template_id=#{taskTemplateId} ORDER BY id DESC
     </select>
+
+    <select id="getQuestion1" resultMap="Question">
+        SELECT question.id,question.task_template_id,question.name,question.solve,question.difficulty
+        FROM `project_task_student` inner join `task` on project_task_student.task_id=task.id
+                                    inner join question on task.task_template_id=question.task_template_id
+        where project_task_student.id=#{pstId} and question.difficulty=1;
+    </select>
+
+    <select id="getQuestion2" resultMap="Question">
+        SELECT question.id,question.task_template_id,question.name,question.solve,question.difficulty
+        FROM `project_task_student` inner join `task` on project_task_student.task_id=task.id
+                                    inner join question on task.task_template_id=question.task_template_id
+        where project_task_student.id=#{pstId} and question.difficulty=2;
+    </select>
+
+    <select id="getQuestion3" resultMap="Question">
+        SELECT question.id,question.task_template_id,question.name,question.solve,question.difficulty
+        FROM `project_task_student` inner join `task` on project_task_student.task_id=task.id
+                                    inner join question on task.task_template_id=question.task_template_id
+        where project_task_student.id=#{pstId} and question.difficulty=3;
+    </select>
+
+    <insert id="addPSTQuestion">
+        INSERT INTO pst_question (id,pst_id,question_id, result) VALUES (NULL, #{pstId}, #{questionId}, NULL)
+    </insert>
+
+    <insert id="addPSTQuestionSolution">
+        INSERT INTO pst_question_solutions (id, pst_question_id,solution_id) VALUES (NULL, #{pstQuestionId}, #{solutionId})
+    </insert>
+
+    <select id="getPstQuestions" resultMap="QuestionVo">
+        SELECT pst_question.id, question.id AS question_id, pst_question.result, question.name, question.solve, question.difficulty
+        FROM pst_question INNER JOIN question ON pst_question.question_id=question.id WHERE pst_question.pst_id=#{pstId};
+    </select>
+
+    <select id="getPstQuestionAnswer" resultType="java.lang.Integer">
+        SELECT solution_id FROM pst_question_solutions WHERE pst_question_solutions.pst_question_id=#{pstQuestionId};
+    </select>
+
+    <select id="getPStQuestionRealAnswer" resultType="java.lang.Integer">
+        SELECT solution.id
+        from solution INNER join pst_question on solution.question_id=pst_question.question_id
+        WHERE pst_question.id=#{pstQuestionId} and solution.is_solution=1;
+    </select>
+
+    <update id="updatePstQuestionResult">
+        UPDATE pst_question set result=#{result} WHERE id=#{pstQuestionId}
+    </update>
 </mapper>

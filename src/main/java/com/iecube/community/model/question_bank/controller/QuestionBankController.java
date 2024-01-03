@@ -3,6 +3,7 @@ package com.iecube.community.model.question_bank.controller;
 import com.iecube.community.basecontroller.question_bank.QuestionBankBaseController;
 import com.iecube.community.model.question_bank.entity.Question;
 import com.iecube.community.model.question_bank.entity.Solution;
+import com.iecube.community.model.question_bank.qo.SubmitQo;
 import com.iecube.community.model.question_bank.service.QuestionBankService;
 import com.iecube.community.model.question_bank.vo.QuestionVo;
 import com.iecube.community.util.JsonResult;
@@ -69,6 +70,21 @@ public class QuestionBankController extends QuestionBankBaseController {
     public JsonResult<Void> deleteQuestion(Integer questionId){
         questionBankService.deleteQuestion(questionId);
         return new JsonResult<>(OK);
+    }
+
+
+    /**以下学生端
+     * */
+    @GetMapping("/sq")
+    public JsonResult<List> getAQuestion(Integer pstId){
+        List<QuestionVo> questionVoList = questionBankService.getQuestions(pstId);
+        return new JsonResult<>(OK,questionVoList);
+    }
+
+    @PostMapping("/submit")
+    public JsonResult<List> submitAnswer(@RequestBody List<SubmitQo> submitQoList, Integer pstId){
+        List<QuestionVo> questionVoList = questionBankService.submitQuestion(submitQoList,pstId);
+        return new JsonResult<>(OK, questionVoList);
     }
 
 }

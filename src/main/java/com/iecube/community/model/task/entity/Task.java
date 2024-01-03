@@ -14,6 +14,7 @@ import java.util.List;
 @Data
 public class Task extends BaseEntity {
     Integer id;
+    Integer taskTemplateId;
     Integer projectId;
     Integer num; //用于一个项目下的任务排序
     Double weighting;

@@ -1,5 +1,7 @@
 package com.iecube.community.model.question_bank.mapper;
 
+import com.iecube.community.model.question_bank.dto.PSTQuestionDto;
+import com.iecube.community.model.question_bank.dto.PSTQuestionSolutionDto;
 import com.iecube.community.model.question_bank.entity.Question;
 import com.iecube.community.model.question_bank.entity.Solution;
 import com.iecube.community.model.question_bank.vo.QuestionVo;
@@ -23,5 +25,21 @@ public interface QuestionBankMapper {
 
     List<Solution> getSolutionByQuestion(Integer questionId);
     List<QuestionVo> getQuestionVoByTaskTemplate(Integer taskTemplateId);
+
+    List<Question> getQuestion1(Integer pstId);
+    List<Question> getQuestion2(Integer pstId);
+    List<Question> getQuestion3(Integer pstId);
+
+    Integer addPSTQuestion(PSTQuestionDto pstQuestionDto);
+
+    Integer addPSTQuestionSolution(PSTQuestionSolutionDto pstQuestionSolutionDto);
+
+    List<QuestionVo> getPstQuestions(Integer pstId);
+
+    List<Integer> getPstQuestionAnswer(Integer pstQuestionId);
+
+    List<Integer> getPStQuestionRealAnswer(Integer pstQuestionId);
+
+    Integer updatePstQuestionResult(Integer pstQuestionId, Integer result);
 
 }

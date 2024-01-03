@@ -89,6 +89,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Integer createTask(Task task, Integer user) {
+        task.setTaskTemplateId(task.getId());
         task.setCreator(user);
         task.setLastModifiedUser(user);
         task.setCreateTime(new Date());

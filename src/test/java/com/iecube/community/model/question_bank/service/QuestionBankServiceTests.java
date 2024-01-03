@@ -41,7 +41,7 @@ public class QuestionBankServiceTests {
         Solution solution = new Solution();
         solution.setQuestionId(3);
         solution.setName("这个是选项1");
-        solution.setIsSolution(0);
+        solution.setSolution(false);
         questionBankService.questionAddSolution(solution);
     }
 
@@ -53,7 +53,7 @@ public class QuestionBankServiceTests {
         solution.setId(8);
         solution.setQuestionId(3);
         solution.setName("这个是选项4");
-        solution.setIsSolution(1);
+        solution.setSolution(true);
         questionBankService.updateSolution(solution);
     }
 
@@ -65,5 +65,11 @@ public class QuestionBankServiceTests {
     @Test
     public void getTaskTemplateQuestions(){
         System.out.println(questionBankService.getTaskTemplateQuestions(23));
+    }
+
+
+    @Test
+    public void getQuestion(){
+        System.out.println(questionBankService.getQuestions(1302));
     }
 }
