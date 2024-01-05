@@ -5,6 +5,7 @@ import com.iecube.community.baseservice.ex.ServiceException;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
+import com.iecube.community.model.question_bank.service.ex.CanNotUpdateObjectiveWeighting;
 import com.iecube.community.model.question_bank.service.ex.NoQuestionException;
 import com.iecube.community.model.resource.service.ex.FileUploadException;
 import com.iecube.community.util.JsonResult;
@@ -24,6 +25,8 @@ public class QuestionBankBaseController extends BaseController {
             result.setState(8003);
         } else if (e instanceof NoQuestionException){
             result.setState(8004);  //不需要题目
+        } else if (e instanceof CanNotUpdateObjectiveWeighting) {
+            result.setState(8005);
         }
         return result;
     }

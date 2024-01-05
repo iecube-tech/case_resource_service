@@ -5,6 +5,7 @@ import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
 import com.iecube.community.model.project.entity.ProjectStudentVo;
 import com.iecube.community.model.project.mapper.ProjectMapper;
+import com.iecube.community.model.question_bank.mapper.QuestionBankMapper;
 import com.iecube.community.model.tag.entity.Tag;
 import com.iecube.community.model.tag.mapper.TagMapper;
 import com.iecube.community.model.task.entity.*;
@@ -70,6 +71,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Autowired
     private ReferenceFileMapper referenceFileMapper;
+
+    @Autowired
+    private QuestionBankMapper questionBankMapper;
 
     @Autowired
     private TagMapper tagMapper;
@@ -241,7 +245,7 @@ public class TaskServiceImpl implements TaskService {
         Integer pstId = projectStudentTaskQo.getPSTId();
         // 教师提交的字段有  projectStudentTaskQo.getTaskEvaluate(); projectStudentTaskQo.getTaskGrade(); projectStudentTaskQo.getTaskTags();
         taskMapper.updatePSTEvaluate(pstId,projectStudentTaskQo.getTaskEvaluate());
-        taskMapper.updatePSTGrade(pstId, projectStudentTaskQo.getTaskGrade());
+        this.computeGrade(pstId, projectStudentTaskQo.getTaskGrade());
         this.autoComputeProjectGrade(pstId);
         taskMapper.updatePSTStatus(pstId,TEACHER_READ_OVER);
         List<Tag> oldTags = tagMapper.getTagsByPSTId(projectStudentTaskQo.getPSTId());
@@ -277,6 +281,12 @@ public class TaskServiceImpl implements TaskService {
             }
         }
         return null;
+    }
+    private void computeGrade(Integer pstId, double reportGrade){
+        Integer objectiveGrade = questionBankMapper.getObjectiveGrade(pstId);
+        Integer objectiveWeighting = questionBankMapper.getObjectiveWeighting(pstId);
+        double grade = objectiveGrade*objectiveWeighting/100 + reportGrade*(100-objectiveWeighting)/100;
+        taskMapper.updatePSTGrade(pstId, grade, reportGrade );
     }
 
     @Override

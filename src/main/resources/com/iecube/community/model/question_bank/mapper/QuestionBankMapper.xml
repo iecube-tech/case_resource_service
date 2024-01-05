@@ -110,4 +110,26 @@
     <update id="updatePstQuestionResult">
         UPDATE pst_question set result=#{result} WHERE id=#{pstQuestionId}
     </update>
+
+    <update id="updatePSTObjectiveGrade">
+        UPDATE project_task_student set objective_grade=#{grade} WHERE id=#{pstId}
+    </update>
+
+    <select id="getObjectiveGrade" resultType="java.lang.Integer">
+        SELECT objective_grade FROM project_task_student WHERE id=#{pstId}
+    </select>
+
+    <select id="getObjectiveWeighting" resultType="java.lang.Integer">
+        SELECT objective_weighting
+        FROM task INNER JOIN project_task_student ON task.id=project_task_student.task_id
+        WHERE project_task_student.id=#{pstId}
+    </select>
+
+    <update id="updateObjectiveGradeWeighting">
+        UPDATE task SET objective_weighting=#{weighting} WHERE id=(SELECT task_id FROM project_task_student WHERE id=#{pstId});
+    </update>
+
+    <select id="getTaskObjectiveGrades" resultType="java.lang.Integer">
+        SELECT objective_grade from project_task_student WHERE task_id=(SELECT task_id FROM project_task_student WHERE id=#{pstId})
+    </select>
 </mapper>

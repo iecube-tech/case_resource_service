@@ -10,7 +10,9 @@ import com.iecube.community.model.question_bank.entity.Solution;
 import com.iecube.community.model.question_bank.mapper.QuestionBankMapper;
 import com.iecube.community.model.question_bank.qo.SubmitQo;
 import com.iecube.community.model.question_bank.service.QuestionBankService;
+import com.iecube.community.model.question_bank.service.ex.CanNotUpdateObjectiveWeighting;
 import com.iecube.community.model.question_bank.service.ex.NoQuestionException;
+import com.iecube.community.model.question_bank.vo.PSTGW;
 import com.iecube.community.model.question_bank.vo.QuestionVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -211,21 +213,99 @@ public class QuestionBankServiceImpl implements QuestionBankService {
     public List<QuestionVo> submitQuestion(List<SubmitQo> submitQoList, Integer pstId){
         for(SubmitQo submitQo: submitQoList){
             for(Integer solutionId: submitQo.getAnswer()){
+                //保存学生答案
                 PSTQuestionSolutionDto pstQuestionSolutionDto = new PSTQuestionSolutionDto();
                 pstQuestionSolutionDto.setPstQuestionId(submitQo.getPstQuestionId());
                 pstQuestionSolutionDto.setSolutionId(solutionId);
                 questionBankMapper.addPSTQuestionSolution(pstQuestionSolutionDto);
             }
+            // 保存学生提交的结果
             if(submitQo.getAnswer().equals(questionBankMapper.getPStQuestionRealAnswer(submitQo.getPstQuestionId()))){
                 questionBankMapper.updatePstQuestionResult(submitQo.getPstQuestionId(), 1);
             }else {
                 questionBankMapper.updatePstQuestionResult(submitQo.getPstQuestionId(), 0);
             }
         }
+        this.computeObjectiveGrade(pstId);
         List<QuestionVo> questionVoList = this.getQuestions(pstId);
         return questionVoList;
     }
 
+    public void computeObjectiveGrade(Integer pstId){
+        List<QuestionVo> questionVoList = questionBankMapper.getPstQuestions(pstId);
+        int easy = 0;
+        int normal = 0;
+        int difficult = 0;
+        double grade = 0;
+        int easeTrue = 0;
+        int normalTrue=0;
+        int difficultTrue=0;
+        // 计算比例 和 正确的个数
+        for(QuestionVo questionVo: questionVoList){
+            if(questionVo.getDifficulty()==1){
+                easy+=1;
+                if(questionVo.getResult()==1){
+                    easeTrue+=1;
+                }
+            }
+            if(questionVo.getDifficulty()==2){
+                normal+=1;
+                if(questionVo.getResult()==1){
+                    normalTrue+=1;
+                }
+            }
+            if(questionVo.getDifficulty()==3){
+                difficult+=1;
+                if(questionVo.getResult()==1){
+                    difficultTrue+=1;
+                }
+            }
+        }
+        // 计算成绩
+        if(easy!=0 && normal!=0 &&difficult!=0){
+            grade = 30/easy*easeTrue+30/normal*normalTrue+40/difficult*difficultTrue;
+        } else if (easy!=0 && normal!=0 &&difficult==0) {
+            grade = 50/easy*easeTrue+50/normal*normalTrue;
+        }else if (easy!=0 && normal==0 &&difficult!=0){
+            grade = 45/easy*easeTrue+55/difficult*difficultTrue;
+        } else if (easy==0 && normal!=0 &&difficult!=0) {
+            grade = 45/normal*normalTrue+55/difficult*difficultTrue;
+        } else if (easy==0 && normal==0 &&difficult!=0) {
+            grade = 100/difficult*difficultTrue;
+        } else if(easy!=0 && normal==0 &&difficult==0) {
+            grade = 100/easy*easeTrue;
+        }else if(easy==0 && normal!=0 &&difficult==0) {
+            grade = 100/normal*normalTrue;
+        }else {
+            grade=0;
+        }
+        questionBankMapper.updatePSTObjectiveGrade(pstId, grade);
+    }
 
+    @Override
+    public PSTGW getObjectiveGradeAndWeighting(Integer pstId){
+        Integer objectiveGrade = questionBankMapper.getObjectiveGrade(pstId);
+        Integer objectiveWeighting = questionBankMapper.getObjectiveWeighting(pstId);
+        PSTGW pstgw = new PSTGW();
+        pstgw.setGrade(objectiveGrade);
+        pstgw.setWeighting(objectiveWeighting);
+        return pstgw;
+    }
+
+    @Override
+    public PSTGW updateObjectiveGradeWeighting(Integer pstId, Integer weighting){
+        // 需要判断是不是已经有计算过的成绩
+        List<Integer> taskObjectiveGrades=questionBankMapper.getTaskObjectiveGrades(pstId);
+        System.out.println(taskObjectiveGrades);
+        for(Integer grade: taskObjectiveGrades){
+            if(grade != null){
+                throw new CanNotUpdateObjectiveWeighting("已使用当前权重计算过学生任务/实验的客观题成绩，不可再修改");
+            }
+        }
+
+        questionBankMapper.updateObjectiveGradeWeighting(pstId, weighting);
+        PSTGW pstgw = this.getObjectiveGradeAndWeighting(pstId);
+        return pstgw;
+    }
 
 }

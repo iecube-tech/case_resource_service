@@ -5,6 +5,7 @@ import com.iecube.community.model.question_bank.entity.Question;
 import com.iecube.community.model.question_bank.entity.Solution;
 import com.iecube.community.model.question_bank.qo.SubmitQo;
 import com.iecube.community.model.question_bank.service.QuestionBankService;
+import com.iecube.community.model.question_bank.vo.PSTGW;
 import com.iecube.community.model.question_bank.vo.QuestionVo;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +74,7 @@ public class QuestionBankController extends QuestionBankBaseController {
     }
 
 
-    /**以下学生端
+    /**以下学生端  以及学生端教师端交互
      * */
     @GetMapping("/sq")
     public JsonResult<List> getAQuestion(Integer pstId){
@@ -87,4 +88,23 @@ public class QuestionBankController extends QuestionBankBaseController {
         return new JsonResult<>(OK, questionVoList);
     }
 
+    /**
+     * 获取客观题的权重和成绩
+     * @param pstId
+     * @return
+     */
+    @GetMapping("/gw")
+    public JsonResult<PSTGW> ObjectiveGradeAndWeighting(Integer pstId){
+        PSTGW pstGW = questionBankService.getObjectiveGradeAndWeighting(pstId);
+        return new JsonResult<>(OK,pstGW);
+    }
+
+    /**
+     * 更改客观题权重
+     */
+    @PostMapping("/ogw")
+    public JsonResult<PSTGW> ObjectiveWeighting(Integer pstId, Integer weighting){
+        PSTGW  pstgw = questionBankService.updateObjectiveGradeWeighting(pstId, weighting);
+        return new JsonResult<>(OK,pstgw);
+    }
 }

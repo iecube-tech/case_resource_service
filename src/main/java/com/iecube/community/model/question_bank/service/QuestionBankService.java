@@ -3,6 +3,7 @@ package com.iecube.community.model.question_bank.service;
 import com.iecube.community.model.question_bank.entity.Question;
 import com.iecube.community.model.question_bank.entity.Solution;
 import com.iecube.community.model.question_bank.qo.SubmitQo;
+import com.iecube.community.model.question_bank.vo.PSTGW;
 import com.iecube.community.model.question_bank.vo.QuestionVo;
 
 import java.util.List;
@@ -31,4 +32,8 @@ public interface QuestionBankService {
     List<QuestionVo> getQuestions(Integer pstId);
 
     List<QuestionVo> submitQuestion(List<SubmitQo> submitQoList, Integer pstId);
+
+    PSTGW getObjectiveGradeAndWeighting(Integer pstId);
+
+    PSTGW updateObjectiveGradeWeighting(Integer pstId, Integer weighting);
 }

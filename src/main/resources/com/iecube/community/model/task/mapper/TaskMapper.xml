@@ -160,7 +160,7 @@
     </update>
 
     <update id="updatePSTGrade">
-        UPDATE project_task_student SET grade=#{grade} WHERE id=#{id}
+        UPDATE project_task_student SET report_grade=#{reportGrade}, grade=#{grade} WHERE id=#{id}
     </update>
 
     <select id="getProjectTasks" resultMap="TaskVo">

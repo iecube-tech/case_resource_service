@@ -42,4 +42,13 @@ public interface QuestionBankMapper {
 
     Integer updatePstQuestionResult(Integer pstQuestionId, Integer result);
 
+    Integer updatePSTObjectiveGrade(Integer pstId, double grade);
+
+    Integer getObjectiveGrade(Integer pstId);
+    Integer getObjectiveWeighting(Integer pstId);
+
+    Integer updateObjectiveGradeWeighting(Integer pstId, Integer weighting);
+
+    List<Integer> getTaskObjectiveGrades(Integer pstId);
+
 }
