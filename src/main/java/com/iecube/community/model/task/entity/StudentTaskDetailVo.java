@@ -28,4 +28,5 @@ public class StudentTaskDetailVo {
     Integer taskResubmit;
     Date taskStartTime;
     Date taskEndTime;
+    Integer questionListSize;
 }

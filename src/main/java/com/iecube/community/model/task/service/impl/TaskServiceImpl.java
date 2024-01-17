@@ -6,6 +6,8 @@ import com.iecube.community.model.direction.service.ex.DeleteException;
 import com.iecube.community.model.project.entity.ProjectStudentVo;
 import com.iecube.community.model.project.mapper.ProjectMapper;
 import com.iecube.community.model.question_bank.mapper.QuestionBankMapper;
+import com.iecube.community.model.question_bank.service.QuestionBankService;
+import com.iecube.community.model.question_bank.service.ex.NoQuestionException;
 import com.iecube.community.model.tag.entity.Tag;
 import com.iecube.community.model.tag.mapper.TagMapper;
 import com.iecube.community.model.task.entity.*;
@@ -77,6 +79,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Autowired
     private TagMapper tagMapper;
+
+    @Autowired
+    private QuestionBankService questionBankService;
 
     /**
      * 任务状态
@@ -187,7 +192,7 @@ public class TaskServiceImpl implements TaskService {
         return null;
     }
     @Override
-    public List<StudentTaskDetailVo> findStudentTaskByProjectId(Integer projectId, Integer studentId) {
+    public List<StudentTaskDetailVo> findStudentTaskByProjectId(Integer projectId, Integer studentId){
         List<StudentTaskDetailVo> tasks = taskMapper.findStudentTaskByProjectId(projectId,studentId);
         for(StudentTaskDetailVo task:tasks){
             List<PSTResourceVo> taskResources = new ArrayList<>();
@@ -210,6 +215,13 @@ public class TaskServiceImpl implements TaskService {
             task.setResources(taskResources);
             List<Tag> tags = tagMapper.getTagsByPSTId(task.getPSTId());
             task.setTaskTags(tags);
+            try{
+                List questions = questionBankService.getQuestions(task.getPSTId());
+                task.setQuestionListSize(questions.size());
+            }catch (NoQuestionException e ){
+                task.setQuestionListSize(0);
+            }
+
         }
         return tasks;
     }
