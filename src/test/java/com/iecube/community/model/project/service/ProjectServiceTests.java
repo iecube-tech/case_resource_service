@@ -70,4 +70,10 @@ public class ProjectServiceTests {
         File file = projectService.downloadProjectReport(12);
         System.out.println(file.getPath());
     }
+
+    @Test
+    public void generateExcel(){
+        File file = projectService.ReGenerateProjectData(12);
+        System.out.println(file.getPath());
+    }
 }

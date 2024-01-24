@@ -3,6 +3,7 @@ package com.iecube.community.model.project.service.impl;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.content.entity.Content;
+import com.iecube.community.model.project.service.ex.GenerateFileException;
 import com.iecube.community.model.tag.service.TagService;
 import com.iecube.community.model.taskTemplate.dto.TaskTemplateDto;
 import com.iecube.community.model.content.service.ContentService;
@@ -28,6 +29,7 @@ import com.iecube.community.model.task.mapper.TaskMapper;
 import com.iecube.community.model.task.service.TaskService;
 import com.iecube.community.model.taskTemplate.service.TaskTemplateService;
 import com.iecube.community.util.DeleteFolderUtils;
+import com.iecube.community.util.TimeFormat;
 import com.iecube.community.util.ZipUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
@@ -46,6 +48,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipOutputStream;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 @Slf4j
 @Service
@@ -53,6 +60,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Value("${export-report}")
     private String reportPath;
+
+    @Value("${export-grade}")
+    private String exportGradePath;
 
     @Value("${resource-location}/file")
     private String files;
@@ -298,6 +308,92 @@ public class ProjectServiceImpl implements ProjectService {
             return new File(projectReportPath+".zip");
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public File exportProjectData(Integer projectId) {
+        //判断有没有文件
+
+        //有文件直接返回下载
+
+        //没有文件生成文件返回下载
+        return null;
+    }
+    @Override
+    public File ReGenerateProjectData(Integer projectId){
+        File file = this.GenerateProjectData(projectId);
+        return file;
+    }
+
+    public File GenerateProjectData(Integer projectId){
+        List<ProjectStudentVo> projectStudentVoList = this.projectStudentAndStudentTasks(projectId);
+        List<TaskVo> projectTasks = taskService.getProjectTasks(projectId);
+        Project project = this.findProjectById(projectId);
+        // 创建工作簿
+        Workbook workbook = new XSSFWorkbook();
+        // 创建工作表
+        Sheet sheet = workbook.createSheet("Sheet1");
+        // 创建行，行号从0开始
+        Row row = sheet.createRow(0);
+        // 创建单元格，列号从0开始
+        // 编号，姓名，学号，任务一，任务二， 任务三，任务四，任务五，项目成绩，tag点，改进建议
+        row.createCell(0).setCellValue("编号");
+        row.createCell(1).setCellValue("姓名");
+        row.createCell(2).setCellValue("学号");
+        for(int i=0;i<projectTasks.size();i++){
+            row.createCell(3*i+3).setCellValue(projectTasks.get(i).getTaskName());
+            row.createCell(3*i+4).setCellValue(projectTasks.get(i).getTaskName()+"-tag点");
+            row.createCell(3*i+5).setCellValue(projectTasks.get(i).getTaskName()+"-改进建议");
+        }
+        row.createCell(projectTasks.size()*3+3).setCellValue("总成绩");
+
+        for(int i=0; i<projectStudentVoList.size();i++){
+            // 创建一行，并写入具体数据
+            Row dataRow = sheet.createRow(i+1);
+            dataRow.createCell(0).setCellValue(i+1);
+            dataRow.createCell(1).setCellValue(projectStudentVoList.get(i).getStudentName());
+            dataRow.createCell(2).setCellValue(projectStudentVoList.get(i).getStudentId());
+            for(int j=0;j<projectStudentVoList.get(i).getStudentTasks().size();j++){
+                if(projectStudentVoList.get(i).getStudentTasks().get(j).getTaskGrade() != null){
+                    dataRow.createCell(3*j+3).setCellValue(projectStudentVoList.get(i).getStudentTasks().get(j).getTaskGrade());
+                }
+                List<Tag> tags = projectStudentVoList.get(i).getStudentTasks().get(j).getTags();
+                StringBuilder tagBuilder = new StringBuilder();
+                tagBuilder.append(" ");
+                StringBuilder suggestionBuilder = new StringBuilder();
+                suggestionBuilder.append(" ");
+                for(int k=0;k<tags.size();k++){
+                    tagBuilder.append(tags.get(k).getName());
+                    tagBuilder.append(" ");
+                    suggestionBuilder.append(tags.get(k).getSuggestion());
+                    suggestionBuilder.append(" ");
+                }
+                dataRow.createCell(3*j+4).setCellValue(tagBuilder.toString());
+                dataRow.createCell(3*j+5).setCellValue(suggestionBuilder.toString());
+            }
+            if(projectStudentVoList.get(i).getStudentGrade()!=null){
+                dataRow.createCell(projectStudentVoList.get(i).getStudentTasks().size()*3+3).setCellValue(projectStudentVoList.get(i).getStudentGrade());
+            }
+        }
+        try {
+            String excelPath = exportGradePath+"/"+project.getProjectName()+TimeFormat.timeFormat(project.getStartTime())
+                    +"-"+TimeFormat.timeFormat(project.getEndTime())+".xlsx";
+            File oldFile = new File(excelPath);
+            if(oldFile.exists()){
+                oldFile.delete();
+            }
+            // 将工作簿写入文件
+            FileOutputStream outputStream = new FileOutputStream(excelPath);
+            workbook.write(outputStream);
+            outputStream.close();
+            workbook.close();
+            System.out.println("");
+            log.info(project.getProjectName()+"项目，id:"+projectId+"的导出文件:"+excelPath+"创建成功!");
+            return new File(excelPath);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new GenerateFileException("导出成绩创建文件失败");
         }
     }
 

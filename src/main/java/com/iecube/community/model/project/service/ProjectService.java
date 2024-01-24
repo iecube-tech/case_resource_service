@@ -27,6 +27,10 @@ public interface ProjectService {
 
     File downloadProjectReport(Integer projectId);
 
+    File exportProjectData(Integer projectId);
+
+    File ReGenerateProjectData(Integer projectId);
+
     void deleteProject(Integer projectId);
 
     void hiddenProject(Integer projectId);

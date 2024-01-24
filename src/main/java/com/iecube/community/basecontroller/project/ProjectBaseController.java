@@ -2,6 +2,7 @@ package com.iecube.community.basecontroller.project;
 
 import com.iecube.community.basecontroller.BaseController;
 import com.iecube.community.model.auth.service.ex.InsertException;
+import com.iecube.community.model.project.service.ex.GenerateFileException;
 import com.iecube.community.model.resource.service.ex.FileUploadException;
 import com.iecube.community.util.JsonResult;
 import org.apache.tomcat.util.http.fileupload.impl.SizeLimitExceededException;
@@ -14,6 +15,8 @@ public class ProjectBaseController extends BaseController {
         JsonResult<Void> result = new JsonResult<>(e);
         if(e instanceof InsertException) {
             result.setState(8001);
+        } else if (e instanceof GenerateFileException) {
+            result.setState(8002);
         }
         return result;
     }

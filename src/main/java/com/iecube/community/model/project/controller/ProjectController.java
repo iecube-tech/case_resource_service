@@ -103,6 +103,12 @@ public class ProjectController extends ProjectBaseController {
         DownloadUtil.httpDownload(projectReport,projectReport.getName(), response);
     }
 
+    @GetMapping("/export_project_data")
+    public void exportProjectData(Integer projectId, HttpServletResponse response){
+        File file = projectService.ReGenerateProjectData(projectId);
+        DownloadUtil.httpDownload(file, file.getName(), response);
+    }
+
     @GetMapping("/delete_project")
     public JsonResult<Void> deleteProject(Integer projectId){
         projectService.deleteProject(projectId);
