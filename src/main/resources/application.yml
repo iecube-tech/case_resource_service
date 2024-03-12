@@ -9,11 +9,15 @@ spring:
 #    url: jdbc:mysql://43.139.68.165:7999/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    西安数据库穿透
     url: jdbc:mysql://192.168.1.6:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
-#    url: jdbc:mysql://172.28.102.208:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
-#    url: jdbc:mysql://43.139.68.165:7999/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+#    url: jdbc:mysql://172.22.41.15:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+#    url: jdbc:mysql://47.94.161.154:8001/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
     username: root
 #    password: 11223366zxl
+#    password: Root@123
+    # 线上数据库密码
+
     password: 12345678
+    # 办公室服务器sql密码
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 10
@@ -59,6 +63,9 @@ logging:
     java.sql: DEBUG
 #    com.example.demo.mapper: INFO
 #    org.mybatis.spring: INFO
+
+FFmpeg:
+  path: D:\software\ffmpeg-6.1.1\bin\ffmpeg.exe
 
 resource-location: D:\learn\java\resources
 export-report: D:\learn\java\report

@@ -1,6 +1,7 @@
 package com.iecube.community.model.task.controller;
 
 import com.iecube.community.basecontroller.task.TaskBaseController;
+import com.iecube.community.model.task.entity.PSTDataTables;
 import com.iecube.community.model.task.entity.ProjectStudentTaskQo;
 import com.iecube.community.model.task.entity.StudentTaskDetailVo;
 import com.iecube.community.model.task.entity.TaskVo;
@@ -97,6 +98,12 @@ public class TaskController extends TaskBaseController {
     public JsonResult<List> getProjectTasks(Integer projectId){
         List<TaskVo> taskVoList = taskService.getProjectTasks(projectId);
         return new JsonResult<>(OK,taskVoList);
+    }
+
+    @PostMapping("/up_dt")
+    public JsonResult<List> updateDataTables(@RequestBody PSTDataTables pstDataTables){
+        taskService.updateDataTables(pstDataTables.getPstId(), pstDataTables.getDataTables());
+        return new JsonResult<>(OK);
     }
 
 

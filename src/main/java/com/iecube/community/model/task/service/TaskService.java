@@ -31,4 +31,6 @@ public interface TaskService {
     StudentTaskDetailVo studentChangeStatus(Integer pstId);
 
     List<TaskVo> getProjectTasks(Integer projectId);
+
+    Void updateDataTables(Integer pstId, String dataTables);
 }

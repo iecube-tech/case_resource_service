@@ -56,6 +56,12 @@ public class ContentController extends ContentBaseController {
     @PostMapping("/update")
     public JsonResult<Content> updateContent(@RequestBody Content content, HttpSession session){
         System.out.println(content);
+        if(content.getId()==null){
+            Integer lastModifiedUser = getUserIdFromSession(session);
+            String userType = getUserTypeFromSession(session);
+            Integer id = contentService.addContent(content,userType, lastModifiedUser);
+            content.setId(id);
+        }
         Integer modifiedUser = getUserIdFromSession(session);
         String modifyType = getUserTypeFromSession(session);
         content.setCreatorType(modifyType);

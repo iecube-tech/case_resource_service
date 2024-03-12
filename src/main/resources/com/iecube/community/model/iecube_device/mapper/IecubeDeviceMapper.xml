@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.iecube_device.mapper.IecubeDeviceMapper">
+
+    <resultMap id="IecubeDevice" type="com.iecube.community.model.iecube_device.entity.IecubeDevice">
+        <result column="connect_type" property="connectType"></result>
+        <result column="web_basic_url" property="webBasicUrl"></result>
+        <result column="basic_data_table" property="basicDataTable"></result>
+    </resultMap>
+
+    <select id="all" resultMap="IecubeDevice">
+        SELECT * FROM iecube_device
+    </select>
+
+    <insert id="add" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO iecube_device (id,name,connect_type,web_basic_url,basic_data_tablbe)
+        VALUES (NULL, #{name}, #{connectType}, #{webBasicUrl}, #{BasicDataTable})
+    </insert>
+</mapper>

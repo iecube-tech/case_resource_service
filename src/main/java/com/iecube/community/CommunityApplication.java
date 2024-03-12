@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class CommunityApplication {
 
     @GetMapping(value = {"/", "/{path:[^\\.]*}"})
-    public String forward() {
-        return "forward:/index.html";
-    }
+//    public String forward() {
+//        return "forward:/index.html";
+//    }
 
     public static void main(String[] args) {
         SpringApplication.run(CommunityApplication.class, args);

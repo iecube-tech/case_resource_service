@@ -295,7 +295,7 @@ public class QuestionBankServiceImpl implements QuestionBankService {
     @Override
     public PSTGW updateObjectiveGradeWeighting(Integer pstId, Integer weighting){
         // 需要判断是不是已经有计算过的成绩
-        List<Integer> taskObjectiveGrades=questionBankMapper.getTaskObjectiveGrades(pstId);
+        List<Integer> taskObjectiveGrades=questionBankMapper.getTaskGrades(pstId);
         System.out.println(taskObjectiveGrades);
         for(Integer grade: taskObjectiveGrades){
             if(grade != null){

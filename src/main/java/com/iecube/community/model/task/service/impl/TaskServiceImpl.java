@@ -296,6 +296,9 @@ public class TaskServiceImpl implements TaskService {
     }
     private void computeGrade(Integer pstId, double reportGrade){
         Integer objectiveGrade = questionBankMapper.getObjectiveGrade(pstId);
+        if(objectiveGrade == null){
+            objectiveGrade=0;
+        }
         Integer objectiveWeighting = questionBankMapper.getObjectiveWeighting(pstId);
         double grade = objectiveGrade*objectiveWeighting/100 + reportGrade*(100-objectiveWeighting)/100;
         taskMapper.updatePSTGrade(pstId, grade, reportGrade );
@@ -489,6 +492,15 @@ public class TaskServiceImpl implements TaskService {
     public List<TaskVo> getProjectTasks(Integer projectId) {
         List<TaskVo> taskVoList = taskMapper.getProjectTasks(projectId);
         return taskVoList;
+    }
+
+    @Override
+    public Void updateDataTables(Integer pstId, String dataTables) {
+        Integer row = taskMapper.updatePSTDataTables(pstId, dataTables);
+        if(row != 1){
+            throw new UpdateException("更新数据失败");
+        }
+        return null;
     }
 
 }

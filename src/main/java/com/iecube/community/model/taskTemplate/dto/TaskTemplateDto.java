@@ -19,6 +19,8 @@ public class TaskTemplateDto {
     Double classHour;
     String taskName;
     String taskCover;
+    Integer taskDevice;
+    String taskDataTables;
     List<BackDrop> backDropList;
     List<Requirement> requirementList;
     List<DeliverableRequirement> deliverableRequirementList;

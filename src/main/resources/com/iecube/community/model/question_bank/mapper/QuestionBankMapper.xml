@@ -129,7 +129,7 @@
         UPDATE task SET objective_weighting=#{weighting} WHERE id=(SELECT task_id FROM project_task_student WHERE id=#{pstId});
     </update>
 
-    <select id="getTaskObjectiveGrades" resultType="java.lang.Integer">
-        SELECT objective_grade from project_task_student WHERE task_id=(SELECT task_id FROM project_task_student WHERE id=#{pstId})
+    <select id="getTaskGrades" resultType="java.lang.Integer">
+        SELECT grade from project_task_student WHERE task_id=(SELECT task_id FROM project_task_student WHERE id=#{pstId})
     </select>
 </mapper>

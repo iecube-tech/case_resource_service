@@ -9,16 +9,19 @@
         <result column="class_hour" property="classHour"></result>
         <result column="task_name" property="taskName"></result>
         <result column="task_cover" property="taskCover"></result>
+        <result column="task_device" property="taskDevice"></result>
+        <result column="task_data_tables" property="taskDataTables"></result>
     </resultMap>
 
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
         INSERT INTO
-            task_templates (id, content_id, num, weighting, class_hour, task_name, task_cover, creator, create_time, last_modified_user, last_modified_time)
-        VALUES (null, #{contentId}, #{num}, #{weighting}, #{classHour}, #{taskName}, #{taskCover}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
+            task_templates (id, content_id, num, weighting, class_hour, task_name, task_cover, task_device, task_data_tables, creator, create_time, last_modified_user, last_modified_time)
+        VALUES (null, #{contentId}, #{num}, #{weighting}, #{classHour}, #{taskName}, #{taskCover}, #{taskDevice}, #{taskDataTables}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
     </insert>
 
     <select id="getTaskTemplatesByContentId" resultMap="taskTemplateDto">
-        SELECT id, content_id, num, weighting, class_hour, task_name, task_cover FROM `task_templates` WHERE content_id=#{contentId} ORDER BY num
+        SELECT id, content_id, num, weighting, class_hour, task_name, task_cover, task_device, task_data_tables
+        FROM `task_templates` WHERE content_id=#{contentId} ORDER BY num
     </select>
 
     <delete id="deleteTaskTemplateById">

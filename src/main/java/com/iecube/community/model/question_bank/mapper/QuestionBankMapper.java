@@ -49,6 +49,6 @@ public interface QuestionBankMapper {
 
     Integer updateObjectiveGradeWeighting(Integer pstId, Integer weighting);
 
-    List<Integer> getTaskObjectiveGrades(Integer pstId);
+    List<Integer> getTaskGrades(Integer pstId);
 
 }

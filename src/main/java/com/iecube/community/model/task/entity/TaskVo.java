@@ -18,6 +18,8 @@ public class TaskVo {
     Double weighting;
     Double classHour;
     String taskName;
+    Integer taskDevice;
+    String taskDataTables;
     Date taskStartTime;
     Date taskEndTime;
     List<BackDrop> backDrops;

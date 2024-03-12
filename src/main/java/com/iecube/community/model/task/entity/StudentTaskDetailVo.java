@@ -19,6 +19,7 @@ public class StudentTaskDetailVo {
     Double classHour;
     String taskName;
     Double taskGrade;
+    String dataTables;
     List<Tag> taskTags;
     String taskEvaluate;
     String taskImprovement;

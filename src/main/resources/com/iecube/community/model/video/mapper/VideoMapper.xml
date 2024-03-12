@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.video.mapper.VideoMapper">
+    <resultMap id="Video" type="com.iecube.community.model.video.entity.Video">
+        <result property="caseId" column="case_id"></result>
+        <result property="originalFileName" column="original_filename"></result>
+        <result property="originalFileType" column="original_filetype"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="lastModifiedTime" column="last_modified_time"></result>
+        <result property="lastModifiedUser" column="last_modified_user"></result>
+    </resultMap>
+
+    <insert id="uploadVideo" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO video (id, case_id, cover, name, filename, original_filename, original_filetype, creator,
+                           create_time, last_modified_time, last_modified_user)
+        VALUES (NULL, #{caseId}, #{cover},#{name}, #{filename}, #{originalFileName}, #{originalFileType}, #{creator},
+                #{createTime}, #{lastModifiedTime}, #{lastModifiedUser})
+    </insert>
+</mapper>

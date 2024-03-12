@@ -46,7 +46,7 @@ public class ResourceController extends ResourceBaseController {
 
     @PostMapping ("/wdupimage")
     public JsonResult<WangEditorRes> WangEditorUploadImage(MultipartFile file) throws IOException{
-        System.out.println(file);
+//        System.out.println(file);
         Integer creator = 0;
         Resource resource = resourceService.UploadImage(file,creator);
         WangEditorRes wangEditorRes = new WangEditorRes();

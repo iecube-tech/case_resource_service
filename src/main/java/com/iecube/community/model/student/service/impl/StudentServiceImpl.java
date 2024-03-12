@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.*;
+import com.iecube.community.util.SHA256;
 
 @Slf4j
 @Service
@@ -151,7 +152,9 @@ public class StudentServiceImpl implements StudentService {
         AddStudentDto addStudentDto = this.initAddStudentDto(addStudentQo,teacherId);
         Integer number = this.getRandomNumberInRange(8,16);
         String password = this.getRandomString(number);
-        String md5Password = this.getMD5Password(password, addStudentDto.getSalt());
+        // sha256先加密 再使用md5 对sha256加密
+        String sha256Password = SHA256.encryptStringWithSHA256(password);
+        String md5Password = this.getMD5Password(sha256Password, addStudentDto.getSalt());
         addStudentDto.setPassword(md5Password);
         //保存
         this.saveStudent(addStudentDto);

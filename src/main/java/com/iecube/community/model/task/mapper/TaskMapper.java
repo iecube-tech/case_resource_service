@@ -34,4 +34,8 @@ public interface TaskMapper {
     Integer updatePSTGrade(Integer id, Double grade, Double reportGrade);
     Task findTaskByPSTId(Integer pstId);
     List<TaskVo> getProjectTasks(Integer projectId);
+
+    Integer updatePSTDataTables(Integer id, String dataTables);
+
+    String getPSTDataTables(Integer id);
 }

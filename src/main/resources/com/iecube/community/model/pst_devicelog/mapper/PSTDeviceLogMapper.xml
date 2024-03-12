@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.pst_devicelog.mapper.PSTDeviceLogMapper">
+
+    <resultMap id="PSTDeviceLog" type="com.iecube.community.model.pst_devicelog.entity.PSTDeviceLog">
+        <result column="pst_id" property="pstId"></result>
+        <result column="resource_id" property="resourceId"></result>
+    </resultMap>
+
+    <resultMap id="TaskInfo" type="com.iecube.community.model.pst_devicelog.entity.TaskInfo">
+        <result column="pst_id" property="pstId"></result>
+        <result column="project_name" property="projectName"></result>
+        <result column="task_name" property="taskName"></result>
+    </resultMap>
+
+    <insert id="addDeviceLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO pst_devicelog (id, pst_id, resource_id)
+        VALUES (NULL, #{pstId}, #{resourceId})
+    </insert>
+
+    <select id="getPSTDeviceLogs" resultMap="PSTDeviceLog">
+        SELECT * FROM pst_devicelog WHERE pst_id=#{pstId}
+    </select>
+
+    <select id="getTaskInfoByPSTId" resultMap="TaskInfo">
+        SELECT project_task_student.id AS pst_id, project.project_name, task.task_name
+        FROM project_task_student INNER JOIN project ON project.id=project_task_student.project_id
+            INNER JOIN task ON task.id=project_task_student.task_id
+        WHERE project_task_student.id=#{pstId};
+    </select>
+
+</mapper>

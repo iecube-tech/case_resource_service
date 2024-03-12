@@ -9,6 +9,8 @@
         <result column="class_hour" property="classHour"></result>
         <result column="task_name" property="taskName"></result>
         <result column="task_cover" property="taskCover"></result>
+        <result column="task_device" property="taskDevice"></result>
+        <result column="task_data_tables" property="taskDataTables"></result>
         <result column="task_start_time" property="taskStartTime"></result>
         <result column="task_end_time" property="taskEndTime"></result>
         <result column="create_time" property="createTime"></result>
@@ -20,6 +22,8 @@
         <result column="project_id" property="projectId"></result>
         <result column="class_hour" property="classHour"></result>
         <result column="task_name" property="taskName"></result>
+        <result column="task_device" property="taskDevice"></result>
+        <result column="task_data_tables" property="taskDataTables"></result>
         <result column="task_start_time" property="taskStartTime"></result>
         <result column="task_end_time" property="taskEndTime"></result>
     </resultMap>
@@ -47,13 +51,14 @@
         <result column="task_resubmit" property="taskResubmit"></result>
         <result column="task_start_time" property="taskStartTime"></result>
         <result column="task_end_time" property="taskEndTime"></result>
+        <result column="data_tables" property="dataTables"></result>
     </resultMap>
 
 
     <insert id="addProjectTask" useGeneratedKeys="true" keyProperty="id" >
-        INSERT INTO task (id, task_template_id, project_id, num, weighting, class_hour, task_name, task_cover, task_start_time,
+        INSERT INTO task (id, task_template_id, project_id, num, weighting,objective_weighting, class_hour, task_name, task_cover, task_device, task_data_tables, task_start_time,
                           task_end_time, creator, create_time, last_modified_user, last_modified_time)
-        VALUES (NULL,#{taskTemplateId}, #{projectId}, #{num}, #{weighting},#{classHour}, #{taskName}, #{taskCover},
+        VALUES (NULL,#{taskTemplateId}, #{projectId}, #{num}, #{weighting}, 0, #{classHour}, #{taskName}, #{taskCover}, #{taskDevice}, #{taskDataTables},
                 #{taskStartTime},#{taskEndTime}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
     </insert>
 
@@ -93,6 +98,7 @@
                project_task_student.content AS task_content,
                project_task_student.status AS task_status,
                project_task_student.resubmit AS task_resubmit,
+               project_task_student.data_tables AS data_tables,
                task.num AS task_num,
                task.task_name AS task_name,
                task.weighting AS weighting,
@@ -117,6 +123,7 @@
                project_task_student.content AS task_content,
                project_task_student.status AS task_status,
                project_task_student.resubmit AS task_resubmit,
+               project_task_student.data_tables AS data_tables,
                task.num AS task_num, task.task_name AS task_name,
                task.weighting AS weighting,
                task.class_hour AS class_hour
@@ -164,7 +171,15 @@
     </update>
 
     <select id="getProjectTasks" resultMap="TaskVo">
-        SELECT id,task_name,num,weighting from task WHERE project_id=#{projectId} ORDER BY num
+        SELECT id,task_name,num,weighting,task_device,task_data_tables from task WHERE project_id=#{projectId} ORDER BY num
+    </select>
+
+    <update id="updatePSTDataTables">
+        UPDATE project_task_student SET data_tables=#{dataTables} WHERE id=#{id}
+    </update>
+
+    <select id="getPSTDataTables" resultType="java.lang.String">
+        SELECT data_tables FROM project_task_student WHERE id=#{id}
     </select>
 
 
