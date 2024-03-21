@@ -101,6 +101,16 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.78</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.12.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itextpdf</artifactId>
+            <version>5.5.13.2</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -120,6 +130,69 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- 设置源代码文件的字符编码 -->
+                    <encoding>UTF-8</encoding>
+                    <compilerArgs>
+                        <arg>-encoding</arg>
+                        <arg>UTF-8</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <!-- 设置资源文件的字符编码 -->
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <!-- 配置插件的详细设置 -->
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <!-- 添加字体配置 -->
+                    <archive>
+                        <manifest>
+                            <mainClass>com.example.Main</mainClass>
+                        </manifest>
+                        <manifestEntries>
+                            <Class-Path>.</Class-Path>
+                        </manifestEntries>
+                    </archive>
+                    <!-- 添加字体文件 -->
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <finalName>${project.artifactId}</finalName>
+                    <fonts>
+                        <font>
+                            <id>mycustomfont</id>
+                            <source>${basedir}/src/main/resources/fonts/simsun.ttf</source>
+                            <targetPath>fonts</targetPath>
+                        </font>
+                    </fonts>
+                    <fileSet>
+                        <directory>src/main/resources</directory>
+                        <excludes>
+                            <exclude>fonts/*</exclude> <!-- 打包时暂时排除掉 fonts/*.ttf-->
+                        </excludes>
+                        <outputDirectory>/conf</outputDirectory>
+                        <filtered>true</filtered> <!-- 会做maven的properties的属性替换 -->
+                    </fileSet>
+                    <fileSet>
+                        <directory>src/main/resources</directory>
+                        <includes>
+                            <include>fonts/*</include> <!-- 单独对fonts/*.ttl 做打包 -->
+                        </includes>
+                        <outputDirectory>/conf</outputDirectory>
+                        <filtered>false</filtered> <!-- 不会做替换 -->
+                    </fileSet>
+                </configuration>
             </plugin>
         </plugins>
     </build>

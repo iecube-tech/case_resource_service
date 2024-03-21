@@ -21,12 +21,21 @@ import com.iecube.community.model.resource.mapper.ResourceMapper;
 import com.iecube.community.model.resource.service.ResourceService;
 import com.iecube.community.model.task.mapper.TaskMapper;
 import com.iecube.community.model.task.service.TaskService;
+import com.iecube.community.model.task_attention.entity.Attention;
+import com.iecube.community.model.task_attention.entity.TaskAttention;
+import com.iecube.community.model.task_attention.mapper.TaskAttentionMapper;
 import com.iecube.community.model.task_back_drop.entity.BackDrop;
 import com.iecube.community.model.task_back_drop.entity.TaskBackDrop;
 import com.iecube.community.model.task_back_drop.mapper.BackDropMapper;
 import com.iecube.community.model.task_deliverable_requirement.entity.DeliverableRequirement;
 import com.iecube.community.model.task_deliverable_requirement.entity.TaskDeliverableRequirement;
 import com.iecube.community.model.task_deliverable_requirement.mapper.DeliverableRequirementMapper;
+import com.iecube.community.model.task_details.entity.Details;
+import com.iecube.community.model.task_details.entity.TaskDetails;
+import com.iecube.community.model.task_details.mapper.TaskDetailsMapper;
+import com.iecube.community.model.task_experimental_subject.entity.ExperimentalSubject;
+import com.iecube.community.model.task_experimental_subject.entity.TaskExperimentalSubject;
+import com.iecube.community.model.task_experimental_subject.mapper.TaskExperimentalSubjectMapper;
 import com.iecube.community.model.task_reference_file.entity.TaskReferenceFile;
 import com.iecube.community.model.task_reference_file.mapper.ReferenceFileMapper;
 import com.iecube.community.model.task_reference_link.entity.ReferenceLink;
@@ -39,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -78,6 +88,15 @@ public class TaskServiceImpl implements TaskService {
     private QuestionBankMapper questionBankMapper;
 
     @Autowired
+    private TaskExperimentalSubjectMapper experimentalSubjectMapper;
+
+    @Autowired
+    private TaskAttentionMapper attentionMapper;
+
+    @Autowired
+    private TaskDetailsMapper taskDetailsMapper;
+
+    @Autowired
     private TagMapper tagMapper;
 
     @Autowired
@@ -108,7 +127,7 @@ public class TaskServiceImpl implements TaskService {
             throw new InsertException("创建任务异常");
         }
 
-        if(task.getBackDropList().size()>0){
+        if(task.getBackDropList()!=null && task.getBackDropList().size()>0){
             for(BackDrop backDrop:task.getBackDropList()){
                 Integer re = backDropMapper.insert(backDrop);
                 if(re!=1){
@@ -124,7 +143,7 @@ public class TaskServiceImpl implements TaskService {
             }
         }
 
-        if(task.getRequirementList().size()>0){
+        if(task.getRequirementList()!=null && task.getRequirementList().size()>0){
             for (Requirement requirement : task.getRequirementList()){
                 Integer re = requirementMapper.insert(requirement);
                 if (re != 1){
@@ -141,7 +160,7 @@ public class TaskServiceImpl implements TaskService {
         }
 
         // 任务交付物要求
-        if(task.getDeliverableRequirementList().size()>0){
+        if(task.getDeliverableRequirementList()!=null && task.getDeliverableRequirementList().size()>0){
             for(DeliverableRequirement deliverableRequirement : task.getDeliverableRequirementList()){
                 Integer re = deliverableRequirementMapper.insert(deliverableRequirement);
                 if(re!=1){
@@ -157,7 +176,7 @@ public class TaskServiceImpl implements TaskService {
             }
         }
         // 任务参考连接
-        if(task.getReferenceFileList().size()>0){
+        if(task.getReferenceFileList()!=null && task.getReferenceFileList().size()>0){
             for(Resource resource: task.getReferenceFileList()){
                 TaskReferenceFile taskReferenceFile= new TaskReferenceFile();
                 taskReferenceFile.setTaskId(task.getId());
@@ -169,7 +188,7 @@ public class TaskServiceImpl implements TaskService {
             }
         }
         // 任务参考文件
-        if(task.getReferenceLinkList().size()>0){
+        if(task.getReferenceLinkList()!= null && task.getReferenceLinkList().size()>0){
             for(ReferenceLink referenceLink:task.getReferenceLinkList()){
                 Integer re = referenceLinkMapper.insert(referenceLink);
                 if (re != 1){
@@ -184,6 +203,55 @@ public class TaskServiceImpl implements TaskService {
                 }
             }
         }
+        //实验对象、器件
+        if(task.getExperimentalSubjectList()!=null && task.getExperimentalSubjectList().size()>0){
+            for(ExperimentalSubject experimentalSubject:task.getExperimentalSubjectList()){
+                Integer re = experimentalSubjectMapper.insert(experimentalSubject);
+                if(re!=1){
+                    throw new InsertException("插入数据异常");
+                }
+                TaskExperimentalSubject taskExperimentalSubject = new TaskExperimentalSubject();
+                taskExperimentalSubject.setTaskId(task.getId());
+                taskExperimentalSubject.setExperimentalSubjectId(experimentalSubject.getId());
+                Integer co = experimentalSubjectMapper.connect(taskExperimentalSubject);
+                if(co !=1){
+                    throw new InsertException("插入数据异常");
+                }
+            }
+        }
+        // 注意事项
+        if(task.getAttentionList()!=null && task.getAttentionList().size()>0){
+            for(Attention attention:task.getAttentionList()){
+                Integer re = attentionMapper.insert(attention);
+                if(re!=1){
+                    throw new InsertException("插入数据异常");
+                }
+                TaskAttention taskAttention = new TaskAttention();
+                taskAttention.setTaskId(task.getId());
+                taskAttention.setAttentionId(attention.getId());
+                Integer co = attentionMapper.connect(taskAttention);
+                if(co !=1){
+                    throw new InsertException("插入数据异常");
+                }
+            }
+        }
+        //任务详情
+        if(task.getTaskDetails()!=null && !task.getTaskDetails().equals("")){
+            Details details = new Details();
+            details.setName(task.getTaskDetails());
+            Integer re = taskDetailsMapper.insert(details);
+            if(re!=1){
+                throw new InsertException("插入数据异常");
+            }
+            TaskDetails taskDetails = new TaskDetails();
+            taskDetails.setTaskId(task.getId());
+            taskDetails.setDetailsId(details.getId());
+            Integer co = taskDetailsMapper.connect(taskDetails);
+            if(co !=1){
+                throw new InsertException("插入数据异常");
+            }
+        }
+
         return task.getId();
     }
 
@@ -372,6 +440,14 @@ public class TaskServiceImpl implements TaskService {
             task.setTaskReferenceLinks(referenceLinks);
             List<Resource> resources = referenceFileMapper.getReferenceFilesByTaskId(task.getId());
             task.setTaskReferenceFiles(resources);
+            List<ExperimentalSubject> experimentalSubjectList = experimentalSubjectMapper.getExperimentalSubjectByTaskId(task.getId());
+            task.setExperimentalSubjectList(experimentalSubjectList);
+            List<Attention> attentionList = attentionMapper.getAttentionByTaskId(task.getId());
+            task.setAttentionList(attentionList);
+            Details details = taskDetailsMapper.getDetailsByTaskId(task.getId());
+            if(details!=null){
+                task.setTaskDetails(details.getName());
+            }
         }
         return tasks;
     }

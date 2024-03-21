@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.task_attention.mapper.TaskAttentionMapper">
+    <resultMap id="Attention" type="com.iecube.community.model.task_attention.entity.Attention">
+
+    </resultMap>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO attention (id, name) VALUES (NULL, #{name})
+    </insert>
+
+    <insert id="connect" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO
+            task_attention (id, task_id, task_template_id, attention_id)
+        VALUES (null, #{taskId}, #{taskTemplateId}, #{attentionId})
+    </insert>
+
+    <select id="getAttentionByTaskId" resultMap="Attention">
+        SELECT attention.id, attention.name
+        FROM task_attention INNER JOIN attention
+                                       ON task_attention.attention_id=attention.id
+        WHERE task_attention.task_id=#{taskId}
+    </select>
+
+    <select id="getAttentionByTaskTemplateId" resultMap="Attention">
+        SELECT attention.id, attention.name
+        FROM task_attention INNER JOIN attention
+                                       ON task_attention.attention_id=attention.id
+        WHERE task_attention.task_template_id=#{taskTemplateId}
+    </select>
+
+    <select id="getAttentionIdByTaskTemplateId" resultType="java.lang.Integer">
+        SELECT attention_id
+        FROM task_attention
+        WHERE task_template_id=#{taskTemplateId}
+    </select>
+
+    <delete id="deleteByTaskTemplateId">
+        DELETE FROM task_attention WHERE task_template_id=#{taskTemplateId}
+    </delete>
+
+    <delete id="deleteAttentionById" >
+        DELETE FROM attention WHERE id=#{id}
+    </delete>
+
+</mapper>

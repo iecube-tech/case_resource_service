@@ -6,12 +6,21 @@ import com.iecube.community.model.taskTemplate.dto.TaskTemplateDto;
 import com.iecube.community.model.taskTemplate.entity.TaskTemplate;
 import com.iecube.community.model.taskTemplate.mapper.TaskTemplateMapper;
 import com.iecube.community.model.taskTemplate.service.TaskTemplateService;
+import com.iecube.community.model.task_attention.entity.Attention;
+import com.iecube.community.model.task_attention.entity.TaskAttention;
+import com.iecube.community.model.task_attention.mapper.TaskAttentionMapper;
 import com.iecube.community.model.task_back_drop.entity.BackDrop;
 import com.iecube.community.model.task_back_drop.entity.TaskBackDrop;
 import com.iecube.community.model.task_back_drop.mapper.BackDropMapper;
 import com.iecube.community.model.task_deliverable_requirement.entity.DeliverableRequirement;
 import com.iecube.community.model.task_deliverable_requirement.entity.TaskDeliverableRequirement;
 import com.iecube.community.model.task_deliverable_requirement.mapper.DeliverableRequirementMapper;
+import com.iecube.community.model.task_details.entity.Details;
+import com.iecube.community.model.task_details.entity.TaskDetails;
+import com.iecube.community.model.task_details.mapper.TaskDetailsMapper;
+import com.iecube.community.model.task_experimental_subject.entity.ExperimentalSubject;
+import com.iecube.community.model.task_experimental_subject.entity.TaskExperimentalSubject;
+import com.iecube.community.model.task_experimental_subject.mapper.TaskExperimentalSubjectMapper;
 import com.iecube.community.model.task_reference_file.entity.TaskReferenceFile;
 import com.iecube.community.model.task_reference_file.mapper.ReferenceFileMapper;
 import com.iecube.community.model.task_reference_link.entity.ReferenceLink;
@@ -49,6 +58,15 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     @Autowired
     private ReferenceFileMapper referenceFileMapper;
 
+    @Autowired
+    private TaskAttentionMapper taskAttentionMapper;
+
+    @Autowired
+    private TaskExperimentalSubjectMapper experimentalSubjectMapper;
+
+    @Autowired
+    private TaskDetailsMapper taskDetailsMapper;
+
     @Override
     public void addTaskTemplateToContent(TaskTemplateDto taskTemplateDto, Integer user){
         //判断任务num是不是已经存在，存在则不能添加  1<=num<=5
@@ -59,7 +77,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         taskTemplate.setWeighting(taskTemplateDto.getWeighting());
         taskTemplate.setTaskCover(taskCover.codeOf(taskTemplateDto.getNum()).getFiled());
         taskTemplate.setTaskDevice(taskTemplateDto.getTaskDevice());
-        taskTemplate.setTaskDataTables(taskTemplateDto.getTaskDataTables());
+//        taskTemplate.setTaskDataTables(taskTemplateDto.getTaskDataTables());
         taskTemplate.setCreator(user);
         taskTemplate.setLastModifiedUser(user);
         taskTemplate.setCreateTime(new Date());
@@ -70,7 +88,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         }
         taskTemplateDto.setId(taskTemplate.getId());
         //backdrop
-        if(taskTemplateDto.getBackDropList().size()>0){
+        if(taskTemplateDto.getBackDropList()!= null && taskTemplateDto.getBackDropList().size()>0){
             for(BackDrop backDrop:taskTemplateDto.getBackDropList()){
                 Integer re = backDropMapper.insert(backDrop);
                 if(re!=1){
@@ -87,7 +105,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         }
 
         // 任务要求
-        if(taskTemplateDto.getRequirementList().size()>0){
+        if(taskTemplateDto.getRequirementList()!=null && taskTemplateDto.getRequirementList().size()>0){
             for (Requirement requirement: taskTemplateDto.getRequirementList()){
                 Integer re = requirementMapper.insert(requirement);
                 if (re != 1){
@@ -103,7 +121,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             }
         }
         // 任务交付物要求
-        if(taskTemplateDto.getDeliverableRequirementList().size()>0){
+        if(taskTemplateDto.getDeliverableRequirementList()!= null && taskTemplateDto.getDeliverableRequirementList().size()>0){
             for(DeliverableRequirement deliverableRequirement : taskTemplateDto.getDeliverableRequirementList()){
                 Integer re = deliverableRequirementMapper.insert(deliverableRequirement);
                 if(re!=1){
@@ -119,7 +137,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             }
         }
         // 任务参考连接
-        if(taskTemplateDto.getReferenceFileList().size()>0){
+        if(taskTemplateDto.getReferenceFileList()!=null && taskTemplateDto.getReferenceFileList().size()>0){
             for(Resource resource: taskTemplateDto.getReferenceFileList()){
                 TaskReferenceFile taskReferenceFile= new TaskReferenceFile();
                 taskReferenceFile.setTaskTemplateId(taskTemplateDto.getId());
@@ -131,7 +149,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             }
         }
         // 任务参考文件
-        if(taskTemplateDto.getReferenceLinkList().size()>0){
+        if(taskTemplateDto.getReferenceLinkList()!= null && taskTemplateDto.getReferenceLinkList().size()>0){
             for(ReferenceLink referenceLink:taskTemplateDto.getReferenceLinkList()){
                 Integer re = referenceLinkMapper.insert(referenceLink);
                 if (re != 1){
@@ -146,6 +164,56 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 }
             }
         }
+
+        //注意事项
+        if(taskTemplateDto.getAttentionList()!=null && taskTemplateDto.getAttentionList().size()>0){
+            for(Attention attention:taskTemplateDto.getAttentionList()){
+                Integer re = taskAttentionMapper.insert(attention);
+                if(re!=1){
+                    throw new InsertException("插入数据异常");
+                }
+                TaskAttention taskAttention = new TaskAttention();
+                taskAttention.setTaskTemplateId(taskTemplateDto.getId());
+                taskAttention.setAttentionId(attention.getId());
+                Integer co = taskAttentionMapper.connect(taskAttention);
+                if(co!=1){
+                    throw new InsertException("插入数据异常");
+                }
+            }
+        }
+        //实验器件
+        if(taskTemplateDto.getExperimentalSubjectList()!=null && taskTemplateDto.getExperimentalSubjectList().size()>0){
+            for(ExperimentalSubject experimentalSubject:taskTemplateDto.getExperimentalSubjectList()){
+                Integer re = experimentalSubjectMapper.insert(experimentalSubject);
+                if(re!=1){
+                    throw new InsertException("插入数据异常");
+                }
+                TaskExperimentalSubject taskExperimentalSubject = new TaskExperimentalSubject();
+                taskExperimentalSubject.setTaskTemplateId(taskTemplateDto.getId());
+                taskExperimentalSubject.setExperimentalSubjectId(experimentalSubject.getId());
+                Integer co = experimentalSubjectMapper.connect(taskExperimentalSubject);
+                if(co!=1){
+                    throw new InsertException("插入数据异常");
+                }
+            }
+        }
+        //实验内容
+        if(taskTemplateDto.getTaskDetails() != null){
+            Details details=new Details();
+            details.setName(taskTemplateDto.getTaskDetails());
+            Integer re = taskDetailsMapper.insert(details);
+            if(re!=1){
+                throw new InsertException("插入数据异常");
+            }
+            TaskDetails taskDetails = new TaskDetails();
+            taskDetails.setTaskTemplateId(taskTemplateDto.getId());
+            taskDetails.setDetailsId(details.getId());
+            Integer co = taskDetailsMapper.connect(taskDetails);
+            if(co != 1){
+                throw new InsertException("插入数据异常");
+            }
+        }
+
     }
 
     @Override
@@ -157,11 +225,19 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             List<DeliverableRequirement> deliverableRequirementList = deliverableRequirementMapper.getDeliverableRequirementByTaskTemplateId(taskTemplateDto.getId());
             List<ReferenceLink> referenceLinkList = referenceLinkMapper.getReferenceLinksByTaskTemplateId(taskTemplateDto.getId());
             List<Resource> referenceFileList = referenceFileMapper.getReferenceFilesByTaskTemplateId(taskTemplateDto.getId());
+            List<Attention> attentionList = taskAttentionMapper.getAttentionByTaskTemplateId(taskTemplateDto.getId());
+            List<ExperimentalSubject> experimentalSubjectList = experimentalSubjectMapper.getExperimentalSubjectByTaskTemplateId(taskTemplateDto.getId());
+            Details details = taskDetailsMapper.getDetailsByTaskTemplateId(taskTemplateDto.getId());
             taskTemplateDto.setBackDropList(backDropList);
             taskTemplateDto.setRequirementList(requirementList);
             taskTemplateDto.setDeliverableRequirementList(deliverableRequirementList);
             taskTemplateDto.setReferenceLinkList(referenceLinkList);
             taskTemplateDto.setReferenceFileList(referenceFileList);
+            taskTemplateDto.setAttentionList(attentionList);
+            taskTemplateDto.setExperimentalSubjectList(experimentalSubjectList);
+            if(details != null){
+                taskTemplateDto.setTaskDetails(details.getName());
+            }
         }
         return contentTaskTemplates;
     }

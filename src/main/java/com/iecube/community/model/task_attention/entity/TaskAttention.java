@@ -1,0 +1,11 @@
+package com.iecube.community.model.task_attention.entity;
+
+import lombok.Data;
+
+@Data
+public class TaskAttention {
+    Integer id;
+    Integer taskId;
+    Integer taskTemplateId;
+    Integer attentionId;
+}

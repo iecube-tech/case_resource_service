@@ -70,6 +70,7 @@ FFmpeg:
 resource-location: D:\learn\java\resources
 export-report: D:\learn\java\report
 export-grade: D:\learn\java\exportGrade
+generated-report: D:\learn\java\generatedReport
 
 email:
   template:

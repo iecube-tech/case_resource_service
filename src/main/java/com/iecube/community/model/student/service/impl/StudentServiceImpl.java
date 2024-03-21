@@ -128,6 +128,7 @@ public class StudentServiceImpl implements StudentService {
         String salt = result.getSalt();
         String oldMd5Password = result.getPassword();
         String checkMd5Password = getMD5Password(oldPassword, salt);
+
         if (!checkMd5Password.equals(oldMd5Password)){
             throw new PasswordNotMatchException("原用户密码错误");
         }
@@ -312,7 +313,8 @@ public class StudentServiceImpl implements StudentService {
                     addStudentDto.setSalt(salt);
                     Integer number = this.getRandomNumberInRange(8,16);
                     String password = this.getRandomString(number);
-                    String md5Password = this.getMD5Password(password, addStudentDto.getSalt());
+                    String sha256Password = SHA256.encryptStringWithSHA256(password);
+                    String md5Password = this.getMD5Password(sha256Password, addStudentDto.getSalt());
                     addStudentDto.setPassword(md5Password);
                     this.saveStudent(addStudentDto);
                     toSendEmail.add(EmailParams.build(

@@ -9,11 +9,13 @@
         <result column="project_id" property="projectId"></result>
         <result column="task_num" property="taskNum"></result>
         <result column="teacher_id" property="teacherId"></result>
+        <result column="suggestion_project" property="suggestionProject"></result>
     </resultMap>
 
     <resultMap id="TagTemplates" type="com.iecube.community.model.tag.entity.TagTemplates">
         <result column="case_id" property="caseId"></result>
         <result column="task_num" property="taskNum"></result>
+        <result column="suggestion_project" property="suggestionProject"></result>
     </resultMap>
 
     <resultMap id="TeacherProjectTagVo" type="com.iecube.community.model.tag.vo.TeacherProjectTagVo">

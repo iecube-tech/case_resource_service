@@ -15,6 +15,7 @@
         <result column="creator_type" property="creatorType"></result>
         <result column="last_modified_user" property="lastModifiedUser"></result>
         <result column="last_modified_time" property="lastModifiedTime"></result>
+        <result column="device_id" property="deviceId"></result>
     </resultMap>
 
     <resultMap id="taskTemplates" type="com.iecube.community.model.content.entity.taskTemplates">
@@ -37,10 +38,10 @@
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO solution_or_case
-            (id, name, parent_id, cover, introduction, introduce, target, guidance, third, fourth, key_word,completion,
+            (id, name, device_id, parent_id, cover, introduction, introduce, target, guidance, third, fourth, key_word,completion,
              is_delete,creator_type, creator, create_time, last_modified_user, last_modified_time)
         VALUES
-            (NULL, #{name}, #{parentId}, #{cover}, #{introduction}, #{introduce}, #{target}, #{guidance}, #{third}, #{fourth},
+            (NULL, #{name},#{deviceId}, #{parentId}, #{cover}, #{introduction}, #{introduce}, #{target}, #{guidance}, #{third}, #{fourth},
              #{keyWord}, #{completion},#{isDelete},#{creatorType}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
     </insert>
 
@@ -66,6 +67,7 @@
                                     introduction=#{introduction},
                                     introduce=#{introduce},
                                     target=#{target},
+                                    device_id=#{deviceId},
                                     last_modified_user=#{lastModifiedUser},
                                     last_modified_time=#{lastModifiedTime}
         WHERE id=#{id}
@@ -125,11 +127,11 @@
     </delete>
 
     <select id="findAll" resultMap="ContentEntity">
-        SELECT id, name, cover, introduction FROM solution_or_case WHERE completion=10 AND third=0
+        SELECT id, name,device_id, cover, introduction FROM solution_or_case WHERE completion=10 AND third=0
     </select>
 
     <select id="findByTeacherId" resultMap="ContentEntity">
-        SELECT solution_or_case.id, solution_or_case.name, solution_or_case.introduction, solution_or_case.cover
+        SELECT solution_or_case.id, solution_or_case.name, solution_or_case.introduction, solution_or_case.cover, solution_or_case.device_id
         FROM solution_or_case INNER JOIN teacher_case ON solution_or_case.id=teacher_case.case_id
         WHERE teacher_case.teacher_id=#{teacherId} AND solution_or_case.third=0
     </select>
@@ -139,11 +141,11 @@
     </select>
 
     <select id="findByParentId" resultMap="ContentEntity">
-        SELECT id,name,parent_id, cover,introduction FROM solution_or_case WHERE parent_id=#{parentId}
+        SELECT id,name,parent_id, cover,introduction,device_id FROM solution_or_case WHERE parent_id=#{parentId}
     </select>
 
     <select id="findNotDelByParentId" resultMap="ContentEntity">
-        SELECT id,name,parent_id, cover,introduction FROM solution_or_case WHERE parent_id=#{parentId} and is_delete=0
+        SELECT id,name,parent_id, cover,introduction,device_id FROM solution_or_case WHERE parent_id=#{parentId} and is_delete=0
     </select>
 
     <update id="restore" >

@@ -23,6 +23,7 @@ public class Content extends BaseEntity {
     private Integer packageId;
     private Integer isDelete;
     private Integer completion; // 该案例的完善度
+    private Integer deviceId;
 }
 
 /**

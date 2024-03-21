@@ -16,5 +16,6 @@ public class StudentProjectVo {
     String projectIntroduction;
     String projectTarget;
     String projectCover;
+    Integer projectDeviceId;
     List<TaskVo> projectTaskList;
 }

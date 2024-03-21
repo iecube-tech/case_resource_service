@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.task_details.mapper.TaskDetailsMapper">
+    <resultMap id="Details" type="com.iecube.community.model.task_details.entity.Details">
+
+    </resultMap>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO details (id, name) VALUES (NULL, #{name})
+    </insert>
+
+    <insert id="connect" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO
+            task_details (id, task_id, task_template_id, details_id)
+        VALUES (null, #{taskId}, #{taskTemplateId}, #{detailsId})
+    </insert>
+
+    <select id="getDetailsByTaskId" resultMap="Details">
+        SELECT details.id, details.name
+        FROM task_details INNER JOIN details
+                                       ON task_details.details_id=details.id
+        WHERE task_details.task_id=#{taskId}
+    </select>
+
+    <select id="getDetailsByTaskTemplateId" resultMap="Details">
+        SELECT details.id, details.name
+        FROM task_details INNER JOIN details
+                                       ON task_details.details_id=details.id
+        WHERE task_details.task_template_id=#{taskTemplateId}
+    </select>
+
+    <select id="getDetailsIdByTaskTemplateId" resultType="java.lang.Integer">
+        SELECT details_id
+        FROM task_details
+        WHERE task_template_id=#{taskTemplateId}
+    </select>
+
+    <delete id="deleteByTaskTemplateId">
+        DELETE FROM task_details WHERE task_template_id=#{taskTemplateId}
+    </delete>
+
+    <delete id="deleteDetailsById" >
+        DELETE FROM details WHERE id=#{id}
+    </delete>
+
+</mapper>

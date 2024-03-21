@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.task_experimental_subject.mapper.TaskExperimentalSubjectMapper">
+    <resultMap id="ExperimentalSubject" type="com.iecube.community.model.task_experimental_subject.entity.ExperimentalSubject">
+
+    </resultMap>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO experimental_subject (id, name) VALUES (NULL, #{name})
+    </insert>
+
+    <insert id="connect" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO
+            task_experimental_subject (id, task_id, task_template_id, experimental_subject_id)
+        VALUES (null, #{taskId}, #{taskTemplateId}, #{experimentalSubjectId})
+    </insert>
+
+    <select id="getExperimentalSubjectByTaskId" resultMap="ExperimentalSubject">
+        SELECT experimental_subject.id, experimental_subject.name
+        FROM task_experimental_subject INNER JOIN experimental_subject
+                                       ON task_experimental_subject.experimental_subject_id=experimental_subject.id
+        WHERE task_experimental_subject.task_id=#{taskId}
+    </select>
+
+    <select id="getExperimentalSubjectByTaskTemplateId" resultMap="ExperimentalSubject">
+        SELECT experimental_subject.id, experimental_subject.name
+        FROM task_experimental_subject INNER JOIN experimental_subject
+                                       ON task_experimental_subject.experimental_subject_id=experimental_subject.id
+        WHERE task_experimental_subject.task_template_id=#{taskTemplateId}
+    </select>
+
+    <select id="getExperimentalSubjectIdByTaskTemplateId" resultType="java.lang.Integer">
+        SELECT experimental_subject_id
+        FROM task_experimental_subject
+        WHERE task_template_id=#{taskTemplateId}
+    </select>
+
+    <delete id="deleteByTaskTemplateId">
+        DELETE FROM task_experimental_subject WHERE task_template_id=#{taskTemplateId}
+    </delete>
+
+    <delete id="deleteAttentionById" >
+        DELETE FROM experimental_subject WHERE id=#{id}
+    </delete>
+
+</mapper>

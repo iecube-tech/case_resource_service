@@ -21,9 +21,9 @@
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO project (id, case_id, project_name, introduction, introduce, cover, target,
+        INSERT INTO project (id, case_id,device_id, project_name, introduction, introduce, cover, target,
                              start_time, end_time, creator, create_time, last_modified_user, last_modified_time)
-        VALUES (NULL,#{caseId}, #{projectName}, #{introduction}, #{introduce}, #{cover}, #{target},
+        VALUES (NULL,#{caseId},#{deviceId}, #{projectName}, #{introduction}, #{introduce}, #{cover}, #{target},
                    #{startTime}, #{endTime}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
     </insert>
 

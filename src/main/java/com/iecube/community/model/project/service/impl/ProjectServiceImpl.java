@@ -118,6 +118,7 @@ public class ProjectServiceImpl implements ProjectService {
         project.setEndTime(projectDto.getDate().get(1));
         project.setCreator(teacherId);
         project.setCreateTime(new Date());
+        project.setDeviceId(content.getDeviceId());
         Integer row = projectMapper.insert(project);
         if (row != 1){
             throw new InsertException("插入数据异常");
@@ -270,6 +271,7 @@ public class ProjectServiceImpl implements ProjectService {
         studentProject.setProjectIntroduce(project.getIntroduce());
         studentProject.setProjectIntroduction(project.getIntroduction());
         studentProject.setProjectTarget(project.getTarget());
+        studentProject.setProjectDeviceId(project.getDeviceId());
         List<TaskVo> tasks = taskService.studentGetProjectTasks(projectId);
         studentProject.setProjectTaskList(tasks);
         return studentProject;

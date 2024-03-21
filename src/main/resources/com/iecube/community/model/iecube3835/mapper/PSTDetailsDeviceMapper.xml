@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.iecube3835.mapper.PSTDetailsDeviceMapper">
+    <resultMap id="PSTDetailDevice" type="com.iecube.community.model.iecube3835.entity.PSTDetailDevice">
+        <result column="pst_id" property="pstId"></result>
+    </resultMap>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO pst_detail_device (id, pst_id, data, submit) VALUES (NULL,#{pstId}, #{data}, #{submit})
+    </insert>
+
+    <update id="updateData">
+        UPDATE pst_detail_device SET data=#{data} WHERE id=#{id}
+    </update>
+
+    <update id="updateSubmit">
+        UPDATE pst_detail_device SET submit=#{submit} WHERE id=#{id}
+    </update>
+
+    <select id="getByPSTId" resultMap="PSTDetailDevice">
+        SELECT * FROM pst_detail_device WHERE pst_id=#{pstId}
+    </select>
+
+    <select id="getById" resultMap="PSTDetailDevice">
+        SELECT * FROM pst_detail_device WHERE id=#{id}
+    </select>
+</mapper>

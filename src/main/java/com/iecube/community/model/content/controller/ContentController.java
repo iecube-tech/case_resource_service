@@ -55,7 +55,7 @@ public class ContentController extends ContentBaseController {
      */
     @PostMapping("/update")
     public JsonResult<Content> updateContent(@RequestBody Content content, HttpSession session){
-        System.out.println(content);
+//        System.out.println(content);
         if(content.getId()==null){
             Integer lastModifiedUser = getUserIdFromSession(session);
             String userType = getUserTypeFromSession(session);

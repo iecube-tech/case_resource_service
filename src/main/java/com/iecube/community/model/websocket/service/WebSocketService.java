@@ -25,6 +25,8 @@ public class WebSocketService {
     private static final String USER="online";
     private static final String DEVICE="3835";
 
+    private static final String PING="ping";
+
     private static final Map<Integer,Session> onlineUser = new ConcurrentHashMap<>(); // 存放iecube.online的建立连接的用户
     private static final Map<Integer,Message3835> onlineTask = new ConcurrentHashMap<>(); // 存放浏览器发来的消息，确定是哪一个实验
     private static final Map<Integer,Session> onlineDevice = new ConcurrentHashMap<>(); // 存放登录在3835软件且连接的用户，即3835软件在线
@@ -72,6 +74,18 @@ public class WebSocketService {
     @OnMessage
     public void onMessage(String message){
         Message3835 msg = JSON.parseObject(message, Message3835.class);
+        if (msg.getFrom().equals(PING)){
+            try{
+                Session webSession = onlineUser.get(this.userId);
+                Message3835 message3835 = new Message3835();
+                message3835.setFrom("pong");
+                webSession.getBasicRemote().sendText(sendToOnlineMessage(message3835));
+            }catch (Exception e){
+                log.warn("pong 失败");
+                e.printStackTrace();
+            }
+            return;
+        }
         //1. 收到浏览器的信息
         if(msg.getFrom().equals(USER)){
             // 第一步 浏览器上线 同步信息
@@ -83,10 +97,12 @@ public class WebSocketService {
                 if(onlineDeviceSn.get(msg.getUserId())!=null){
                     // 鉴定为浏览器重连情况
                     Session webSession = onlineUser.get(this.userId);
+                    Session deviceSession = onlineDevice.get(this.userId);
                     try{
                         Message3835 reConnectMessage = onlineDeviceSn.get(this.userId);
                         reConnectMessage.setFrom("server");
                         webSession.getBasicRemote().sendText(sendToOnlineMessage(reConnectMessage));
+                        deviceSession.getBasicRemote().sendText(sentTo3835Message(reConnectMessage));
                         log.info("浏览器重连，已发送重连信息"+reConnectMessage);
                     }catch (Exception e){
                         log.error("浏览器重新上线，发送重连信息失败，重连失败"+e.getMessage());
