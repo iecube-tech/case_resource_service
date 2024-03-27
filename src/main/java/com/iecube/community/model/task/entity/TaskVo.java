@@ -12,14 +12,17 @@ import lombok.Data;
 import java.util.Date;
 import java.util.List;
 
+
 @Data
 public class TaskVo {
     Integer id;
+    Integer taskTemplateId;
     Integer projectId;
     Integer num;
     Double weighting;
     Double classHour;
     String taskName;
+    String taskCover;
     Integer taskDevice;
     String taskDataTables;
     Date taskStartTime;

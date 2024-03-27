@@ -159,6 +159,42 @@ public class ProjectServiceImpl implements ProjectService {
         return projectId;
     }
 
+    public Integer studentJoinProject(Integer projectId, Integer studentId){
+        // 判断学生是不是已经在
+        List<Project> StudentProjectList = projectMapper.findByStudentId(studentId);
+        for(Project project:StudentProjectList){
+            if(projectId == project.getId()){
+                return projectId;
+            }
+        }
+        Student student = studentMapper.getStudentById(studentId);
+        ProjectStudent pStudent = new ProjectStudent();
+        pStudent.setProjectId(projectId);
+        pStudent.setStudentId(student.getId());
+        pStudent.setCreator(student.getId());
+        pStudent.setCreateTime(new Date());
+        Integer row2 = projectMapper.addProjectStudent(pStudent);
+        if (row2!=1){
+            throw new InsertException("插入数据异常");
+        }
+        List<TaskVo> projectTasks = taskMapper.findByProjectId(projectId);
+        for(TaskVo task : projectTasks){
+            ProjectStudentTask PST = new ProjectStudentTask();
+            PST.setProjectId(projectId);
+            PST.setTaskId(task.getId());
+            PST.setStudentId(student.getId());
+            PST.setStatus(0);
+            if (task.getNum()==1) {
+                PST.setStatus(1);
+            }
+            Integer co = taskMapper.addStudentTask(PST);
+            if(co!=1){
+                throw new InsertException("插入数据异常");
+            }
+        }
+        return projectId;
+    }
+
     /**
      * 新增需求， 如果创建project过程中 教师更改了案例的任务列表，那么在后期数据统计分析的过程中该project的数据为无效数据，
      * 影响整体数据的有效性。为避免该问题，每当有更改原案例的任务的project创建，就从该案例衍生出一个新的案例，为该教师所有

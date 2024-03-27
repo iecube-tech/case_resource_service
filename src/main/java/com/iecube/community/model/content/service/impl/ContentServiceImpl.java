@@ -374,4 +374,26 @@ public class ContentServiceImpl implements ContentService {
         return null;
     }
 
+    @Override
+    public Integer updateIsPrivate(Integer contentId, Integer teacherId) {
+        Content content = contentMapper.findById(contentId);
+        if(content.getCreator() != teacherId){
+            throw new UpdateException("没有权限");
+        }
+        int row;
+        int newPrivate;
+        System.out.println(content);
+        if(content.getIsPrivate() == 0){
+            row = contentMapper.updateIsPrivate(contentId,1);
+            newPrivate=1;
+        }else {
+            row = contentMapper.updateIsPrivate(contentId, 0);
+            newPrivate=0;
+        }
+        if(row != 1){
+            throw new UpdateException("更新数据异常");
+        }
+        return newPrivate;
+    }
+
 }

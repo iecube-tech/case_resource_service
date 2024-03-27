@@ -13,5 +13,5 @@ public interface PSTDetailsDeviceMapper {
 
     PSTDetailDevice getById(Integer pstId);
 
-    Integer updateSubmit(Boolean submit);
+    Integer updateSubmit(Integer id, Boolean submit);
 }

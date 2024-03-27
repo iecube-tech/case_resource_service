@@ -22,6 +22,8 @@
         <result column="project_id" property="projectId"></result>
         <result column="class_hour" property="classHour"></result>
         <result column="task_name" property="taskName"></result>
+        <result column="task_template_id" property="taskTemplateId"></result>
+        <result column="task_cover" property="taskCover"></result>
         <result column="task_device" property="taskDevice"></result>
         <result column="task_data_tables" property="taskDataTables"></result>
         <result column="task_start_time" property="taskStartTime"></result>

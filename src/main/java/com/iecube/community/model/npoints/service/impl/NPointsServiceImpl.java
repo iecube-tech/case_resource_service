@@ -233,4 +233,20 @@ public class NPointsServiceImpl implements NPointsService {
             throw new InsertException("插入数据异常");
         }
     }
+
+    @Override
+    public void addModuleConcepts(ModuleConceptVo moduleConceptVo) {
+        ModuleVo moduleVo = new ModuleVo();
+        moduleVo.setName(moduleConceptVo.getName());
+        Integer row = nPointsMapper.addModule(moduleVo);
+        if(row != 1){
+            throw new InsertException("插入数据异常");
+        }
+        for(ConceptVo conceptVo:moduleConceptVo.getChildren()){
+            Integer co = nPointsMapper.addModuleConcept(moduleVo.getId(), conceptVo.getId());
+            if(co != 1){
+                throw new InsertException("插入数据异常");
+            }
+        }
+    }
 }

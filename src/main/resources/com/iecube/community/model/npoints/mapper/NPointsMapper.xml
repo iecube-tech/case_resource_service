@@ -149,4 +149,12 @@
     <insert id="insertToCaseModule">
         INSERT INTO module_case (case_id, module_id) VALUES (#{caseId}, #{moduleId})
     </insert>
+
+    <insert id="addModule" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO module (id, name) VALUES (NULL, #{name})
+    </insert>
+
+    <insert id="addModuleConcept">
+        INSERT INTO concept_module (concept_id, module_id) VALUES (#{conceptId}, #{moduleId})
+    </insert>
 </mapper>

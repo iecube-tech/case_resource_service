@@ -4,6 +4,7 @@ import com.iecube.community.model.npoints.dto.CaseModuleDto;
 import com.iecube.community.model.npoints.entity.*;
 import com.iecube.community.model.npoints.vo.CaseVo;
 import com.iecube.community.model.npoints.vo.ConceptVo;
+import com.iecube.community.model.npoints.vo.ModuleConceptVo;
 import com.iecube.community.model.npoints.vo.ModuleVo;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -41,6 +42,10 @@ public interface NPointsMapper {
     Integer addCaseModule(Integer caseId, Integer moduleId);
 
     Integer addConcept(ConceptVo conceptVo);
+
+    Integer addModule(ModuleVo moduleVo);
+
+    Integer addModuleConcept(Integer moduleId, Integer conceptId);
 
     List<CaseModuleDto> getCaseModuleListByCaseId(Integer caseId);
 

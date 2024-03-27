@@ -11,4 +11,5 @@ public class Tag {
     Integer taskNum;
     Integer teacherId;
     Integer suggestionProject;
+    String suggestionProjectName;
 }

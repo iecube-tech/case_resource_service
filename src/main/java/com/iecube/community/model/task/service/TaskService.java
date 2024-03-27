@@ -1,5 +1,6 @@
 package com.iecube.community.model.task.service;
 
+import com.iecube.community.model.pst_resource.entity.PSTResourceVo;
 import com.iecube.community.model.task.entity.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,6 +13,8 @@ public interface TaskService {
     List<ProjectStudentTask> getPSTByProjectId(Integer projectId);
 
     List<StudentTaskDetailVo> findStudentTaskByProjectId(Integer projectId, Integer studentId);
+
+    List<PSTResourceVo> findPSTResourceVo(Integer pstId);
 
     StudentTaskDetailVo findStudentTaskByPSTId(Integer pstId);
 

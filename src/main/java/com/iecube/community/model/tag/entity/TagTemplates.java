@@ -10,4 +10,5 @@ public class TagTemplates {
     Integer caseId;
     Integer taskNum;
     Integer suggestionProject;
+    String suggestionProjectName;
 }

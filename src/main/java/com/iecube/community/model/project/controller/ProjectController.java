@@ -120,4 +120,15 @@ public class ProjectController extends ProjectBaseController {
         projectService.hiddenProject(projectId);
         return new JsonResult<>(OK);
     }
+
+    /**
+     * 项目推荐  学生自己加入project
+     * 需要projectId studnetId
+     */
+    @PostMapping("/join_project/{projectId}")
+    public JsonResult<Integer> studentJoinProject(@PathVariable Integer projectId, HttpSession session){
+        Integer studentId = getUserIdFromSession(session);
+        Integer project = projectService.studentJoinProject(projectId,studentId);
+        return new JsonResult<>(OK,project);
+    }
 }

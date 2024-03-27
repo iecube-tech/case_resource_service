@@ -70,4 +70,6 @@ public interface ContentMapper {
     List<Content> teacherCreateCourseList(Integer creator);
 
     List<Content> teacherCreatedCourse(Integer creator);
+
+    Integer updateIsPrivate(Integer contentId, Integer isPrivate);
 }

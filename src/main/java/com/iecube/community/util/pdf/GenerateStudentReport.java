@@ -13,6 +13,8 @@ import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.Resource;
+import org.springframework.util.ResourceUtils;
 
 
 import java.io.*;
@@ -25,13 +27,14 @@ public class GenerateStudentReport{
     public static Font TitleFont;
     public static Font TextFont1;
     public static Font TextFont;
-    public static String fontPath = "src/main/resources/fonts/simfang.ttf";
+    public static String fontPath = "/community/service/fonts/simfang.ttf";
 
     public GenerateStudentReport(String genFilePath){
         this.genFileDir = genFilePath;
     }
 
     public MultipartFile startGen(StudentDto studentDto, StudentTaskDetailVo studentTaskDetailVo, String studentData) throws IOException, DocumentException{
+//        fontPath = ResourceUtils.getFile("classpath:fonts/simfang.ttf").getAbsolutePath();
         String FileName = studentTaskDetailVo.getProjectId() +"-"+studentTaskDetailVo.getTaskNum()+"-"+studentDto.getStudentName()
                 +"-"+studentTaskDetailVo.getTaskName()+""+".pdf";
         String filePath = genFileDir+"/"+FileName;

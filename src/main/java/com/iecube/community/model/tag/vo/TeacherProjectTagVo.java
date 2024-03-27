@@ -11,4 +11,6 @@ public class TeacherProjectTagVo {
     String name;
     String suggestion;
     String taskName;
+    Integer suggestionProject;
+    String suggestionProjectName;
 }

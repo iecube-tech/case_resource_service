@@ -1,6 +1,7 @@
 package com.iecube.community.model.task.controller;
 
 import com.iecube.community.basecontroller.task.TaskBaseController;
+import com.iecube.community.model.pst_resource.entity.PSTResourceVo;
 import com.iecube.community.model.task.entity.PSTDataTables;
 import com.iecube.community.model.task.entity.ProjectStudentTaskQo;
 import com.iecube.community.model.task.entity.StudentTaskDetailVo;
@@ -28,6 +29,17 @@ public class TaskController extends TaskBaseController {
         }
         List<StudentTaskDetailVo> tasks = taskService.findStudentTaskByProjectId(projectId, studentId);
         return new JsonResult<>(OK,tasks);
+    }
+
+    /**
+     * 教师端请求学生的提交和以批阅的报告
+     * @param pstId
+     * @return
+     */
+    @GetMapping("/pst_report/{pstId}")
+    public JsonResult<List> getStudentReports(@PathVariable Integer pstId){
+        List<PSTResourceVo> list = taskService.findPSTResourceVo(pstId);
+        return new JsonResult<>(OK, list);
     }
 
     @PostMapping("/pst")

@@ -86,14 +86,15 @@ public class DeviceDetailDataServiceImpl implements DeviceDetailDataService {
         try{
             MultipartFile file = generateStudentReport.startGen(studentDto, studentTaskDetailVo, jsonString);
             taskService.submitFile(file,pstId,studentId);
-            taskService.studentChangeStatus(pstId);
-            Integer row = pstDetailsDeviceMapper.updateSubmit(true);
+            taskMapper.updatePSTStatus(pstId, 2);
+            Integer row = pstDetailsDeviceMapper.updateSubmit(pstDetailDevice.getId(),true);
             if(row != 1){
                 throw new UpdateException("更新数据异常");
             }
             pstDetailDevice.setSubmit(true);
             return pstDetailDevice;
         }catch (IOException e){
+            e.printStackTrace();
             throw new ReportIOException("报告IO操作异常");
         }catch (DocumentException e){
             throw new GenerateStudentReportException("报告生成异常");

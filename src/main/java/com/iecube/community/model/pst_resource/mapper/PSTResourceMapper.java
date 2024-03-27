@@ -1,6 +1,7 @@
 package com.iecube.community.model.pst_resource.mapper;
 
 import com.iecube.community.model.pst_resource.entity.PSTResource;
+import com.iecube.community.model.pst_resource.entity.PSTResourceVo;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;

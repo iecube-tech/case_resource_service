@@ -10,6 +10,7 @@
         <result column="task_num" property="taskNum"></result>
         <result column="teacher_id" property="teacherId"></result>
         <result column="suggestion_project" property="suggestionProject"></result>
+        <result column="suggestion_project_name" property="suggestionProjectName"></result>
     </resultMap>
 
     <resultMap id="TagTemplates" type="com.iecube.community.model.tag.entity.TagTemplates">
@@ -22,10 +23,13 @@
         <result column="teacher_id" property="teacherId"></result>
         <result column="project_id" property="projectId"></result>
         <result column="task_name" property="taskName"></result>
+        <result column="suggestion_project" property="suggestionProject"></result>
     </resultMap>
 
     <select id="getTagsByPSTId" resultMap="Tag">
-        SELECT tag.id,tag.name,tag.suggestion,tag.project_id, tag.task_num, tag.teacher_id FROM tag_pst INNER JOIN tag ON tag_pst.tag_id=tag.id WHERE tag_pst.pst_id=#{pstId}
+        SELECT tag.id,tag.name,tag.suggestion,tag.project_id, tag.task_num, tag.teacher_id, tag.suggestion_project, project.project_name AS suggestion_project_name
+        FROM tag_pst INNER JOIN tag ON tag_pst.tag_id=tag.id INNER JOIN project ON tag.suggestion_project=project.id
+        WHERE tag_pst.pst_id=#{pstId}
     </select>
 
     <select id="getTagsByTeacherProject" resultMap="Tag">
@@ -45,11 +49,12 @@
     </select>
 
     <insert id="addTagTemplates" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO tag_template (id, name, suggestion, case_id, task_num) VALUES  (NULL, #{name}, #{suggestion}, #{caseId}, #{taskNum})
+        INSERT INTO tag_template (id, name, suggestion, case_id, task_num, suggestion_project)
+        VALUES  (NULL, #{name}, #{suggestion}, #{caseId}, #{taskNum}, #{suggestionProject})
     </insert>
 
     <update id="modifyTagTemplates">
-        UPDATE tag_template SET name=#{name}, suggestion=#{suggestion} WHERE id=#{id}
+        UPDATE tag_template SET name=#{name}, suggestion=#{suggestion}, suggestion_project=#{suggestionProject} WHERE id=#{id}
     </update>
 
     <delete id="deleteTagTemplate">
@@ -61,16 +66,16 @@
     </select>
 
     <insert id="addTag" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO tag (id, name, suggestion, project_id, task_num, teacher_id)
-        VALUES (NUll, #{name}, #{suggestion}, #{projectId}, #{taskNum}, #{teacherId})
+        INSERT INTO tag (id, name, suggestion, project_id, task_num, teacher_id, suggestion_project)
+        VALUES (NUll, #{name}, #{suggestion}, #{projectId}, #{taskNum}, #{teacherId}, #{suggestionProject})
     </insert>
 
     <update id="modifyTag">
-        UPDATE tag SET name=#{name} ,suggestion=#{suggestion} WHERE id=#{id}
+        UPDATE tag SET name=#{name} ,suggestion=#{suggestion},suggestion_project=#{suggestionProject} WHERE id=#{id}
     </update>
 
     <select id="getTeacherProjectTags" resultMap="TeacherProjectTagVo">
-        SELECT tag.id, tag.teacher_id, tag.project_id, tag.name,tag.suggestion,tag.id, tag.task_num, task.task_name
+        SELECT tag.id, tag.teacher_id, tag.project_id, tag.name,tag.suggestion,tag.id, tag.task_num,tag.suggestion_project, task.task_name
         FROM `tag` INNER JOIN task ON (tag.project_id=task.project_id AND tag.task_num=task.num)
         WHERE tag.project_id=#{projectId} AND tag.teacher_id=#{teacherId} ORDER BY tag.task_num
     </select>

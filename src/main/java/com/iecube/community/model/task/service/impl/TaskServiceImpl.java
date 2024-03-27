@@ -295,6 +295,28 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public List<PSTResourceVo> findPSTResourceVo(Integer pstId) {
+        List<PSTResourceVo> taskResources = new ArrayList<>();
+        List<PSTResource> pSTResources = pstResourceMapper.getPSTResourcesByPSTId(pstId);
+        for(PSTResource pSTResource:pSTResources){
+            PSTResourceVo pstResourceVo = new PSTResourceVo();
+            pstResourceVo.setId(pSTResource.getId());
+            pstResourceVo.setPstId(pSTResource.getPSTId());
+            if(pSTResource.getResourceId() != null){
+                Integer resourceId = pSTResource.getResourceId();
+                Resource resource = resourceMapper.getById(resourceId);
+                pstResourceVo.setResource(resource);
+            }
+            if(pSTResource.getReadOverResourceId() != null){
+                pstResourceVo.setReadOver(resourceMapper.getById(pSTResource.getReadOverResourceId()));
+            }
+
+            taskResources.add(pstResourceVo);
+        }
+        return taskResources;
+    }
+
+    @Override
     public StudentTaskDetailVo findStudentTaskByPSTId(Integer pstId) {
         StudentTaskDetailVo studentTaskDetail = taskMapper.findStudentTaskByPSTId(pstId);
         List<PSTResourceVo> taskResources = new ArrayList<>();

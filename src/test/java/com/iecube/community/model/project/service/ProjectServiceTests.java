@@ -18,7 +18,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 
 // @RunWith 表示启动这个单元测试类， 需要传递一个参数 必须是SpringRunner的实列类型
 @RunWith(SpringRunner.class)
@@ -75,5 +75,11 @@ public class ProjectServiceTests {
     public void generateExcel(){
         File file = projectService.ReGenerateProjectData(12);
         System.out.println(file.getPath());
+    }
+
+    @Test
+    public void studentJoinProject(){
+        Integer projectId = projectService.studentJoinProject(63,35);
+        System.out.println(projectId);
     }
 }

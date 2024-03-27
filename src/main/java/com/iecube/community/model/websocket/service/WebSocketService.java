@@ -74,6 +74,7 @@ public class WebSocketService {
     @OnMessage
     public void onMessage(String message){
         Message3835 msg = JSON.parseObject(message, Message3835.class);
+        log.info(msg.toString());
         if (msg.getFrom().equals(PING)){
             try{
                 Session webSession = onlineUser.get(this.userId);
@@ -89,7 +90,8 @@ public class WebSocketService {
         //1. 收到浏览器的信息
         if(msg.getFrom().equals(USER)){
             // 第一步 浏览器上线 同步信息
-            if(this.userId == msg.getUserId()){
+            log.info("this.userId:"+this.userId+" msg.getUserId():"+msg.getUserId());
+            if(this.userId.toString().equals(msg.getUserId().toString())){
                 onlineTask.put(this.userId,msg);
                 log.info("onlineTask:"+onlineTask);
             }

@@ -369,4 +369,11 @@ public class ContentController extends ContentBaseController {
         List<Content> teacherCreateCourseList = contentService.teacherCreateCourseList(teacherId);
         return new JsonResult<>(OK,teacherCreateCourseList);
     }
+
+    @GetMapping("update_private/{contentId}")
+    public JsonResult<Integer> updateIsPrivate(HttpSession session, @PathVariable Integer contentId){
+        Integer teacherId = getUserIdFromSession(session);
+        Integer result = contentService.updateIsPrivate(contentId, teacherId);
+        return new JsonResult<>(OK, result);
+    }
 }

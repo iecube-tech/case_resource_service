@@ -16,6 +16,7 @@
         <result column="last_modified_user" property="lastModifiedUser"></result>
         <result column="last_modified_time" property="lastModifiedTime"></result>
         <result column="device_id" property="deviceId"></result>
+        <result column="is_private" property="isPrivate"></result>
     </resultMap>
 
     <resultMap id="taskTemplates" type="com.iecube.community.model.content.entity.taskTemplates">
@@ -38,10 +39,10 @@
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO solution_or_case
-            (id, name, device_id, parent_id, cover, introduction, introduce, target, guidance, third, fourth, key_word,completion,
+            (id, name, device_id, is_private, parent_id, cover, introduction, introduce, target, guidance, third, fourth, key_word,completion,
              is_delete,creator_type, creator, create_time, last_modified_user, last_modified_time)
         VALUES
-            (NULL, #{name},#{deviceId}, #{parentId}, #{cover}, #{introduction}, #{introduce}, #{target}, #{guidance}, #{third}, #{fourth},
+            (NULL, #{name},#{deviceId}, 0, #{parentId}, #{cover}, #{introduction}, #{introduce}, #{target}, #{guidance}, #{third}, #{fourth},
              #{keyWord}, #{completion},#{isDelete},#{creatorType}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
     </insert>
 
@@ -127,7 +128,7 @@
     </delete>
 
     <select id="findAll" resultMap="ContentEntity">
-        SELECT id, name,device_id, cover, introduction FROM solution_or_case WHERE completion=10 AND third=0
+        SELECT id, name,device_id, cover, introduction FROM solution_or_case WHERE completion=10 AND third=0 AND is_private=0
     </select>
 
     <select id="findByTeacherId" resultMap="ContentEntity">
@@ -141,11 +142,13 @@
     </select>
 
     <select id="findByParentId" resultMap="ContentEntity">
-        SELECT id,name,parent_id, cover,introduction,device_id FROM solution_or_case WHERE parent_id=#{parentId}
+        SELECT id,name,parent_id, cover,introduction,device_id
+        FROM solution_or_case
+        WHERE parent_id=#{parentId} AND completion=10 AND is_private=0 AND is_delete=0
     </select>
 
     <select id="findNotDelByParentId" resultMap="ContentEntity">
-        SELECT id,name,parent_id, cover,introduction,device_id FROM solution_or_case WHERE parent_id=#{parentId} and is_delete=0
+        SELECT id,name,parent_id, cover,introduction,device_id FROM solution_or_case WHERE parent_id=#{parentId} and is_delete=0 AND is_private=0
     </select>
 
     <update id="restore" >
@@ -194,7 +197,7 @@
     </delete>
 
     <select id="allCourse" resultMap="ContentEntity">
-        SELECT id, name, cover, introduction FROM solution_or_case WHERE completion=10 AND third=1
+        SELECT id, name, cover, introduction FROM solution_or_case WHERE completion=10 AND third=1 AND is_private=0 AND is_delete=0
     </select>
 
     <select id="teacherCourse" resultMap="ContentEntity">
@@ -212,5 +215,7 @@
         SELECT * FROM solution_or_case WHERE creator_type='teacher' AND creator=#{creator} AND is_delete=0 AND third=1 AND completion>=6
     </select>
 
-
+    <update id="updateIsPrivate">
+        UPDATE solution_or_case SET is_private=#{isPrivate} WHERE id=#{contentId}
+    </update>
 </mapper>

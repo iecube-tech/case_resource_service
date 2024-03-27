@@ -34,4 +34,7 @@ public interface ProjectService {
     void deleteProject(Integer projectId);
 
     void hiddenProject(Integer projectId);
+
+    //学生自己加入project
+    Integer studentJoinProject(Integer projectId, Integer studentId);
 }

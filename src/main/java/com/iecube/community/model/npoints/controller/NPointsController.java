@@ -87,5 +87,18 @@ public class NPointsController extends BaseController {
         return new JsonResult<>(OK, allConcepts);
     }
 
+    @PostMapping("/add_module")
+    public JsonResult<List> addModule(@RequestBody ModuleConceptVo moduleConceptVo){
+        nPointsService.addModuleConcepts(moduleConceptVo);
+        List<ModuleConceptVo> moduleConceptVos = nPointsService.getAllModuleConcepts();
+        return new JsonResult<>(OK, moduleConceptVos);
+    }
+
+    @GetMapping("/all_concept")
+    public JsonResult<List> AllConcepts(){
+        List<ConceptVo> allConcepts = nPointsService.getAllConcepts();
+        return new JsonResult<>(OK, allConcepts);
+    }
+
 
 }
