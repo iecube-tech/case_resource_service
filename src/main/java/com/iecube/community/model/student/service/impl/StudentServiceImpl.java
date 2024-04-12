@@ -53,7 +53,7 @@ import com.iecube.community.util.SHA256;
 public class StudentServiceImpl implements StudentService {
 
 
-    private static final String EMAIL_SUBJECT = "IECUBE产业案例资源管理平台-新用户通知";
+    private static final String EMAIL_SUBJECT = "IECUBE产业案例资教学资源库和过程评价系统-新用户通知";
 
     @Value("${email.template.user-activate}")
     private Resource userActivateEmail;

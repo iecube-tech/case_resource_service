@@ -26,6 +26,8 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
@@ -61,12 +63,23 @@ public class PSTDeviceLogServiceImpl implements PSTDeviceLogService {
         List<Resource> PSTResources = this.getPSTDeviceLogsByPstId(pstId);
         List<String> dataList = new ArrayList<>();
         List startAndEndTimes = new ArrayList<>();
+        Pattern timePattern = Pattern.compile("\\[(.*?)\\]");
         for(Resource resource1 : PSTResources ){
             List<String> list = LogParser.parseLog(new File(files, resource1.getFilename()).getAbsolutePath());
             //取第一个和最后一个作为开始时间和结束时间
             List<String> startAndEndTime = new ArrayList<>();
-            startAndEndTime.add(list.get(0).substring(1,18));
-            startAndEndTime.add(list.get(list.size()-1).substring(1,18));
+            String startTime = "";
+            String endTime = "";
+            Matcher mStartTime = timePattern.matcher(list.get(0));
+            Matcher mEndTime = timePattern.matcher(list.get(list.size()-1));
+            if(mStartTime.find()){
+                startTime=mStartTime.group(1);
+            }
+            if(mEndTime.find()){
+                endTime=mEndTime.group(1);
+            }
+            startAndEndTime.add(startTime);
+            startAndEndTime.add(endTime);
             startAndEndTimes.add(startAndEndTime);
             dataList.addAll(list);
         }

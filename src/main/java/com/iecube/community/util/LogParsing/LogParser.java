@@ -6,10 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -57,11 +54,13 @@ public class LogParser {
 
     public static List<String> parseLog(String filePath) {
         List<String> dataList = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(filePath), "GBK"))) {
             String line;
             while ((line = br.readLine()) != null) {
-                if(!line.contains("程序启动")){
-                    dataList.add(line);
+                String res = line.replaceAll("([Ii])(-)([Vv])", "IV");
+//                System.out.println(res);
+                if(!res.contains("程序启动")){
+                    dataList.add(res);
                 }
             }
         } catch (IOException e) {
@@ -95,9 +94,11 @@ public class LogParser {
             DeviceLogData data = new DeviceLogData();
             Pattern patternPanelName = Pattern.compile("\\] (.*?)\\-");
             Matcher matcherPanelName = patternPanelName.matcher(item);
+            Pattern timePattern = Pattern.compile("\\[(.*?)\\]");
             Integer index=0;
             if (matcherPanelName.find()) {
                 String panelName = matcherPanelName.group(1); // 使用 group(1) 获取匹配到的内容，而不是包含括号的整个匹配项
+//                System.out.println(panelName);
                 data.setName(panelName);
                 if(!panels.contains(panelName)){
                     panels.add(panelName);
@@ -110,14 +111,24 @@ public class LogParser {
             // index
             valueList.add(index);
             //开始时间
-            valueList.add(item.substring(1,18));
+            Matcher MatcherStartTime = timePattern.matcher(item);
+            String startTime = "";
+            if (MatcherStartTime.find()){
+                startTime = MatcherStartTime.group(1);
+            }
+            valueList.add(startTime);
             // 结束时间
             if(i+1<dataList.size()){
-                valueList.add(dataList.get(i+1).substring(1,18));
+                Matcher MatcherEndTime = timePattern.matcher(dataList.get(i+1));
+                String endTime = "";
+                if(MatcherEndTime.find()){
+                    endTime = MatcherEndTime.group(1);
+                }
+                valueList.add(endTime);
             }else {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
                 try{
-                    Date startDate = dateFormat.parse(item.substring(1,18));
+                    Date startDate = dateFormat.parse(startTime);
                     long endTimestamp = startDate.getTime()+1000;
                     String endDate = dateFormat.format(new Date(endTimestamp));
                     valueList.add(endDate);
