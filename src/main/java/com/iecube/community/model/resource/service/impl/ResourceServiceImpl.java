@@ -206,7 +206,7 @@ public class ResourceServiceImpl implements ResourceService {
         }
         log.warn("DELETE:{}",filePath);
         if(!filePath.exists()){
-            throw new FileNotFoundException("文件不存在");
+            return;
         }
         if(!filePath.delete()){
             throw new FileDeletedFailedException("删除文件错误");

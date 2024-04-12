@@ -8,6 +8,7 @@
         <result property="caseId" column="case_id"></result>
         <result property="originalFileName" column="original_filename"></result>
         <result property="originalFileType" column="original_filetype"></result>
+        <result property="isReady" column="is_ready"></result>
         <result property="createTime" column="create_time"></result>
         <result property="lastModifiedTime" column="last_modified_time"></result>
         <result property="lastModifiedUser" column="last_modified_user"></result>
@@ -15,8 +16,20 @@
 
     <insert id="uploadVideo" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO video (id, case_id, cover, name, filename, original_filename, original_filetype, creator,
-                           create_time, last_modified_time, last_modified_user)
+                           is_ready, create_time, last_modified_time, last_modified_user)
         VALUES (NULL, #{caseId}, #{cover},#{name}, #{filename}, #{originalFileName}, #{originalFileType}, #{creator},
-                #{createTime}, #{lastModifiedTime}, #{lastModifiedUser})
+                0,#{createTime}, #{lastModifiedTime}, #{lastModifiedUser})
     </insert>
+
+    <select id="getVideoByCaseId" resultMap="Video">
+        SELECT * FROM video WHERE case_id=#{caseId}
+    </select>
+
+    <delete id="deleteVideoById">
+        DELETE FROM video WHERE id=#{id}
+    </delete>
+
+    <update id="updateReadyStatus">
+        UPDATE video SET is_ready=#{isReady} WHERE id=#{id}
+    </update>
 </mapper>

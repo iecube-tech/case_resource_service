@@ -12,4 +12,5 @@ public class Video extends BaseEntity {
     String filename; //.m3u8
     String originalFileName;
     String originalFileType;
+    Integer isReady;
 }

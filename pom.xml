@@ -111,6 +111,11 @@
             <artifactId>itextpdf</artifactId>
             <version>5.5.13.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.8</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -169,29 +174,6 @@
                     <!-- 添加字体文件 -->
                     <appendAssemblyId>false</appendAssemblyId>
                     <finalName>${project.artifactId}</finalName>
-                    <fonts>
-                        <font>
-                            <id>mycustomfont</id>
-                            <source>${basedir}/src/main/resources/fonts/simsun.ttf</source>
-                            <targetPath>fonts</targetPath>
-                        </font>
-                    </fonts>
-                    <fileSet>
-                        <directory>src/main/resources</directory>
-                        <excludes>
-                            <exclude>fonts/*</exclude> <!-- 打包时暂时排除掉 fonts/*.ttf-->
-                        </excludes>
-                        <outputDirectory>/conf</outputDirectory>
-                        <filtered>true</filtered> <!-- 会做maven的properties的属性替换 -->
-                    </fileSet>
-                    <fileSet>
-                        <directory>src/main/resources</directory>
-                        <includes>
-                            <include>fonts/*</include> <!-- 单独对fonts/*.ttl 做打包 -->
-                        </includes>
-                        <outputDirectory>/conf</outputDirectory>
-                        <filtered>false</filtered> <!-- 不会做替换 -->
-                    </fileSet>
                 </configuration>
             </plugin>
         </plugins>

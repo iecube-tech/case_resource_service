@@ -1,6 +1,7 @@
 package com.iecube.community.model.task.mapper;
 
 import com.iecube.community.model.task.entity.*;
+import com.iecube.community.model.task.vo.TaskBriefVo;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -38,4 +39,6 @@ public interface TaskMapper {
     Integer updatePSTDataTables(Integer id, String dataTables);
 
     String getPSTDataTables(Integer id);
+
+    List<TaskBriefVo> getProjectBriefVo(Integer projectId);
 }

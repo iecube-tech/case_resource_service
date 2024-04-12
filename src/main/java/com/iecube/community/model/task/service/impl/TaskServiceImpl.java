@@ -21,6 +21,7 @@ import com.iecube.community.model.resource.mapper.ResourceMapper;
 import com.iecube.community.model.resource.service.ResourceService;
 import com.iecube.community.model.task.mapper.TaskMapper;
 import com.iecube.community.model.task.service.TaskService;
+import com.iecube.community.model.task.vo.TaskBriefVo;
 import com.iecube.community.model.task_attention.entity.Attention;
 import com.iecube.community.model.task_attention.entity.TaskAttention;
 import com.iecube.community.model.task_attention.mapper.TaskAttentionMapper;
@@ -599,6 +600,12 @@ public class TaskServiceImpl implements TaskService {
             throw new UpdateException("更新数据失败");
         }
         return null;
+    }
+
+    @Override
+    public List<TaskBriefVo> getProjectTaskBriefList(Integer projectId) {
+        List<TaskBriefVo> result = taskMapper.getProjectBriefVo(projectId);
+        return result;
     }
 
 }

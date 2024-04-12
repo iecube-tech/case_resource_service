@@ -60,6 +60,12 @@
         WHERE project_student.project_id=#{projectId};
     </select>
 
+    <select id="findStudentsPSTByProjectId" resultMap="ProjectStudentVo">
+        SELECT Student.id,Student.student_id,Student.student_name,project_student.grade AS student_grade, project_task_student.id AS pst_id
+        FROM project_student INNER JOIN Student ON project_student.student_id=Student.id INNER JOIN project_task_student ON Student.id=project_task_student.student_id and project_student.project_id=project_task_student.project_id
+        WHERE project_student.project_id=#{projectId} ORDER BY id;
+    </select>
+
     <select id="findByStudentId" resultMap="ProjectEntity">
         SELECT project.id, project.project_name,project.target,project.introduction,project.introduce,
                project.cover,project.start_time,project.end_time,project_student.grade

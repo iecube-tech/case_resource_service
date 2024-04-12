@@ -8,8 +8,11 @@ import com.iecube.community.model.video.entity.Video;
 import com.iecube.community.model.video.mapper.VideoMapper;
 import com.iecube.community.model.video.service.VideoService;
 import com.iecube.community.model.video.service.ex.FFmpegUseException;
+import com.iecube.community.util.ffmpegUtil.SaveToM3u8;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import net.bramp.ffmpeg.FFmpeg;
@@ -25,18 +28,15 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class VideoServiceImpl implements VideoService {
     @Value("${resource-location}/video/original/")
     private String originalDir;
-
-    @Value("${resource-location}/video/m3u8/")
-    private String m3u8Dir;
-
-    @Value("${FFmpeg.path}")
-    private String FFmpegPath;
-
     @Autowired
     private VideoMapper videoMapper;
+
+    @Autowired
+    private SaveToM3u8 saveToM3u8;
 
     private static final int VIDEO_MAX_SIZE= 1024 * 1024 * 1024;
 
@@ -46,7 +46,19 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public Video uploadVideo(MultipartFile file, Integer creator, String name, Integer cover, Integer caseId)  throws IOException {
+    public Video getByCaseId(Integer caseId){
+        Video video = videoMapper.getVideoByCaseId(caseId);
+        return video;
+    }
+
+    @Override
+    public void deleteVideo(Integer id) {
+        videoMapper.deleteVideoById(id);
+        // 删除文件
+    }
+
+    @Override
+    public Video uploadVideo(MultipartFile file, Integer creator, Integer cover, Integer caseId)  throws IOException {
         if(file==null){
             throw new FileEmptyException("文件为空");
         }
@@ -60,8 +72,13 @@ public class VideoServiceImpl implements VideoService {
         if (!VIDEO_TYPE.contains(originalFileType)){
             throw new FileTypeException("不支持的文件格式");
         }
+        Video oldVideo = videoMapper.getVideoByCaseId(caseId);
+        if(oldVideo != null){
+            videoMapper.deleteVideoById(oldVideo.getId());
+        }
+        String name = file.getOriginalFilename();
         String originalFilename = saveOriginalVideo(file);
-        String filename = convertToM3U8(originalFilename);
+        String filename = originalFilename.substring(0, originalFilename.indexOf("."));
         Video video = new Video();
         video.setName(name);
         video.setCover(cover);
@@ -74,6 +91,7 @@ public class VideoServiceImpl implements VideoService {
         video.setCreator(creator);
         video.setLastModifiedUser(creator);
         videoMapper.uploadVideo(video);
+        this.convertToM3U8(video);
         return video;
     }
     public String saveOriginalVideo(MultipartFile file) throws IOException{
@@ -95,29 +113,8 @@ public class VideoServiceImpl implements VideoService {
         return name;
     }
 
-    public String convertToM3U8(String originalFilename){
-        String filename = originalFilename.substring(0, originalFilename.indexOf("."));
-        File file = new File(originalDir, originalFilename+".m3u8");
-        if(!file.exists()){
-            File parentFile = file.getParentFile();
-            if (!parentFile.exists()) {
-                parentFile.mkdirs();
-            }
-        }
-        try{
-            FFmpeg ffmpeg = new FFmpeg(FFmpegPath); // 实例化FFmpeg对象
-            FFmpegBuilder builder = new FFmpegBuilder()
-                    .setInput(originalDir+originalFilename) // 输入原视频文件路径
-                    .addOutput(m3u8Dir+filename+".m3u8")
-                    .setFormat("hls") // 设置输出格式为HLS
-                    .addExtraArgs("-hls_time", "10") // 设置每个分片的时长
-                    .addExtraArgs("-hls_list_size", "0") // 设置m3u8列表大小，0表示无限制
-                    .done();
-            ffmpeg.run(builder); // 运行转换任务
-            return filename;
-        } catch (IOException e){
-            e.printStackTrace();
-            throw new FFmpegUseException("视频转码失败");
-        }
+    @Async
+    public void convertToM3U8(Video video){
+        saveToM3u8.convertToM3U8(video);
     }
 }

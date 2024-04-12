@@ -56,6 +56,11 @@
         <result column="data_tables" property="dataTables"></result>
     </resultMap>
 
+    <resultMap id="TaskBriefVo" type="com.iecube.community.model.task.vo.TaskBriefVo">
+        <result column="task_num" property="taskNum"></result>
+        <result column="task_name" property="taskName"></result>
+    </resultMap>
+
 
     <insert id="addProjectTask" useGeneratedKeys="true" keyProperty="id" >
         INSERT INTO task (id, task_template_id, project_id, num, weighting,objective_weighting, class_hour, task_name, task_cover, task_device, task_data_tables, task_start_time,
@@ -184,5 +189,8 @@
         SELECT data_tables FROM project_task_student WHERE id=#{id}
     </select>
 
+    <select id="getProjectBriefVo" resultMap="TaskBriefVo">
+        SELECT id, num AS task_num, task_name FROM task WHERE project_id=#{projectId}
+    </select>
 
 </mapper>

@@ -7,6 +7,7 @@ import com.iecube.community.model.task.entity.ProjectStudentTaskQo;
 import com.iecube.community.model.task.entity.StudentTaskDetailVo;
 import com.iecube.community.model.task.entity.TaskVo;
 import com.iecube.community.model.task.service.TaskService;
+import com.iecube.community.model.task.vo.TaskBriefVo;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -116,6 +117,12 @@ public class TaskController extends TaskBaseController {
     public JsonResult<List> updateDataTables(@RequestBody PSTDataTables pstDataTables){
         taskService.updateDataTables(pstDataTables.getPstId(), pstDataTables.getDataTables());
         return new JsonResult<>(OK);
+    }
+
+    @GetMapping("/brief")
+    public JsonResult<List> getProjectTaskBriefList(Integer projectId){
+        List<TaskBriefVo> result = taskService.getProjectTaskBriefList(projectId);
+        return new JsonResult<>(OK, result);
     }
 
 

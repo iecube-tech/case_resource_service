@@ -1,13 +1,17 @@
 package com.iecube.community.model.pst_devicelog.controller;
 
 import com.iecube.community.basecontroller.pst_devicelog.PSTDeviceLogBaseController;
+import com.iecube.community.model.pst_devicelog.dto.PSTDeviceLogParseDto;
+import com.iecube.community.model.pst_devicelog.dto.StudentLogOverview;
 import com.iecube.community.model.pst_devicelog.entity.PSTDeviceLog;
 import com.iecube.community.model.pst_devicelog.entity.TaskInfo;
 import com.iecube.community.model.pst_devicelog.service.PSTDeviceLogService;
+import com.iecube.community.model.pst_devicelog.vo.StudentTasksOperations;
 import com.iecube.community.model.resource.entity.Resource;
 import com.iecube.community.model.resource.service.ResourceService;
 import com.iecube.community.util.DownloadUtil;
 import com.iecube.community.util.JsonResult;
+import com.iecube.community.util.LogParsing.LogParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +40,7 @@ public class PSTDeviceLogController extends PSTDeviceLogBaseController {
     public JsonResult<PSTDeviceLog> uploadPSTDeviceLog(HttpSession session, MultipartFile file, @PathVariable Integer pstId) throws IOException {
         Integer creator = getUserIdFromSession(session);
         Resource resource = resourceService.UploadFile(file, creator);
-        PSTDeviceLog pstDeviceLog = pstDeviceLogService.uploadPSTDeviceLog(pstId, resource.getId());
+        PSTDeviceLog pstDeviceLog = pstDeviceLogService.uploadPSTDeviceLog(pstId, resource);
         return new JsonResult<>(OK, pstDeviceLog);
     }
 
@@ -56,5 +60,17 @@ public class PSTDeviceLogController extends PSTDeviceLogBaseController {
     public JsonResult<TaskInfo> getTaskDetailByPSTId(@PathVariable Integer pstId){
         TaskInfo taskInfo = pstDeviceLogService.getTaskDetailByPSTId(pstId);
         return new JsonResult<>(OK, taskInfo);
+    }
+
+    @GetMapping("/echarts/{pstId}")
+    public JsonResult<PSTDeviceLogParseDto> getLogVisualization(@PathVariable Integer pstId){
+        PSTDeviceLogParseDto pstDeviceLogParseDto = pstDeviceLogService.getLogVisualization(pstId);
+        return new JsonResult<>(OK, pstDeviceLogParseDto);
+    }
+
+    @GetMapping("/compare/{projectId}")
+    public JsonResult<List> getProjectLogCompare(@PathVariable Integer projectId){
+        List<StudentTasksOperations> result = pstDeviceLogService.getProjectLogCompare(projectId);
+        return new JsonResult<>(OK, result);
     }
 }

@@ -7,5 +7,9 @@ import java.io.IOException;
 
 public interface VideoService {
 
-    Video uploadVideo(MultipartFile file, Integer creator, String name, Integer cover, Integer caseId) throws IOException;
+    Video uploadVideo(MultipartFile file, Integer creator, Integer cover, Integer caseId) throws IOException;
+
+    Video getByCaseId(Integer caseId);
+
+    void deleteVideo(Integer id);
 }

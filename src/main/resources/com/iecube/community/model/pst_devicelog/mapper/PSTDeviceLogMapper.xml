@@ -16,6 +16,18 @@
         <result column="task_name" property="taskName"></result>
     </resultMap>
 
+    <resultMap id="PSTDeviceLogParseDto" type="com.iecube.community.model.pst_devicelog.dto.PSTDeviceLogParseDto">
+        <result column="pst_id" property="pstId"></result>
+    </resultMap>
+
+    <resultMap id="StudentLogOverview" type="com.iecube.community.model.pst_devicelog.dto.StudentLogOverview">
+        <result column="student_name" property="studentName"></result>
+        <result column="student_id" property="studentId"></result>
+        <result column="pst_id" property="pstId"></result>
+        <result column="task_id" property="taskId"></result>
+        <result column="task_num" property="taskNum"></result>
+    </resultMap>
+
     <insert id="addDeviceLog" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO pst_devicelog (id, pst_id, resource_id)
         VALUES (NULL, #{pstId}, #{resourceId})
@@ -30,6 +42,32 @@
         FROM project_task_student INNER JOIN project ON project.id=project_task_student.project_id
             INNER JOIN task ON task.id=project_task_student.task_id
         WHERE project_task_student.id=#{pstId};
+    </select>
+    
+    <insert id="insertPSTLogParse" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO pst_log_parse (id, pst_id, categories, data, times, operations)
+        VALUES (NULL, #{pstId}, #{categories}, #{data}, #{times}, #{operations})
+    </insert>
+
+    <select id="getPSTLogParseByPstId" resultMap="PSTDeviceLogParseDto">
+        SELECT * FROM pst_log_parse WHERE pst_id=#{pstId}
+    </select>
+
+    <update id="updatePSTLogParse">
+        UPDATE pst_log_parse set categories=#{categories},
+                                 data=#{data},
+                                 times=#{times},
+                                 operations=#{operations}
+                                 WHERE pst_id=#{pstId}
+    </update>
+
+    <select id="getProjectLogCompare" resultMap="StudentLogOverview">
+        SELECT Student.student_name, Student.student_id, project_task_student.id AS pst_id, project_task_student.task_id,
+               task.num AS task_num, pst_log_parse.times, pst_log_parse.operations
+        FROM pst_log_parse INNER JOIN project_task_student ON pst_log_parse.pst_id=project_task_student.id
+            INNER JOIN Student ON project_task_student.student_id=Student.id
+            INNER JOIN task ON project_task_student.task_id=task.id
+        WHERE project_task_student.project_id=#{projectId};
     </select>
 
 </mapper>

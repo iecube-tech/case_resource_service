@@ -27,12 +27,24 @@ public class VideoController extends VideoBaseController {
     @Autowired
     private VideoService videoService;
 
-    @PostMapping("/upload")
-    public JsonResult<Video> uploadVideo(MultipartFile file, HttpSession session, Integer caseId,
-                                         Integer cover, String name) throws IOException {
+    @PostMapping("/upload/{caseId}")
+    public JsonResult<Video> uploadVideo(MultipartFile file, HttpSession session,@PathVariable Integer caseId,
+                                         Integer cover) throws IOException {
         Integer creator = getUserIdFromSession(session);
-        Video video = videoService.uploadVideo(file,creator,name, cover, caseId);
+        Video video = videoService.uploadVideo(file,creator, cover, caseId);
         return new JsonResult<>(OK, video);
+    }
+
+    @GetMapping("/c/{caseId}")
+    public JsonResult<Video> getByCaseId(@PathVariable Integer caseId){
+        Video video = videoService.getByCaseId(caseId);
+        return new JsonResult<>(OK, video);
+    }
+
+    @GetMapping("/d/{id}")
+    public JsonResult<Void> deleteVideo(@PathVariable Integer id){
+        videoService.deleteVideo(id);
+        return new JsonResult<>(OK);
     }
 
 

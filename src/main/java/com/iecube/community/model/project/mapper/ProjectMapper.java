@@ -20,7 +20,8 @@ public interface ProjectMapper {
 
     Integer addProjectStudent(ProjectStudent pStudent);
     List<Project> findByCreator(Integer teacherId);
-    List<ProjectStudentVo> findStudentsByProjectId(Integer projectId);
+    List<ProjectStudentVo> findStudentsByProjectId(Integer projectId); // 没有pstId
+    List<ProjectStudentVo> findStudentsPSTByProjectId(Integer projectId); // 有pstId
 
     List<Integer> findStudentIdByProjectId(Integer projectId);
     List<Project> findByStudentId(Integer id);

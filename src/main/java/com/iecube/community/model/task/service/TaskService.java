@@ -2,6 +2,7 @@ package com.iecube.community.model.task.service;
 
 import com.iecube.community.model.pst_resource.entity.PSTResourceVo;
 import com.iecube.community.model.task.entity.*;
+import com.iecube.community.model.task.vo.TaskBriefVo;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -36,4 +37,6 @@ public interface TaskService {
     List<TaskVo> getProjectTasks(Integer projectId);
 
     Void updateDataTables(Integer pstId, String dataTables);
+
+    List<TaskBriefVo> getProjectTaskBriefList(Integer projectId);
 }
