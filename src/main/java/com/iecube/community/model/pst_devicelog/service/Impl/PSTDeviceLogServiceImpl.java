@@ -5,6 +5,8 @@ import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.project.entity.ProjectStudentVo;
 import com.iecube.community.model.project.mapper.ProjectMapper;
 import com.iecube.community.model.project.service.ProjectService;
+import com.iecube.community.model.project_student_group.entity.GroupStudent;
+import com.iecube.community.model.project_student_group.mapper.ProjectStudentGroupMapper;
 import com.iecube.community.model.pst_devicelog.dto.PSTDeviceLogParseDto;
 import com.iecube.community.model.pst_devicelog.dto.PSTOperations;
 import com.iecube.community.model.pst_devicelog.dto.StudentLogOverview;
@@ -15,6 +17,7 @@ import com.iecube.community.model.pst_devicelog.service.PSTDeviceLogService;
 import com.iecube.community.model.pst_devicelog.vo.StudentTasksOperations;
 import com.iecube.community.model.resource.entity.Resource;
 import com.iecube.community.model.resource.mapper.ResourceMapper;
+import com.iecube.community.model.task.entity.ProjectStudentTask;
 import com.iecube.community.model.task.entity.StudentTaskVo;
 import com.iecube.community.model.task.mapper.TaskMapper;
 import com.iecube.community.util.LogParsing.LogParser;
@@ -40,6 +43,9 @@ public class PSTDeviceLogServiceImpl implements PSTDeviceLogService {
 
     @Autowired
     private TaskMapper taskMapper;
+
+    @Autowired
+    private ProjectStudentGroupMapper projectStudentGroupMapper;
 
     @Autowired
     private ProjectService projectService;
@@ -103,6 +109,36 @@ public class PSTDeviceLogServiceImpl implements PSTDeviceLogService {
         if(co != 1){
             throw new InsertException("添加数据异常");
         }
+        return pstDeviceLog;
+    }
+
+    @Override
+    public PSTDeviceLog uploadGroupDeviceLog(Integer pstId, Resource resource){
+        // 根据pstId获取小组内的所有pst
+        ProjectStudentTask projectStudentTask = taskMapper.getProjectStudentTaskById(pstId);
+        Integer studentId = projectStudentTask.getStudentId();
+        Integer projectId = projectStudentTask.getProjectId();
+        //获取组内所有人的studentId
+        List<GroupStudent> allGroupStudent = projectStudentGroupMapper.getGroupStudentByStudentId(studentId, projectId);
+        PSTDeviceLog pstDeviceLog = null;
+        if(allGroupStudent.size()==0){
+            pstDeviceLog = this.uploadPSTDeviceLog(pstId,resource);
+        }else{
+            List<ProjectStudentTask> allProjectStudentTask =
+                    taskMapper.getProjectStudentTaskByProjectIdAndTaskId(projectStudentTask.getProjectId(),projectStudentTask.getTaskId());
+            List<ProjectStudentTask> groupProjectStudentTask = new ArrayList<>();
+            for(int i=0; i<allGroupStudent.size();i++){
+                for(int j=0; j<allProjectStudentTask.size();j++){
+                    if(allGroupStudent.get(i).getStudentId().equals(allProjectStudentTask.get(j).getStudentId())){
+                        groupProjectStudentTask.add(allProjectStudentTask.get(j));
+                    }
+                }
+            }
+            for(ProjectStudentTask oneOfProjectStudentTask:groupProjectStudentTask){
+                pstDeviceLog = this.uploadPSTDeviceLog(oneOfProjectStudentTask.getId(),resource);
+            }
+        }
+
         return pstDeviceLog;
     }
 

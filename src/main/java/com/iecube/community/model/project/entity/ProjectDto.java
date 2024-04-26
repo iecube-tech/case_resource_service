@@ -12,6 +12,8 @@ import java.util.List;
 public class ProjectDto {
     Integer caseId;
     String projectName;
+    Integer useGroup;
+    Integer groupLimit;
     List<Date> date;
     List<Student> students;
     List<Task> task;

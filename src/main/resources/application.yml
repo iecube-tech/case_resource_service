@@ -8,7 +8,7 @@ spring:
   datasource:
 #    url: jdbc:mysql://43.139.68.165:7999/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    西安数据库穿透
-    url: jdbc:mysql://192.168.1.6:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+    url: jdbc:mysql://192.168.1.5:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    url: jdbc:mysql://172.22.80.148:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    url: jdbc:mysql://47.94.161.154:8001/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
     username: root

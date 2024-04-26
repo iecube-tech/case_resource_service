@@ -16,13 +16,17 @@ import com.iecube.community.model.iecube3835.service.DeviceDetailDataService;
 import com.iecube.community.model.iecube3835.service.ex.GenerateStudentReportException;
 import com.iecube.community.model.iecube3835.service.ex.ReportIOException;
 import com.iecube.community.model.project.service.ex.GenerateFileException;
+import com.iecube.community.model.project_student_group.entity.GroupStudent;
+import com.iecube.community.model.project_student_group.mapper.ProjectStudentGroupMapper;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.mapper.StudentMapper;
+import com.iecube.community.model.task.entity.ProjectStudentTask;
 import com.iecube.community.model.task.entity.StudentTaskDetailVo;
 import com.iecube.community.model.task.mapper.TaskMapper;
 import com.iecube.community.model.task.service.TaskService;
 import com.iecube.community.util.pdf.GenerateStudentReport;
 import com.itextpdf.text.DocumentException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -30,13 +34,18 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
 public class DeviceDetailDataServiceImpl implements DeviceDetailDataService {
 
     @Autowired
     private PSTDetailsDeviceMapper pstDetailsDeviceMapper;
+
+    @Autowired
+    private ProjectStudentGroupMapper projectStudentGroupMapper;
 
     @Autowired
     private StudentMapper studentMapper;
@@ -71,6 +80,53 @@ public class DeviceDetailDataServiceImpl implements DeviceDetailDataService {
     }
 
     @Override
+    public PSTDetailDevice updateGroupPstDetail(Integer groupId, Integer pstId, PSTDetailDevice pstDetailDevice) {
+        List<ProjectStudentTask> groupProjectStudentTask =  this.getGroupProjectStudentTask(groupId, pstId);
+        // groupProjectStudentTask 中包含了pstId; 需要判断pst_detail_device中有没有pst的数据。没有新增，有则更新。
+        for(ProjectStudentTask oneOfProjectStudentTask : groupProjectStudentTask){
+            // 判断是否有数据
+            PSTDetailDevice oldPSTDetailDevice = pstDetailsDeviceMapper.getByPSTId(oneOfProjectStudentTask.getId());
+            if(oldPSTDetailDevice==null){
+                PSTDetailDevice newPstDetailDevice = new PSTDetailDevice();
+                newPstDetailDevice.setPstId(oneOfProjectStudentTask.getId());
+                newPstDetailDevice.setData(pstDetailDevice.getData());
+                newPstDetailDevice.setSubmit(false);
+                // 原来没有数据 插入
+                pstDetailsDeviceMapper.insert(newPstDetailDevice);
+            }else{
+                // 原来由数据 更新
+                oldPSTDetailDevice.setData(pstDetailDevice.getData());
+                oldPSTDetailDevice.setSubmit(false);
+                pstDetailsDeviceMapper.updateData(oldPSTDetailDevice);
+            }
+
+        }
+        PSTDetailDevice rePSTDetailDevice = pstDetailsDeviceMapper.getByPSTId(pstId);
+        return rePSTDetailDevice;
+    }
+
+    public List<ProjectStudentTask> getGroupProjectStudentTask(Integer groupId, Integer pstId){
+        //根据groupId 获取学生列表
+        List<GroupStudent> groupStudentList = projectStudentGroupMapper.getStudentsByGroupId(groupId);
+        // 根据pstId获取projectId和taskId
+        ProjectStudentTask projectStudentTask = taskMapper.getProjectStudentTaskById(pstId);
+        Integer projectId = projectStudentTask.getProjectId();
+        Integer taskId = projectStudentTask.getTaskId();
+        //获取该projectId和该taskId的所有的pst
+        List<ProjectStudentTask> allProjectStudentTask = taskMapper.getProjectStudentTaskByProjectIdAndTaskId(projectId, taskId);
+        List<ProjectStudentTask> groupProjectStudentTask = new ArrayList<>();
+        // 固定的projectId和taskId 结合学生id 确定pstId
+        for(int i=0; i<groupStudentList.size(); i++){
+            for(int j=0; j<allProjectStudentTask.size(); j++){
+                if(groupStudentList.get(i).getStudentId().equals(allProjectStudentTask.get(j).getStudentId())){
+                    groupProjectStudentTask.add(allProjectStudentTask.get(j));
+                }
+            }
+        }
+        return groupProjectStudentTask;
+    }
+
+    @Override
     public PSTDetailDevice getByPstId(Integer pstId) {
         PSTDetailDevice pstDetailDevice = pstDetailsDeviceMapper.getByPSTId(pstId);
         return pstDetailDevice;
@@ -101,4 +157,21 @@ public class DeviceDetailDataServiceImpl implements DeviceDetailDataService {
         }
 
     }
+
+    @Override
+    public PSTDetailDevice groupSubmit(Integer groupId, Integer pstId, Integer studentId) {
+        log.info("学生"+studentId+"提交了小组实验报告");
+        List<ProjectStudentTask> groupProjectStudentTask =  this.getGroupProjectStudentTask(groupId, pstId);
+        for(ProjectStudentTask oneOfProjectStudentTask : groupProjectStudentTask){
+            this.submit(oneOfProjectStudentTask.getId(),oneOfProjectStudentTask.getStudentId());
+        }
+        // group 设置submitted
+        projectStudentGroupMapper.updateGroupSubmitted(groupId);
+        PSTDetailDevice rePSTDetailDevice = pstDetailsDeviceMapper.getByPSTId(pstId);
+        return rePSTDetailDevice;
+    }
+
+//    public void synchronousData(Integer groupId, Integer studentId){
+//
+//    }
 }

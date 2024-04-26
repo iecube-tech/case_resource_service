@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.project_student_group.mapper.ProjectStudentGroupMapper">
+
+    <resultMap id="Group" type="com.iecube.community.model.project_student_group.entity.Group">
+        <result column="project_id" property="projectId"></result>
+        <result column="limit_num" property="limitNum"></result>
+    </resultMap>
+
+    <resultMap id="GroupStudent" type="com.iecube.community.model.project_student_group.entity.GroupStudent">
+        <result column="group_id" property="groupId"></result>
+        <result column="student_id" property="studentId"></result>
+    </resultMap>
+
+    <resultMap id="GroupCode" type="com.iecube.community.model.project_student_group.entity.GroupCode">
+        <result column="group_id" property="groupId"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="unable_time" property="unableTime"></result>
+    </resultMap>
+
+    <resultMap id="StudentEntity" type="com.iecube.community.model.student.entity.Student">
+        <result column="student_id" property="studentId"></result>
+        <result column="student_name" property="studentName"></result>
+    </resultMap>
+
+    <insert id="addGroup" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO proejct_student_group (id, name, limit_num, project_id, submitted, creator, create_time, last_modified_user, last_modified_time)
+        VALUES (NULL, #{name}, #{limitNum}, #{projectId}, 0,#{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
+    </insert>
+
+    <update id="updateGroup">
+        UPDATE proejct_student_group SET
+                                         name=#{name},
+                                         last_modified_user=#{lastModifiedUser},
+                                         last_modified_time=#{lastModifiedTime}
+        WHERE id=#{id}
+    </update>
+
+    <delete id="delGroup">
+        DELETE FROM proejct_student_group WHERE id=#{id}
+    </delete>
+
+    <insert id="GroupAddStudent" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO project_group_student (id, group_id, student_id) VALUES (NULL, #{groupId}, #{studentId})
+    </insert>
+
+    <delete id="GroupRemoveStudent">
+        DELETE FROM project_group_student WHERE group_id=#{groupId} and student_id=#{studentId}
+    </delete>
+
+    <insert id="GroupAddCode" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO project_group_code (id, group_id, code, create_time, unable_time)
+        VALUES (NULL, #{groupId}, #{code}, #{createTime}, #{unableTime})
+    </insert>
+
+    <delete id="delGroupCode">
+        DELETE FROM project_group_code WHERE group_id=#{groupId}
+    </delete>
+
+    <update id="updateGroupSubmitted">
+        UPDATE proejct_student_group SET submitted=1 WHERE id=#{groupId}
+    </update>
+
+    <select id="getGroupById" resultMap="Group">
+        SELECT * FROM proejct_student_group WHERE id=#{id}
+    </select>
+
+    <select id="getGroupByProjectStudent" resultMap="Group">
+        SELECT proejct_student_group.id,
+               proejct_student_group.name,
+               proejct_student_group.project_id,
+               proejct_student_group.limit_num,
+               proejct_student_group.creator
+        FROM project_group_student INNER JOIN proejct_student_group ON project_group_student.group_id=proejct_student_group.id
+        WHERE project_group_student.student_id=#{studentId} and proejct_student_group.project_id=#{projectId};
+    </select>
+
+    <select id="getGroupCodeByCode" resultMap="GroupCode">
+        SELECT * FROM project_group_code WHERE code=#{code}
+    </select>
+
+    <select id="getGroupCodeByGroupId" resultMap="GroupCode">
+        SELECT * FROM project_group_code WHERE group_id=#{groupId}
+    </select>
+
+    <select id="getStudentsByGroupId" resultMap="GroupStudent">
+        SELECT * FROM project_group_student WHERE group_id=#{groupId}
+    </select>
+
+    <select id="getGroupStudentByStudentId" resultMap="GroupStudent">
+        SELECT * FROM project_group_student WHERE group_id=
+                                                  (SELECT project_group_student.group_id
+                                                   FROM project_group_student INNER JOIN proejct_student_group
+                                                       ON project_group_student.group_id=proejct_student_group.id
+                                                   WHERE project_group_student.student_id=#{studentId}
+                                                        and proejct_student_group.project_id=#{projectId});
+
+    </select>
+    
+    <select id="getStudentByGroup" resultMap="StudentEntity">
+        SELECT Student.id, Student.student_id, Student.student_name
+        FROM Student INNER JOIN project_group_student ON Student.id=project_group_student.student_id
+        WHERE project_group_student.group_id=#{groupId};
+    </select>
+
+</mapper>

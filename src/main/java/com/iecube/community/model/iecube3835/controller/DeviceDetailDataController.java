@@ -23,6 +23,13 @@ public class DeviceDetailDataController extends DeviceDetailDataControllerBaseCo
         return new JsonResult<>(OK,pstDetailDevice1);
     }
 
+    @PostMapping("/up/group/{groupId}/{pstId}")
+    public JsonResult<PSTDetailDevice> updateGroupDeviceDetailData(@PathVariable Integer groupId, @PathVariable Integer pstId,
+                                                                   @RequestBody PSTDetailDevice pstDetailDevice){
+        PSTDetailDevice rePSTDetailDevice = deviceDetailDataService.updateGroupPstDetail(groupId,pstId,pstDetailDevice);
+        return new JsonResult<>(OK,rePSTDetailDevice);
+    }
+
     @GetMapping("/{pstId}")
     public JsonResult<PSTDetailDevice> getPstDdd(@PathVariable Integer pstId){
         PSTDetailDevice pstDetailDevice = deviceDetailDataService.getByPstId(pstId);
@@ -33,6 +40,13 @@ public class DeviceDetailDataController extends DeviceDetailDataControllerBaseCo
      public JsonResult<PSTDetailDevice> submit(Integer pstId, HttpSession session){
         Integer studentId =  getUserIdFromSession(session);
         PSTDetailDevice pstDetailDevice = deviceDetailDataService.submit(pstId, studentId);
+        return new JsonResult<>(OK, pstDetailDevice);
+    }
+
+    @GetMapping("/group/submit")
+    public JsonResult<PSTDetailDevice> groupSubmit(Integer groupId, Integer pstId, HttpSession session){
+        Integer studentId = getUserIdFromSession(session);
+        PSTDetailDevice pstDetailDevice = deviceDetailDataService.groupSubmit(groupId,pstId,studentId);
         return new JsonResult<>(OK, pstDetailDevice);
     }
 }

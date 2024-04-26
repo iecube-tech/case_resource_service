@@ -69,11 +69,6 @@ public class TeacherServiceImpl implements TeacherService {
         }
         // 补全注册数据 is_delete 4个日志(谁操作)
         user.setIsDelete(0);
-        user.setCreateTime(new Date());
-        user.setLastModifiedTime(new Date());
-        /**需要获取当前登录人的信息完善操作人信息**/
-        user.setCreator(0);
-        user.setLastModifiedUser(0);
         // 密码加密处理 md5 加密算法
         // （串 + password + 串）  全部交给md5加密 连续加载3次
         // 盐值 + password + 盐值 盐值就是一个随机的字符串
@@ -86,6 +81,7 @@ public class TeacherServiceImpl implements TeacherService {
         user.setPassword(md5Password);
         user.setSalt(salt);
         // 执行注册业务逻辑
+        System.out.println(user);
         Integer rows = teacherMapper.insert(user);
         if (rows != 1){
             throw new InsertException("在用户注册过程中产生未知异常");

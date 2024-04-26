@@ -9,9 +9,7 @@ import com.sun.org.apache.xpath.internal.operations.Mod;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class NPointsServiceImpl implements NPointsService {
@@ -38,7 +36,17 @@ public class NPointsServiceImpl implements NPointsService {
         List<Link> caseNodeTarget = nPointsMapper.getTargetByCaseId(caseId);
         List<Concept> moduleNodes = nPointsMapper.getModuleByCaseId(caseId);
         List<Concept> conceptNodes = nPointsMapper.getConceptByCaseId(caseId);
-        List Nodes = new ArrayList<>();
+        for(int i=0; i<conceptNodes.size(); i++){
+            for(int j=0; j<conceptNodes.size();j++){
+                if(i==j){
+                    continue;
+                }
+                if(conceptNodes.get(j).getName().equals(conceptNodes.get(i).getName())){
+                    conceptNodes.remove(j);
+                }
+            }
+        }
+        List<Concept> Nodes = new ArrayList<>();
         List Links = new ArrayList<>();
         for (int a=0; a<caseNode.size(); a++){
             Concept caseA = caseNode.get(a);

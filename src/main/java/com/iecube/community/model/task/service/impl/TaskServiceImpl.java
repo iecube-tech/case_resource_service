@@ -5,6 +5,8 @@ import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
 import com.iecube.community.model.project.entity.ProjectStudentVo;
 import com.iecube.community.model.project.mapper.ProjectMapper;
+import com.iecube.community.model.project_student_group.entity.GroupStudent;
+import com.iecube.community.model.project_student_group.mapper.ProjectStudentGroupMapper;
 import com.iecube.community.model.question_bank.mapper.QuestionBankMapper;
 import com.iecube.community.model.question_bank.service.QuestionBankService;
 import com.iecube.community.model.question_bank.service.ex.NoQuestionException;
@@ -102,6 +104,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Autowired
     private QuestionBankService questionBankService;
+
+    @Autowired
+    private ProjectStudentGroupMapper projectStudentGroupMapper;
 
     /**
      * 任务状态
@@ -385,6 +390,36 @@ public class TaskServiceImpl implements TaskService {
         }
         return null;
     }
+
+    @Override
+    public void teacherModifyGroupPST(ProjectStudentTaskQo projectStudentTaskQo){
+        Integer pstId = projectStudentTaskQo.getPSTId();
+        // 根据pstId获取小组内的所有pst
+        ProjectStudentTask projectStudentTask = taskMapper.getProjectStudentTaskById(pstId);
+        Integer studentId = projectStudentTask.getStudentId();
+        Integer projectId = projectStudentTask.getProjectId();
+        List<GroupStudent> allGroupStudent = projectStudentGroupMapper.getGroupStudentByStudentId(studentId, projectId);
+        if(allGroupStudent.size()==0){
+            this.teacherModifyPST(projectStudentTaskQo);
+        }else {
+            List<ProjectStudentTask> allProjectStudentTask =
+                    taskMapper.getProjectStudentTaskByProjectIdAndTaskId(projectStudentTask.getProjectId(),projectStudentTask.getTaskId());
+            //这个是组内的所有人的pst
+            List<ProjectStudentTask> groupProjectStudentTask = new ArrayList<>();
+            for(int i=0; i<allGroupStudent.size();i++){
+                for(int j=0; j<allProjectStudentTask.size();j++){
+                    if(allGroupStudent.get(i).getStudentId().equals(allProjectStudentTask.get(j).getStudentId())){
+                        groupProjectStudentTask.add(allProjectStudentTask.get(j));
+                    }
+                }
+            }
+            for(ProjectStudentTask oneOfProjectStudentTask:groupProjectStudentTask){
+                projectStudentTaskQo.setPSTId(oneOfProjectStudentTask.getId());
+                this.teacherModifyPST(projectStudentTaskQo);
+            }
+        }
+    }
+
     private void computeGrade(Integer pstId, double reportGrade){
         Integer objectiveGrade = questionBankMapper.getObjectiveGrade(pstId);
         if(objectiveGrade == null){
@@ -429,13 +464,12 @@ public class TaskServiceImpl implements TaskService {
     /**
      * 教师批阅学生提交的pdf文档
      * @param file 批阅后的文件
-     * @param filename 原学生提交的文档的文件名
      * @param pstRId  表pst_resource的id
      * @param teacherId 教师id， 权限判断
      * @return null
      */
     @Override
-    public Void teacherReadOverStudentSubmitPdf(MultipartFile file, String filename, Integer pstRId,
+    public void teacherReadOverStudentSubmitPdf(MultipartFile file, Integer pstRId,
                                                                 Integer teacherId) throws IOException {
         PSTResource pstResource = pstResourceMapper.getById(pstRId);
         Resource studentResource = resourceMapper.getById(pstResource.getResourceId());
@@ -446,7 +480,40 @@ public class TaskServiceImpl implements TaskService {
         }
         pstResource.setReadOverResourceId(newReadOver.getId());
         pstResourceMapper.updatePSTResource(pstResource);
-        return null;
+    }
+
+    @Override
+    public void teacherReadOverGroupSubmitPdf(MultipartFile file, Integer pstRId, Integer teacherId) throws IOException{
+        //通过pstRId 获取pstId
+        PSTResource pstResource = pstResourceMapper.getById(pstRId);
+        Integer pstId = pstResource.getPSTId();
+        // 根据pstId获取小组内的所有pst
+        ProjectStudentTask projectStudentTask = taskMapper.getProjectStudentTaskById(pstId);
+        Integer studentId = projectStudentTask.getStudentId();
+        Integer projectId = projectStudentTask.getProjectId();
+        List<GroupStudent> allGroupStudent = projectStudentGroupMapper.getGroupStudentByStudentId(studentId, projectId);
+        if(allGroupStudent.size()==0){
+            this.teacherReadOverStudentSubmitPdf(file,pstRId, teacherId);
+        }else {
+            List<ProjectStudentTask> allProjectStudentTask =
+                    taskMapper.getProjectStudentTaskByProjectIdAndTaskId(projectStudentTask.getProjectId(),projectStudentTask.getTaskId());
+            //这个是组内的所有人的pst
+            List<ProjectStudentTask> groupProjectStudentTask = new ArrayList<>();
+            for(int i=0; i<allGroupStudent.size();i++){
+                for(int j=0; j<allProjectStudentTask.size();j++){
+                    if(allGroupStudent.get(i).getStudentId().equals(allProjectStudentTask.get(j).getStudentId())){
+                        groupProjectStudentTask.add(allProjectStudentTask.get(j));
+                    }
+                }
+            }
+            for(ProjectStudentTask oneOfProjectStudentTask:groupProjectStudentTask){
+                List<PSTResource> pstResourceList = pstResourceMapper.getPSTResourcesByPSTId(oneOfProjectStudentTask.getId());
+                for (PSTResource pstResource1 : pstResourceList){
+                    this.teacherReadOverStudentSubmitPdf(file, pstResource1.getId(), teacherId);
+                }
+            }
+        }
+
     }
 
     @Override

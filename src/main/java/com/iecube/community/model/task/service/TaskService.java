@@ -20,9 +20,12 @@ public interface TaskService {
     StudentTaskDetailVo findStudentTaskByPSTId(Integer pstId);
 
     Void teacherModifyPST(ProjectStudentTaskQo projectStudentTaskQo);
+
+    void teacherModifyGroupPST(ProjectStudentTaskQo projectStudentTaskQo);
     Void autoComputeProjectGrade(Integer pstId);
 
-    Void teacherReadOverStudentSubmitPdf(MultipartFile file, String filename, Integer pstId, Integer teacherId) throws IOException;
+    void teacherReadOverStudentSubmitPdf(MultipartFile file, Integer pstId, Integer teacherId) throws IOException;
+    void teacherReadOverGroupSubmitPdf(MultipartFile file, Integer pstId, Integer teacherId) throws IOException;
 
     List<TaskVo> studentGetProjectTasks(Integer projectId);
 

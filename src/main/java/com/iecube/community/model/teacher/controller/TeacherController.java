@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -41,13 +42,25 @@ public class TeacherController extends AuthBaseController {
         return new JsonResult<>(OK);
     }
 
-    @PostMapping("change_password")
+    @PostMapping("/change_password")
     public JsonResult<Void> changePassword(@RequestBody ChangePassword changePassword, HttpSession session){
         Integer teacherId= getUserIdFromSession(session);
         teacherService.changePassword(teacherId, changePassword.getOldPassword(), changePassword.getNewPassword());
         log.info("{} changePassword",teacherId);
         return new JsonResult<>(OK);
     }
+
+    @PostMapping("/add_teacher")
+    public JsonResult<Void> addTeacher(@RequestBody Teacher newTeacher, HttpSession session){
+        Integer adminId = getUserIdFromSession(session);
+        newTeacher.setCreator(adminId);
+        newTeacher.setLastModifiedUser(adminId);
+        newTeacher.setCreateTime(new Date());
+        newTeacher.setLastModifiedTime(new Date());
+        teacherService.insert(newTeacher);
+        return new JsonResult<>(OK);
+    }
+
 
     @GetMapping("/account")
     public JsonResult<Teacher> teacherAccount(HttpSession session){

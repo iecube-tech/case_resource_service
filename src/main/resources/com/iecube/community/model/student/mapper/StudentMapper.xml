@@ -51,7 +51,7 @@
     </select>
 
     <update id="deleteStudent">
-        UPDATE Student SET status=0 WHERE id=#{id}
+        DELETE FROM Student WHERE id=#{id}
     </update>
 
     <select id="getById" resultMap="StudentDto">

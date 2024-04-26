@@ -12,6 +12,8 @@ import java.util.List;
 public interface PSTDeviceLogService {
     PSTDeviceLog uploadPSTDeviceLog(Integer pstId, Resource resource);
 
+    PSTDeviceLog uploadGroupDeviceLog(Integer pstId, Resource resource);
+
     List<Resource> getPSTDeviceLogsByPstId(Integer pstId);
 
     TaskInfo getTaskDetailByPSTId(Integer pstId);

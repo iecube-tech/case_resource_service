@@ -45,7 +45,7 @@ public class TaskController extends TaskBaseController {
 
     @PostMapping("/pst")
     public JsonResult<Void> teacherModifyPST(@RequestBody ProjectStudentTaskQo projectStudentTaskQo, HttpSession session){
-        taskService.teacherModifyPST(projectStudentTaskQo);
+        taskService.teacherModifyGroupPST(projectStudentTaskQo);
         return new JsonResult<>(OK);
     }
 
@@ -61,7 +61,7 @@ public class TaskController extends TaskBaseController {
     public JsonResult<Void> teacherReadOverStudentSubmitPdf(@RequestBody MultipartFile file,
                                 String filename,Integer pstRId, HttpSession session) throws IOException {
         Integer teacherId = getUserIdFromSession(session);
-        taskService.teacherReadOverStudentSubmitPdf(file, filename, pstRId, teacherId);
+        taskService.teacherReadOverGroupSubmitPdf(file, pstRId, teacherId);
         return new JsonResult<>(OK);
     }
 

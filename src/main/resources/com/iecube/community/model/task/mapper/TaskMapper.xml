@@ -61,6 +61,12 @@
         <result column="task_name" property="taskName"></result>
     </resultMap>
 
+    <resultMap id="ProjectStudentTask" type="com.iecube.community.model.task.entity.ProjectStudentTask">
+        <result column="project_id" property="projectId"></result>
+        <result column="task_id" property="taskId"></result>
+        <result column="student_id" property="studentId"></result>
+    </resultMap>
+
 
     <insert id="addProjectTask" useGeneratedKeys="true" keyProperty="id" >
         INSERT INTO task (id, task_template_id, project_id, num, weighting,objective_weighting, class_hour, task_name, task_cover, task_device, task_data_tables, task_start_time,
@@ -191,6 +197,14 @@
 
     <select id="getProjectBriefVo" resultMap="TaskBriefVo">
         SELECT id, num AS task_num, task_name FROM task WHERE project_id=#{projectId}
+    </select>
+
+    <select id="getProjectStudentTaskById" resultMap="ProjectStudentTask">
+        SELECT * FROM project_task_student WHERE id=#{pstId}
+    </select>
+
+    <select id="getProjectStudentTaskByProjectIdAndTaskId" resultMap="ProjectStudentTask">
+        SELECT * FROM project_task_student WHERE project_id=#{projectId} and task_id=#{taskId}
     </select>
 
 </mapper>

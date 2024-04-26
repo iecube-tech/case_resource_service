@@ -1,6 +1,7 @@
-package com.iecube.community.model.direction.mapper;
+package com.iecube.community.model.iecube3835.direction.mapper;
 
 import com.iecube.community.model.direction.entity.Direction;
+import com.iecube.community.model.direction.mapper.DirectionMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -21,10 +21,10 @@
     <!--id 属性：表示映射的接口中方法的名称， 直接在标签的内部编写sql语句-->
     <!--useGeneratedKeys 属性：表示开启某个字段的值递增（一般逐渐递增） keyProperty 属性： 表示将表中的哪个字段作为主键递增-->
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO teacher (id, username, email, password, salt, major_id, is_delete,
+        INSERT INTO teacher (id, username, email, password, salt, is_delete,collage_id,
                          creator, create_time,  last_modified_user, last_modified_time)
-        VALUES (Null, #{username}, #{email}, #{password}, #{salt}, #{majorId},
-                #{isDelete},  #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
+        VALUES (Null, #{username}, #{email}, #{password}, #{salt}, #{isDelete}, #{collageId},
+                  #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
     </insert>
 
     <delete id="delete">

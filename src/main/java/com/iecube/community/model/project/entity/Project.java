@@ -19,4 +19,6 @@ public class Project extends BaseEntity {
     Date endTime;
     Double grade;
     Integer deviceId;
+    Integer useGroup;
+    Integer groupLimit;
 }

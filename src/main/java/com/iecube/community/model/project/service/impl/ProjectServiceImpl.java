@@ -119,6 +119,8 @@ public class ProjectServiceImpl implements ProjectService {
         project.setCreator(teacherId);
         project.setCreateTime(new Date());
         project.setDeviceId(content.getDeviceId());
+        project.setUseGroup(projectDto.getUseGroup());
+        project.setGroupLimit(projectDto.getGroupLimit());
         Integer row = projectMapper.insert(project);
         if (row != 1){
             throw new InsertException("插入数据异常");

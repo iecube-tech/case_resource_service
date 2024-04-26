@@ -40,7 +40,7 @@ public class PSTDeviceLogController extends PSTDeviceLogBaseController {
     public JsonResult<PSTDeviceLog> uploadPSTDeviceLog(HttpSession session, MultipartFile file, @PathVariable Integer pstId) throws IOException {
         Integer creator = getUserIdFromSession(session);
         Resource resource = resourceService.UploadFile(file, creator);
-        PSTDeviceLog pstDeviceLog = pstDeviceLogService.uploadPSTDeviceLog(pstId, resource);
+        PSTDeviceLog pstDeviceLog = pstDeviceLogService.uploadGroupDeviceLog(pstId, resource);
         return new JsonResult<>(OK, pstDeviceLog);
     }
 

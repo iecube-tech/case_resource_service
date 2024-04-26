@@ -41,4 +41,7 @@ public interface TaskMapper {
     String getPSTDataTables(Integer id);
 
     List<TaskBriefVo> getProjectBriefVo(Integer projectId);
+
+    ProjectStudentTask getProjectStudentTaskById(Integer pstId);
+    List<ProjectStudentTask> getProjectStudentTaskByProjectIdAndTaskId(Integer projectId, Integer taskId);
 }
