@@ -18,8 +18,11 @@ public interface ProjectMapper {
 
     Integer hidden(Integer id);
 
+    Integer disHidden(Integer id);
+
     Integer addProjectStudent(ProjectStudent pStudent);
     List<Project> findByCreator(Integer teacherId);
+    List<Project> findByCreatorNotDel(Integer teacherId);
     List<ProjectStudentVo> findStudentsByProjectId(Integer projectId); // 没有pstId
     List<ProjectStudentVo> findStudentsPSTByProjectId(Integer projectId); // 有pstId
 

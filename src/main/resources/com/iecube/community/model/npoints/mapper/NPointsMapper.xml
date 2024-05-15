@@ -46,7 +46,7 @@
     </resultMap>
 
     <resultMap id="ModuleVo" type="com.iecube.community.model.npoints.vo.ModuleVo">
-
+        <result column="create_time" property="createTime"></result>
     </resultMap>
 
     <resultMap id="CaseVo" type="com.iecube.community.model.npoints.vo.CaseVo">
@@ -99,20 +99,21 @@
     </select>
 
     <select id="getCasesByModuleId" resultMap="case">
-        SELECT case_id FROM module_case WHERE module_id=#{moduleId};
+        SELECT module_case.case_id
+        FROM module_case INNER JOIN module ON module_case.module_id=module.id
+        WHERE module.name=(SELECT module.name FROM module WHERE module.id=#{moduleId});
     </select>
 
     <select id="getModulesByConceptId" resultMap="module">
-        SELECT module_id FROM concept_module WHERE concept_id=#{conceptId};
+        SELECT concept_module.module_id
+        FROM concept_module INNER JOIN concept ON concept_module.concept_id=concept.id
+        WHERE concept.name=(SELECT concept.name FROM concept WHERE concept.id=#{conceptId});
     </select>
 
     <select id="getAllConcepts" resultMap="ConceptVo">
         SELECT * FROM concept
     </select>
 
-    <select id="getAllModules" resultMap="ModuleVo">
-        SELECT * FROM module
-    </select>
 
     <select id="getAllCases" resultMap="CaseVo">
         SELECT id, name FROM solution_or_case
@@ -138,10 +139,6 @@
         DELETE FROM module_case WHERE module_id=#{moduleId} AND case_id=#{caseId}
     </delete>
 
-    <insert id="addConcept" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO concept (id,name) VALUES (NUll, #{name})
-    </insert>
-
     <select id="getCaseModuleListByCaseId" resultMap="CaseModuleDto">
         SELECT * FROM module_case WHERE case_id=#{caseId}
     </select>
@@ -150,11 +147,100 @@
         INSERT INTO module_case (case_id, module_id) VALUES (#{caseId}, #{moduleId})
     </insert>
 
-    <insert id="addModule" keyProperty="id" useGeneratedKeys="true">
+
+    <!--  module  -->
+    <select id="getModuleById" resultMap="ModuleVo">
+        SELECT * FROM module WHERE id=#{moduleId}
+    </select>
+
+    <insert id="addModule" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO module (id, name) VALUES (NULL, #{name})
     </insert>
 
-    <insert id="addModuleConcept">
-        INSERT INTO concept_module (concept_id, module_id) VALUES (#{conceptId}, #{moduleId})
+    <delete id="delModule">
+        DELETE FROM module WHERE id=#{id}
+    </delete>
+
+    <update id="updateModule">
+        UPDATE module SET name=#{name} WHERE id=#{id}
+    </update>
+
+    <!--  concept  -->
+    <insert id="addConcept" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO concept (id,name) VALUES (NUll, #{name})
     </insert>
+
+    <delete id="delConcept">
+        DELETE FROM concept WHERE id=#{id}
+    </delete>
+
+    <!--  concept_module  -->
+    <insert id="addModuleConcept" useGeneratedKeys="true">
+        INSERT INTO concept_module (id, concept_id, module_id) VALUES (NULL, #{conceptId}, #{moduleId})
+    </insert>
+
+    <delete id="delConceptModule" >
+        DELETE FROM concept_module WHERE concept_id=#{conceptId} and module_id=#{moduleId}
+    </delete>
+
+<!--    template-->
+    <!--  cm_concept_template -->
+    <insert id="addConceptTemplate" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO cm_concept_template (id,name) VALUES (NUll, #{name})
+    </insert>
+
+    <delete id="delConceptTemplate">
+        DELETE FROM cm_concept_template WHERE id=#{id}
+    </delete>
+
+    <select id="getAllConceptTemplates" resultMap="ConceptVo">
+    SELECT * FROM cm_concept_template
+    </select>
+
+    <select id="getConceptTempsByModuleTempId" resultMap="ConceptVo">
+        SELECT cm_concept_template.id, cm_concept_template.name
+        FROM cm_concept_template INNER JOIN cm_concept_module_template ON cm_concept_template.id=cm_concept_module_template.concept_template_id
+        WHERE cm_concept_module_template.module_template_id=#{moduleTempId}
+    </select>
+
+    <select id="getConceptTempsByModuleTemp" resultMap="ConceptVo">
+        SELECT cm_concept_template.id AS id, cm_concept_template.name AS name
+        FROM cm_concept_template INNER JOIN cm_concept_module_template ON cm_concept_template.id=cm_concept_module_template.concept_template_id
+        WHERE cm_concept_module_template.module_template_id=#{moduleId};
+    </select>
+
+    <!--  cm_module_template  -->
+    <insert id="addModuleTemplate" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO cm_module_template (id,name,creator, create_time) VALUES (NUll, #{name},#{creator}, #{createTime})
+    </insert>
+
+    <select id="getModuleTempById" resultMap="ModuleVo">
+        SELECT * from cm_module_template WHERE id=#{id}
+    </select>
+
+    <select id="getAllModuleTemplates" resultMap="ModuleVo">
+        SELECT * FROM cm_module_template
+    </select>
+
+    <delete id="delModuleTemplate">
+        DELETE FROM cm_module_template WHERE id=#{id}
+    </delete>
+
+    <!--  cm_concept_module_template  -->
+    <insert id="addConceptModuleTemplate" useGeneratedKeys="true">
+        INSERT INTO cm_concept_module_template (id, concept_template_id, module_template_id) VALUES (NULL, #{conceptId}, #{moduleId})
+    </insert>
+
+    <select id="getModuleByConceptId" resultMap="ModuleVo">
+        SELECT cm_module_template.id,cm_module_template.name
+        FROM cm_module_template INNER JOIN cm_concept_module_template ON cm_module_template.id=cm_concept_module_template.module_template_id INNER JOIN cm_concept_template ON cm_concept_module_template.concept_template_id=cm_concept_template.id
+        WHERE cm_concept_template.id=#{conceptId}
+    </select>
+
+    <delete id="delModuleConceptTemplate">
+        DELETE FROM cm_concept_module_template WHERE module_template_id=#{moduleId}
+    </delete>
+
+
+
 </mapper>

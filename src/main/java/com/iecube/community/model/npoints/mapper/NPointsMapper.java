@@ -6,6 +6,7 @@ import com.iecube.community.model.npoints.vo.CaseVo;
 import com.iecube.community.model.npoints.vo.ConceptVo;
 import com.iecube.community.model.npoints.vo.ModuleConceptVo;
 import com.iecube.community.model.npoints.vo.ModuleVo;
+import com.sun.org.apache.xpath.internal.operations.Mod;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -28,8 +29,6 @@ public interface NPointsMapper {
 
     List<Module> getModulesByConceptId(Integer conceptId);
 
-    List<ConceptVo> getAllConcepts();
-
     List<ModuleVo> getAllModules();
 
     List<CaseVo> getAllCases();
@@ -41,13 +40,54 @@ public interface NPointsMapper {
     Integer deleteCaseModule(Integer caseId, Integer moduleId);
     Integer addCaseModule(Integer caseId, Integer moduleId);
 
-    Integer addConcept(ConceptVo conceptVo);
 
-    Integer addModule(ModuleVo moduleVo);
-
-    Integer addModuleConcept(Integer moduleId, Integer conceptId);
 
     List<CaseModuleDto> getCaseModuleListByCaseId(Integer caseId);
 
     Integer insertToCaseModule(CaseModuleDto caseModuleDto);
+
+//    concept
+    Integer addConcept(ConceptVo conceptVo);
+    Integer delConcept(Integer Id);
+    List<ConceptVo> getAllConcepts();
+
+    Integer addConceptTemplate(ConceptVo conceptVo);
+    Integer delConceptTemplate(Integer id);
+    List<ConceptVo> getAllConceptTemplates();
+
+    List<ConceptVo> getConceptTempsByModuleTempId(Integer moduleTempId);
+
+    List<ConceptVo> getConceptTempsByModuleTemp(Integer moduleId);
+
+//    module
+
+    ModuleVo getModuleById(Integer moduleId);
+    List<ModuleVo> getAllModuleTemplates();
+
+    List<ModuleVo> getModuleByConceptId(Integer conceptId);
+
+    ModuleVo getModuleTempById(Integer id);
+
+    Integer addModuleTemplate(ModuleVo moduleVo);
+
+    Integer delModuleTemplate(Integer moduleId);
+
+    Integer addModule(ModuleVo moduleVo);
+
+    Integer delModule(Integer id);
+
+    Integer updateModule(ModuleVo moduleVo);
+
+
+//    module_concept
+
+    Integer addConceptModuleTemplate(Integer conceptId, Integer moduleId);
+
+    Integer delModuleConceptTemplate(Integer moduleId);
+
+    Integer addModuleConcept(Integer moduleId, Integer conceptId);
+
+    Integer delConceptModule(Integer moduleId, Integer conceptId);
+
+
 }

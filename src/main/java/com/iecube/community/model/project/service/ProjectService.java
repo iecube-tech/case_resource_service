@@ -13,6 +13,8 @@ public interface ProjectService {
 
     List<Project> myProject(Integer teacherId);
 
+    List<Project> myProjectNotDel(Integer teacherId);
+
     List<ProjectStudentVo> projectStudentAndStudentTasks(Integer projectId);
 
     List<Project> findProjectByStudentId(Integer id);

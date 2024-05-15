@@ -1,6 +1,9 @@
 package com.iecube.community.model.npoints.service.impl;
 
 import com.iecube.community.model.auth.service.ex.InsertException;
+import com.iecube.community.model.content.entity.Content;
+import com.iecube.community.model.content.mapper.ContentMapper;
+import com.iecube.community.model.direction.service.ex.DeleteException;
 import com.iecube.community.model.npoints.entity.*;
 import com.iecube.community.model.npoints.mapper.NPointsMapper;
 import com.iecube.community.model.npoints.service.NPointsService;
@@ -15,6 +18,9 @@ import java.util.*;
 public class NPointsServiceImpl implements NPointsService {
     @Autowired
     private NPointsMapper nPointsMapper;
+
+    @Autowired
+    private ContentMapper contentMapper;
 
     private Integer diameter=120; //圆的直径
     private Integer interval=50; //间距
@@ -138,7 +144,16 @@ public class NPointsServiceImpl implements NPointsService {
 
     @Override
     public List getNodesByModuleId(Integer moduleId) {
-        List<Case> cases = nPointsMapper.getCasesByModuleId(moduleId);
+        List<Case> res = nPointsMapper.getCasesByModuleId(moduleId);
+        List<Case> cases = new ArrayList<>();
+        System.out.println(res);
+        for(int i=0; i<res.size(); i++){
+            Content content = contentMapper.findById(res.get(i).getId());
+            if( content.getIsDelete().intValue() < 1 && content.getCompletion().intValue() >=6 && content.getIsPrivate().intValue() < 1){
+                cases.add(res.get(i));
+            }
+        }
+        System.out.println(cases);
         List allNodes = new ArrayList<>();
         for (Case cas : cases){
             List caseNodes = getNodesByCaseId(cas.getId());
@@ -169,9 +184,9 @@ public class NPointsServiceImpl implements NPointsService {
     }
 
     @Override
-    public List<ModuleVo> getAllModules() {
-        List<ModuleVo> allModules = nPointsMapper.getAllModules();
-        return allModules;
+    public List<ConceptVo> getAllConceptTemps() {
+        List<ConceptVo> allConcepts = nPointsMapper.getAllConceptTemplates();
+        return allConcepts;
     }
 
     @Override
@@ -205,14 +220,14 @@ public class NPointsServiceImpl implements NPointsService {
     }
 
     @Override
-    public List<ModuleConceptVo> getAllModuleConcepts() {
-        List<ModuleVo> moduleVos = nPointsMapper.getAllModules();
+    public List<ModuleConceptVo> getAllModuleConceptTemps() {
+        List<ModuleVo> moduleVos = nPointsMapper.getAllModuleTemplates();
         List<ModuleConceptVo> moduleConceptVoList = new ArrayList<>();
         for(ModuleVo m : moduleVos){
             ModuleConceptVo moduleConceptVo = new ModuleConceptVo();
             moduleConceptVo.setId(m.getId());
             moduleConceptVo.setName(m.getName());
-            List<ConceptVo> conceptVos = nPointsMapper.getConceptsByModule(m.getId());
+            List<ConceptVo> conceptVos = nPointsMapper.getConceptTempsByModuleTemp(m.getId());
             moduleConceptVo.setChildren(conceptVos);
             moduleConceptVoList.add(moduleConceptVo);
         }
@@ -243,18 +258,168 @@ public class NPointsServiceImpl implements NPointsService {
     }
 
     @Override
-    public void addModuleConcepts(ModuleConceptVo moduleConceptVo) {
-        ModuleVo moduleVo = new ModuleVo();
+    public void addConceptTemp(ConceptVo conceptVo) {
+        Integer row = nPointsMapper.addConceptTemplate(conceptVo);
+        if(row!=1){
+            throw new InsertException("插入数据异常");
+        }
+    }
+
+    @Override
+    public void delConceptTemp(Integer id) {
+        //判断是否可以删除
+        List<ModuleVo> moduleVoList = nPointsMapper.getModuleByConceptId(id);
+        if(moduleVoList.size()>0){
+            String modules = "";
+            for(ModuleVo module:moduleVoList){
+                modules = modules+module.getName()+" ";
+            }
+            throw new DeleteException(modules+"使用了该知识点,不允许删除");
+        }
+        Integer row = nPointsMapper.delConceptTemplate(id);
+        if(row!=1){
+            throw new DeleteException("删除数据异常");
+        }
+    }
+
+    @Override
+    public void addModuleConceptTemps(ModuleConceptVo moduleConceptVo, Integer user){
+        ModuleVo moduleVo=new ModuleVo();
         moduleVo.setName(moduleConceptVo.getName());
-        Integer row = nPointsMapper.addModule(moduleVo);
-        if(row != 1){
+        moduleVo.setCreator(user);
+        moduleVo.setCreateTime(new Date());
+        Integer row=nPointsMapper.addModuleTemplate(moduleVo);
+        if(row!=1){
             throw new InsertException("插入数据异常");
         }
         for(ConceptVo conceptVo:moduleConceptVo.getChildren()){
-            Integer co = nPointsMapper.addModuleConcept(moduleVo.getId(), conceptVo.getId());
-            if(co != 1){
+            Integer co=nPointsMapper.addConceptModuleTemplate(conceptVo.getId(),moduleVo.getId());
+            if(co!=1){
                 throw new InsertException("插入数据异常");
             }
         }
     }
+
+    @Override
+    public void delModuleTemps(Integer moduleId, Integer user) {
+        ModuleVo moduleVo = nPointsMapper.getModuleTempById(moduleId);
+        if(!user.equals(moduleVo.getCreator())){
+            throw new DeleteException("无权删除");
+        }
+        //鉴权
+        nPointsMapper.delModuleConceptTemplate(moduleId);
+        nPointsMapper.delModuleTemplate(moduleId);
+    }
+
+    @Override
+    public void delModule(Integer moduleId){
+        //moduleConcept
+        List<ConceptVo> conceptVoList = nPointsMapper.getConceptsByModule(moduleId);
+        for(ConceptVo conceptVo : conceptVoList){
+            nPointsMapper.delConceptModule(moduleId,conceptVo.getId());
+            nPointsMapper.delConcept(conceptVo.getId());
+        }
+        nPointsMapper.delModule(moduleId);
+    }
+
+    @Override
+    public List<ModuleConceptVo> moduleAddToCase(Integer moduleTempId, Integer caseId){
+        List<ModuleConceptVo> oldModuleConceptVoList = this.getModulesByCase(caseId);
+        int numOfConcept = 0;
+        for(ModuleConceptVo moduleConceptVo :oldModuleConceptVoList){
+            numOfConcept += moduleConceptVo.getChildren().size();
+        }
+        List<ConceptVo> willAddConceptList = nPointsMapper.getConceptTempsByModuleTempId(moduleTempId);
+        numOfConcept += willAddConceptList.size();
+        if(numOfConcept > 8){
+            throw new InsertException("限制案例添加的基础知识点条目不超过8个");
+        }
+        ModuleVo moduleTemp = nPointsMapper.getModuleTempById(moduleTempId);
+        List<ConceptVo> conceptTempList = nPointsMapper.getConceptTempsByModuleTempId(moduleTempId);
+        ModuleVo newModule = new ModuleVo();
+        newModule.setName(moduleTemp.getName());
+        Integer row = nPointsMapper.addModule(newModule);
+        if(row != 1){
+            throw new InsertException("新增数据异常");
+        }
+        for(ConceptVo conceptTemp : conceptTempList){
+            ConceptVo newConcept = new ConceptVo();
+            newConcept.setName(conceptTemp.getName());
+            Integer co = nPointsMapper.addConcept(newConcept);
+            if(co!=1){
+                throw new InsertException("新增数据异常");
+            }
+            Integer re = nPointsMapper.addModuleConcept(newModule.getId(),newConcept.getId());
+            if(re != 1){
+                throw new InsertException("新增数据异常");
+            }
+        }
+        Integer res = nPointsMapper.addCaseModule(caseId, newModule.getId());
+        if(res != 1){
+            throw new InsertException("新增数据异常");
+        }
+        List<ModuleConceptVo> caseModules =  this.getModulesByCase(caseId);
+        return caseModules;
+    }
+
+    @Override
+    public List<ModuleConceptVo> moduleDelFromCase(Integer moduleId, Integer caseId){
+        nPointsMapper.deleteCaseModule(caseId,moduleId);
+        this.delModule(moduleId);
+        List<ModuleConceptVo> caseModules =  this.getModulesByCase(caseId);
+        return caseModules;
+    }
+
+    public ModuleConceptVo getModuleConceptVoByModule(Integer moduleId){
+        ModuleVo moduleVo = nPointsMapper.getModuleById(moduleId);
+        List<ConceptVo> conceptVos = nPointsMapper.getConceptsByModule(moduleVo.getId());
+        ModuleConceptVo moduleConceptVo = new ModuleConceptVo();
+        moduleConceptVo.setId(moduleVo.getId());
+        moduleConceptVo.setName(moduleVo.getName());
+        moduleConceptVo.setChildren(conceptVos);
+        return moduleConceptVo;
+    }
+
+    @Override
+    public List<ModuleConceptVo> updateModule(ModuleConceptVo moduleConceptVo, Integer caseId){
+        //校验数量书否可以更新
+
+        List<ModuleConceptVo> oldModuleConceptVoList = this.getModulesByCase(caseId);
+        int numOfConcept = 0;
+        for(ModuleConceptVo oldModule :oldModuleConceptVoList){
+            if(oldModule.getId().equals(moduleConceptVo.getId())){
+                continue;
+            }
+            numOfConcept += oldModule.getChildren().size();
+        }
+        List<ConceptVo> willAddConceptList = moduleConceptVo.getChildren();
+        if(willAddConceptList.size()<1){
+            throw new InsertException("模块中未包含任何知识点");
+        }
+        numOfConcept += willAddConceptList.size();
+        if(numOfConcept > 8){
+            throw new InsertException("限制案例添加的基础知识点条目不超过8个");
+        }
+        // del module_concept关联  concept ，更新module 添加concept 关联
+        List<ConceptVo> conceptVoList = nPointsMapper.getConceptsByModule(moduleConceptVo.getId());
+        for(ConceptVo conceptVo : conceptVoList){
+            nPointsMapper.delConceptModule(moduleConceptVo.getId(),conceptVo.getId());
+            nPointsMapper.delConcept(conceptVo.getId());
+        }
+
+        ModuleVo Module = new ModuleVo();
+        Module.setName(moduleConceptVo.getName());
+        Module.setId(moduleConceptVo.getId());
+        nPointsMapper.updateModule(Module);
+        List<ConceptVo> newConceptVoList = moduleConceptVo.getChildren();
+        for(ConceptVo conceptVo : newConceptVoList){
+            ConceptVo newConcept = new ConceptVo();
+            newConcept.setName(conceptVo.getName());
+            nPointsMapper.addConcept(newConcept);
+            nPointsMapper.addModuleConcept(Module.getId(),newConcept.getId());
+        }
+        List<ModuleConceptVo> result = this.getModulesByCase(caseId);
+        return result;
+    }
+
 }

@@ -22,7 +22,7 @@ public class TaskTemplateDto {
     String taskName;
     String taskCover;
     Integer taskDevice;
-    String taskDataTables;
+    String taskDataTables; //弃用
     List<BackDrop> backDropList;
     List<Requirement> requirementList;
     List<DeliverableRequirement> deliverableRequirementList;

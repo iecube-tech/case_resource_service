@@ -43,17 +43,7 @@ public class NPointsController extends BaseController {
         return new JsonResult<>(OK, Nodes);
     }
 
-    @GetMapping("/all_concepts")
-    public JsonResult<List> getAllConcepts(){
-        List<ConceptVo> allConcepts = nPointsService.getAllConcepts();
-        return new JsonResult<>(OK,allConcepts);
-    }
 
-    @GetMapping("/all_modules")
-    public JsonResult<List> getAllModules(){
-        List<ModuleVo> allModules = nPointsService.getAllModules();
-        return new JsonResult<>(OK,allModules);
-    }
 
     @GetMapping("/all_cases")
     public JsonResult<List> getAllCases(){
@@ -61,38 +51,14 @@ public class NPointsController extends BaseController {
         return new JsonResult<>(OK,allCases);
     }
 
-    @GetMapping("/case_tree")
-    public JsonResult<List> getCaseTree(){
-        List<CaseModules> caseModules = nPointsService.getAllCaseModules();
-        return new JsonResult<>(OK, caseModules);
-    }
-
-    @GetMapping("/module_tree")
-    public JsonResult<List> getModuleTree(){
-        List<ModuleConceptVo> moduleConceptVoList = nPointsService.getAllModuleConcepts();
-        return new JsonResult<>(OK,moduleConceptVoList);
-    }
-
-    @GetMapping("/modules_of_case/{caseId}")
-    public JsonResult<List> modulesOfCase(@PathVariable Integer caseId){
-        List<ModuleConceptVo> moduleConceptVos = nPointsService.getModulesByCase(caseId);
-        return new JsonResult<>(OK,moduleConceptVos);
-    }
-
     @PostMapping("/add_concept")
     public JsonResult<List> addConcept(@RequestBody ConceptVo conceptVo){
-        System.out.println(conceptVo);
         nPointsService.addConcept(conceptVo);
         List<ConceptVo> allConcepts = nPointsService.getAllConcepts();
         return new JsonResult<>(OK, allConcepts);
     }
 
-    @PostMapping("/add_module")
-    public JsonResult<List> addModule(@RequestBody ModuleConceptVo moduleConceptVo){
-        nPointsService.addModuleConcepts(moduleConceptVo);
-        List<ModuleConceptVo> moduleConceptVos = nPointsService.getAllModuleConcepts();
-        return new JsonResult<>(OK, moduleConceptVos);
-    }
+
 
     @GetMapping("/all_concept")
     public JsonResult<List> AllConcepts(){
@@ -100,5 +66,73 @@ public class NPointsController extends BaseController {
         return new JsonResult<>(OK, allConcepts);
     }
 
+//    concept 操作
+    @GetMapping("/all_concept_tem")
+    public JsonResult<List> getAllConcepts(){
+        List<ConceptVo> allConcepts = nPointsService.getAllConceptTemps();
+        return new JsonResult<>(OK,allConcepts);
+    }
+
+    @PostMapping("/add_concept_tem")
+    public JsonResult<List> addConceptTemps(@RequestBody ConceptVo conceptVo){
+        nPointsService.addConceptTemp(conceptVo);
+        List<ConceptVo> allConcepts = nPointsService.getAllConceptTemps();
+        return new JsonResult<>(OK, allConcepts);
+    }
+
+    @DeleteMapping("/del_concept_tem")
+    public JsonResult<List> delConceptTemp(Integer id){
+        nPointsService.delConceptTemp(id);
+        List<ConceptVo> allConcepts = nPointsService.getAllConceptTemps();
+        return new JsonResult<>(OK, allConcepts);
+    }
+
+//    module_concept操作  module操作
+    @GetMapping("/all_module_tem")
+    public JsonResult<List> getAllModuleConceptTemp(){
+        List<ModuleConceptVo> moduleConceptVoList = nPointsService.getAllModuleConceptTemps();
+        return new JsonResult<>(OK,moduleConceptVoList);
+    }
+
+    @PostMapping("/add_module_tem")
+    public JsonResult<List> addModule(@RequestBody ModuleConceptVo moduleConceptVo, HttpSession session){
+        Integer user = getUserIdFromSession(session);
+        nPointsService.addModuleConceptTemps(moduleConceptVo, user);
+        List<ModuleConceptVo> moduleConceptVos = nPointsService.getAllModuleConceptTemps();
+        return new JsonResult<>(OK, moduleConceptVos);
+    }
+
+    @DeleteMapping("/del_module_tem")
+    public JsonResult<List> delModuleTemp(Integer id, HttpSession session){
+        Integer user  = getUserIdFromSession(session);
+        nPointsService.delModuleTemps(id,user);
+        List<ModuleConceptVo> moduleConceptVos = nPointsService.getAllModuleConceptTemps();
+        return new JsonResult<>(OK, moduleConceptVos);
+    }
+
+
+    @GetMapping("/modules_of_case/{caseId}")
+    public JsonResult<List> modulesOfCase(@PathVariable Integer caseId){
+        List<ModuleConceptVo> moduleConceptVos = nPointsService.getModulesByCase(caseId);
+        return new JsonResult<>(OK,moduleConceptVos);
+    }
+
+    @PostMapping("/case_add_module")
+    public JsonResult<List> caseAddModule(Integer caseId, Integer moduleTempId){
+        List<ModuleConceptVo> moduleConceptVoList = nPointsService.moduleAddToCase(moduleTempId,caseId);
+        return new JsonResult<>(OK, moduleConceptVoList);
+    }
+
+    @DeleteMapping("/case_del_module")
+    public JsonResult<List> caseDelModule(Integer caseId, Integer moduleId){
+        List<ModuleConceptVo> moduleConceptVoList = nPointsService.moduleDelFromCase(moduleId,caseId);
+        return new JsonResult<>(OK, moduleConceptVoList);
+    }
+
+    @PostMapping("/module_update")
+    public JsonResult<List> updateModule(@RequestBody ModuleConceptVo moduleConceptVo, Integer caseId){
+        List<ModuleConceptVo> res = nPointsService.updateModule(moduleConceptVo, caseId);
+        return new JsonResult<>(OK, res);
+    }
 
 }

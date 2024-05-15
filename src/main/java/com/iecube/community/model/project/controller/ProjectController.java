@@ -47,6 +47,15 @@ public class ProjectController extends ProjectBaseController {
         return new JsonResult<>(OK, myProjects);
     }
 
+    @GetMapping("/my_all")
+    public JsonResult<List> myProjectAll(HttpSession session){
+        Integer teacherId = getUserIdFromSession(session);
+        List<Project> myProjects = projectService.myProjectNotDel(teacherId);
+        return new JsonResult<>(OK, myProjects);
+    }
+
+
+
     @GetMapping("/teacher_project")
     public JsonResult<List> myProject(Integer teacherId){
         List<Project> myProjects = projectService.myProject(teacherId);

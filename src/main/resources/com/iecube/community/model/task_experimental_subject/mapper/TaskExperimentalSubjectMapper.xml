@@ -41,7 +41,7 @@
         DELETE FROM task_experimental_subject WHERE task_template_id=#{taskTemplateId}
     </delete>
 
-    <delete id="deleteAttentionById" >
+    <delete id="deleteExperimentalSubjectById" >
         DELETE FROM experimental_subject WHERE id=#{id}
     </delete>
 

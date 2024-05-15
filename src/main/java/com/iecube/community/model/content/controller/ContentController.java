@@ -105,14 +105,12 @@ public class ContentController extends ContentBaseController {
     /**
      * 第三步
      * @param contentId
-     * @param models
      * @param session
      * @return
      */
     @PostMapping("/update_points/{contentId}")
-    public JsonResult<Content> contentAddPoints(@PathVariable Integer contentId, @RequestBody List<Integer> models, HttpSession session){
+    public JsonResult<Content> contentAddPoints(@PathVariable Integer contentId, HttpSession session){
         Integer modifiedUser = getUserIdFromSession(session);
-        contentService.contentUpdatePoints(contentId,models,modifiedUser);
         // 完成了知识点的设计
         contentService.contentCompletionUpdate(2,contentId,modifiedUser);
         Content content = contentService.findById(contentId);

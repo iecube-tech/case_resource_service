@@ -14,19 +14,39 @@ public interface NPointsService {
 
     List getNodesByConceptId(Integer conceptId);
 
-    List<ConceptVo> getAllConcepts();
-
-    List<ModuleVo> getAllModules();
-
     List<CaseVo> getAllCase();
 
     List<CaseModules> getAllCaseModules();
 
-    List<ModuleConceptVo> getAllModuleConcepts();
+
+
+//    module_concept
+    List<ModuleConceptVo> getAllModuleConceptTemps();
 
     List<ModuleConceptVo> getModulesByCase(Integer caseId);
 
+
+//    concept
+    void addConceptTemp(ConceptVo conceptVo);
+
+    void delConceptTemp(Integer id);
+
+    List<ConceptVo> getAllConceptTemps();
+
     void addConcept(ConceptVo conceptVo);
 
-    void addModuleConcepts(ModuleConceptVo moduleConceptVo);
+    List<ConceptVo> getAllConcepts();
+
+//    module
+    void addModuleConceptTemps(ModuleConceptVo moduleConceptVo, Integer user);
+
+    void delModuleTemps(Integer moduleId, Integer user);
+
+    void delModule(Integer moduleId);
+
+//    case module
+    List<ModuleConceptVo> moduleAddToCase(Integer moduleTempId, Integer caseId);
+    List<ModuleConceptVo> moduleDelFromCase(Integer moduleId, Integer caseId);
+
+    List<ModuleConceptVo> updateModule(ModuleConceptVo moduleConceptVo, Integer caseId);
 }

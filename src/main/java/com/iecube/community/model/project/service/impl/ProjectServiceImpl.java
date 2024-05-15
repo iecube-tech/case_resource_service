@@ -258,6 +258,14 @@ public class ProjectServiceImpl implements ProjectService {
         return myProjects;
     }
 
+    @Override
+    public List<Project> myProjectNotDel(Integer teacherId) {
+        List<Project> myProjects = projectMapper.findByCreatorNotDel(teacherId);
+        return myProjects;
+    }
+
+
+
     /**
      *  运行测试类查看返回的数据结构
      *  ProjectStudentVo(id=35, studentId=22408070201, studentName=黄小雯, studentTasks=[StudentTaskVo(PSTId=171, taskNum=1, taskGrade=null, taskStatus=null), StudentTaskVo(PSTId=203, taskNum=2, taskGrade=null, taskStatus=null), StudentTaskVo(PSTId=235, taskNum=3, taskGrade=null, taskStatus=null), StudentTaskVo(PSTId=267, taskNum=4, taskGrade=null, taskStatus=null), StudentTaskVo(PSTId=299, taskNum=5, taskGrade=null, taskStatus=null)])
@@ -447,7 +455,13 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public void hiddenProject(Integer projectId) {
-        Integer row = projectMapper.hidden(projectId);
+        Project project = this.findProjectById(projectId);
+        int row = 0;
+        if(project.getHidden().equals(0)){
+            row = projectMapper.hidden(projectId);
+        }else {
+            row = projectMapper.disHidden(projectId);
+        }
         if(row!=1){
             throw new UpdateException("数据更新异常");
         }

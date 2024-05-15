@@ -38,6 +38,14 @@ public class TaskTemplateController extends taskTemplateBaseController {
         return new JsonResult<>(OK,taskTemplateDtos);
     }
 
+    @PostMapping("/update")
+    public JsonResult<List> updateTaskTemplate(@RequestBody TaskTemplateDto taskTemplateDto, HttpSession session){
+        Integer user = getUserIdFromSession(session);
+        taskTemplateService.updateTaskTemplate(taskTemplateDto, user);
+        List<TaskTemplateDto> taskTemplateDtos = taskTemplateService.findTaskTemplateByContent(taskTemplateDto.getContentId());
+        return new JsonResult<>(OK,taskTemplateDtos);
+    }
+
     @GetMapping("/delete")
     public JsonResult<Void> deleteTaskTemplateById(Integer taskTemplateId, HttpSession session){
         Integer user = getUserIdFromSession(session);

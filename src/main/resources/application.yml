@@ -59,8 +59,8 @@ mybatis:
 
 logging:
   level:
-    org.springframework.web: INFO
-    java.sql: INFO
+    org.springframework.web: DEBUG
+    java.sql: DEBUG
 #    com.example.demo.mapper: INFO
 #    org.mybatis.spring: INFO
 

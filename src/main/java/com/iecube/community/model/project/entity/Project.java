@@ -21,4 +21,5 @@ public class Project extends BaseEntity {
     Integer deviceId;
     Integer useGroup;
     Integer groupLimit;
+    Integer hidden;
 }

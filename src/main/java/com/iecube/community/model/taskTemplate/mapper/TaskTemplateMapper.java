@@ -9,6 +9,8 @@ import java.util.List;
 @Mapper
 public interface TaskTemplateMapper {
     Integer insert(TaskTemplate taskTemplate);
+
+    Integer update(TaskTemplate taskTemplate);
     List<TaskTemplateDto> getTaskTemplatesByContentId(Integer contentId);
 
     Integer deleteTaskTemplateById(Integer id);

@@ -39,6 +39,10 @@
         UPDATE project SET hidden=1 WHERE id=#{id}
     </update>
 
+    <update id="disHidden">
+        UPDATE project SET hidden=0 WHERE id=#{id}
+    </update>
+
     <select id="findById" resultMap="ProjectEntity">
         SELECT * FROM project WHERE id=#{id}
     </select>
@@ -50,6 +54,10 @@
 
     <select id="findByCreator" resultMap="ProjectEntity">
         SELECT * FROM project WHERE creator=#{teacher} AND hidden=0 AND is_delete=0
+    </select>
+
+    <select id="findByCreatorNotDel" resultMap="ProjectEntity">
+        SELECT * FROM project WHERE creator=#{teacher} AND is_delete=0
     </select>
 
 

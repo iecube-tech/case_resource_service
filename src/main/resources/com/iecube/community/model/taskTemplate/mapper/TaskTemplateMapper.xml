@@ -19,6 +19,19 @@
         VALUES (null, #{contentId}, #{num}, #{weighting}, #{classHour}, #{taskName}, #{taskCover}, #{taskDevice}, #{taskDataTables}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
     </insert>
 
+    <update id="update">
+        UPDATE task_templates SET content_id=#{contentId},
+                                  num=#{num},
+                                  weighting=#{weighting},
+                                  class_hour=#{classHour},
+                                  task_name=#{taskName},
+                                  task_cover=#{taskCover},
+                                  task_device=#{taskDevice},
+                                  task_data_tables=#{taskDataTables},
+                                  last_modified_user=#{lastModifiedUser},
+                                  last_modified_time=#{lastModifiedTime} WHERE id=#{id}
+    </update>
+
     <select id="getTaskTemplatesByContentId" resultMap="taskTemplateDto">
         SELECT id, content_id, num, weighting, class_hour, task_name, task_cover, task_device, task_data_tables
         FROM `task_templates` WHERE content_id=#{contentId} ORDER BY num
