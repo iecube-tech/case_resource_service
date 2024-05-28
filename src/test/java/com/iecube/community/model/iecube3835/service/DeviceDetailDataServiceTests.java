@@ -32,4 +32,14 @@ public class DeviceDetailDataServiceTests {
     }
 
 
+    @Test
+    public void test(){
+        Integer a = 1014901;
+        Integer b = a/10000;
+        Integer c = a%10000;
+        System.out.println(b);
+        System.out.println(c);
+    }
+
+
 }

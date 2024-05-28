@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.device.mapper.DeviceMapper">
+
+    <resultMap id="Device" type="com.iecube.community.model.device.entity.Device">
+        <result column="sn_id" property="snId"></result>
+        <result column="collage_id" property="collageId"></result>
+        <result column="p_id" property="pId"></result>
+        <result column="live_url" property="liveUrl"></result>
+        <result column="device_state" property="deviceState"></result>
+        <result column="remote_control" property="remoteControl"></result>
+        <result column="remote_url" property="remoteUrl"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+        <result column="type_name" property="typeName"></result>
+        <result column="box_pid" property="boxPid"></result>
+        <result column="single_duration" property="singleDuration"></result>
+        <result column="allow_appointment" property="allowAppointment"></result>
+    </resultMap>
+
+    <resultMap id="DeviceController" type="com.iecube.community.model.device.entity.DeviceController">
+        <result column="sn_id" property="snId"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+    </resultMap>
+
+    <resultMap id="DeviceType" type="com.iecube.community.model.device.entity.DeviceType">
+    </resultMap>
+
+    <resultMap id="FrpServer" type="com.iecube.community.model.device.entity.FrpServer">
+
+    </resultMap>
+
+    <resultMap id="FrpServerPortManage" type="com.iecube.community.model.device.entity.FrpServerPortManage">
+        <result column="device_id" property="deviceId"></result>
+        <result column="frp_server_id" property="frpServerId"></result>
+        <result column="remote_port" property="remotePort"></result>
+        <result column="vnc_port" property="vncPort"></result>
+        <result column="vnc_pid" property="vncPid"></result>
+    </resultMap>
+
+    <!--  Device  -->
+    <insert id="addDevice" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO device_device (id, sn_id, name, collage_id, p_id, type, ip, port, live_url, device_state,
+                                   remote_control, remote_url, box_pid, single_duration,allow_appointment, creator, create_time,
+                                   last_modified_user, last_modified_time )
+        VALUES (NULL, #{snId}, #{name}, #{collageId}, #{pId}, #{type}, #{ip}, #{port}, #{liveUrl}, #{deviceState},
+                #{remoteControl}, #{remoteUrl}, 0, 30, 1, #{creator}, #{createTime},
+                #{lastModifiedUser}, #{lastModifiedTime})
+    </insert>
+
+    <delete id="delDevice">
+        DELETE FROM device_device WHERE id=#{id}
+    </delete>
+
+    <update id="upDevice">
+        UPDATE device_device SET
+                                sn_id=#{snId},
+                                name=#{name},
+                                p_id=#{pId},
+                                type=#{type},
+                                ip=#{ip},
+                                port=#{port},
+                                live_url=#{liveUrl},
+                                device_state=#{deviceState},
+                                remote_control=#{remoteControl},
+                                remote_url=#{remoteUrl},
+                                last_modified_user=#{lastModifiedUser},
+                                last_modified_time=#{lastModifiedTime}
+        WHERE id=#{id}
+
+    </update>
+
+    <select id="getDeviceById" resultMap="Device">
+        SELECT device_device.id, device_device.sn_id, device_device.name, device_device.collage_id,
+               device_device.p_id, device_device.type, device_device.ip, device_device.port,
+               device_device.live_url, device_device.device_state, device_device.remote_control,
+               device_device.remote_url, device_device.single_duration,device_device.allow_appointment,
+               device_device.box_pid, device_device_type.name AS type_name
+        FROM device_device INNER JOIN device_device_type ON device_device.type=device_device_type.id
+        WHERE device_device.id=#{id}
+    </select>
+
+    <select id="getDeviceByPid" resultMap="Device">
+        SELECT device_device.id, device_device.sn_id, device_device.name, device_device.collage_id,
+               device_device.p_id, device_device.type, device_device.ip, device_device.port,
+               device_device.live_url, device_device.device_state, device_device.remote_control,
+               device_device.remote_url, device_device.single_duration,device_device.allow_appointment,
+               device_device.box_pid, device_device_type.name AS type_name
+        FROM device_device INNER JOIN device_device_type ON device_device.type=device_device_type.id
+        WHERE device_device.p_id=#{pId}
+    </select>
+
+    <select id="getDeviceByCollage" resultMap="Device">
+        SELECT * FROM device_device WHERE collage_id=#{collage} and p_id=0;
+    </select>
+
+
+    <select id="getDeviceByPIdAndIp" resultMap="Device">
+        SELECT * FROM device_device WHERE p_id=#{pId} and ip=#{ip}
+    </select>
+
+    <update id="updateRemoteControl">
+        UPDATE device_device SET
+                                 remote_control=#{remoteControl},
+                                 device_state=#{deviceState},
+                                 box_pid=#{pid},
+                                 last_modified_user=#{lastModifiedUser},
+                                 last_modified_time=#{lastModifiedTime}
+                             WHERE id=#{id}
+    </update>
+
+    <update id="updateDeviceState">
+        UPDATE device_device SET device_state=#{deviceState},
+                                 box_pid=#{pid}
+                             WHERE id=#{id}
+    </update>
+
+    <update id="updateRemoteUrl">
+        UPDATE device_device SET remote_url=#{remoteUrl} WHERE id=#{id}
+    </update>
+
+    <!--  DeviceController  -->
+    <insert id="addDeviceController" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO device_controller (id, sn_id, name, version, status, collage, creator, create_time,
+                                       last_modified_user, last_modified_time)
+        VALUES (#{id}, #{snId}, #{name}, #{version}, #{status}, #{collage},  #{creator}, #{createTime},
+                #{lastModifiedUser}, #{lastModifiedTime})
+    </insert>
+
+    <delete id="delDeviceController">
+        DELETE FROM device_controller WHERE id=#{id}
+    </delete>
+
+    <update id="upDeviceController">
+        UPDATE device_controller SET
+                                     sn_id=#{snId},
+                                     name=#{name},
+                                     version=#{version},
+                                     status=#{status},
+                                     last_modified_user=#{lastModifiedUser},
+                                     last_modified_time=#{lastModifiedTime}
+        WHERE id=#{id}
+
+    </update>
+
+    <select id="getDeviceControllerById" resultMap="DeviceController">
+        SELECT * FROM device_controller WHERE id=#{id}
+    </select>
+
+    <select id="getDeviceControllerByCollage" resultMap="DeviceController">
+        SELECT * FROM device_controller WHERE collage=#{collage}
+    </select>
+
+    <!--  DeviceType  -->
+
+    <insert id="addDeviceType" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO device_device_type (id, name, port)
+        VALUES (NULL, #{name}, #{port})
+    </insert>
+
+    <delete id="delDeviceType">
+        DELETE FROM device_device_type WHERE id=#{id}
+    </delete>
+
+    <update id="upDeviceType">
+        UPDATE device_device_type SET
+                                      name=#{name},
+                                      port=#{port}
+        WHERE id=#{id}
+    </update>
+
+    <select id="getAllDeviceType" resultMap="DeviceType">
+        SELECT * FROM device_device_type
+    </select>
+
+
+    <!--  FrpServer  -->
+    <select id="getFrpServerById" resultMap="FrpServer">
+        SELECT * FROM device_frp_server WHERE id=#{id}
+    </select>
+
+    <!--  FrpServerPortManage  -->
+    <select id="getFrpServerPortManageByDeviceId" resultMap="FrpServerPortManage">
+        SELECT * FROM device_frp_service_port_manage WHERE device_id=#{deviceId}
+    </select>
+
+    <insert id="addFrpServerPortManage" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO device_frp_service_port_manage (id, device_id, frp_server_id, remote_port, vnc_port, vnc_pid)
+        VALUES (NULL, #{deviceId},#{frpServerId},#{remotePort},#{vncPort}, #{vncPid})
+    </insert>
+
+    <delete id="deleteFrpPortManageByDeviceId">
+        DELETE FROM device_frp_service_port_manage WHERE device_id=#{deviceId}
+    </delete>
+
+    <update id="updateVncPid">
+        UPDATE device_frp_service_port_manage SET vnc_pid=#{vncPid} WHERE id=#{id}
+    </update>
+
+
+</mapper>
