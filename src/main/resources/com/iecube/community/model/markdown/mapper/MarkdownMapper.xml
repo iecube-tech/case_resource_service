@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.markdown.mapper.MarkdownMapper">
+
+    <resultMap id="MDCourse" type="com.iecube.community.model.markdown.entity.MDCourse">
+
+    </resultMap>
+
+    <resultMap id="MDChapter" type="com.iecube.community.model.markdown.entity.MDChapter">
+        <result property="courseId" column="course_id"></result>
+    </resultMap>
+
+    <resultMap id="MDArticle" type="com.iecube.community.model.markdown.entity.MDArticle">
+        <result property="chapterId" column="chapter_id"></result>
+        <result property="readNum" column="read_num"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="lastModifiedUser" column="last_modified_user"></result>
+        <result property="lastModifiedTime" column="last_modified_time"></result>
+    </resultMap>
+
+    <select id="allCourse" resultMap="MDCourse">
+        SELECT * FROM md_course
+    </select>
+
+    <select id="allChapterByCourseId" resultMap="MDChapter">
+        SELECT * FROM md_chapter WHERE course_id=#{courseId}
+    </select>
+
+    <select id="articleByChapterId" resultMap="MDArticle">
+        SELECT * FROM md_article WHERE chapter_id=#{chapterId}
+    </select>
+
+    <select id="articleById" resultMap="MDArticle">
+        SELECT * FROM md_article WHERE id=#{id}
+    </select>
+
+    <insert id="addCourse" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO md_course (id, name) VALUES (NUll, #{name})
+    </insert>
+
+    <insert id="addChapter" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO md_chapter (id, course_id, name) VALUES (NULL, #{courseId}, #{name})
+    </insert>
+
+    <insert id="addArticle" useGeneratedKeys="true"  keyProperty="id">
+        INSERT INTO md_article (id, chater_id, content, creator, create_time, last_modified_time, last_modified_user, read_num)
+        VALUES (NULL, #{chapterId}, #{content}, #{creator}, #{createTime}, #{lastModifiedTime}, #{lastModifiedUser}, 0)
+    </insert>
+
+    <update id="updateArticle">
+        UPDATE md_article SET content=#{content},
+                              last_modified_time=#{lastModifiedTime},
+                              last_modified_user=#{lastModifiedUser}
+        WHERE id=#{id}
+    </update>
+
+    <update id="updateArticleReadNum">
+        UPDATE md_article SET read_num=#{readNum} WHERE id=#{id}
+    </update>
+
+    <delete id="delChapter">
+        DELETE FROM md_chapter WHERE id=#{id}
+    </delete>
+
+</mapper>

@@ -54,6 +54,16 @@ public class ResourceController extends ResourceBaseController {
         return new JsonResult<>(OK,0,wangEditorRes);
     }
 
+    @PostMapping ("/e/image")
+    public JsonResult<WangEditorRes> EditorUploadImage(MultipartFile file) throws IOException{
+//        System.out.println(file);
+        Integer creator = 0;
+        Resource resource = resourceService.UploadImage(file,creator);
+        WangEditorRes wangEditorRes = new WangEditorRes();
+        wangEditorRes.setUrl("/files/image/"+resource.getFilename());
+        return new JsonResult<>(OK,0,wangEditorRes);
+    }
+
     @PostMapping("/upfile")
     public JsonResult<Resource> UploadFile(MultipartFile file, HttpSession session) throws IOException{
         Integer creator = getUserIdFromSession(session);

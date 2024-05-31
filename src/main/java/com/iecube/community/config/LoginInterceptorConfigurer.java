@@ -29,6 +29,9 @@ public class LoginInterceptorConfigurer implements WebMvcConfigurer {
         patterns.add("/users/login");
         patterns.add("/teacher/login");
         patterns.add("/student/login");
+        patterns.add("/files/e/image");
+        patterns.add("/files/image/{fileName}");
+        patterns.add("/md/**");
 //        patterns.add("/direction/get_all");
 //        patterns.add("/file/**");
         // addPathPatterns("表示要拦截的url是什么").excludePathPatterns("list集合 表示白名单")
