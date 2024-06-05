@@ -29,6 +29,10 @@
         SELECT * FROM md_chapter WHERE course_id=#{courseId}
     </select>
 
+    <select id="chapterById" resultMap="MDChapter">
+        SELECT * FROM md_chapter WHERE id=#{id}
+    </select>
+
     <select id="articleByChapterId" resultMap="MDArticle">
         SELECT * FROM md_article WHERE chapter_id=#{chapterId}
     </select>
@@ -45,13 +49,18 @@
         INSERT INTO md_chapter (id, course_id, name) VALUES (NULL, #{courseId}, #{name})
     </insert>
 
+    <update id="updateChapter" >
+        UPDATE md_chapter SET name=#{name} WHERE id=#{id}
+    </update>
+
     <insert id="addArticle" useGeneratedKeys="true"  keyProperty="id">
-        INSERT INTO md_article (id, chater_id, content, creator, create_time, last_modified_time, last_modified_user, read_num)
-        VALUES (NULL, #{chapterId}, #{content}, #{creator}, #{createTime}, #{lastModifiedTime}, #{lastModifiedUser}, 0)
+        INSERT INTO md_article (id, chapter_id, content, catalogue, creator, create_time, last_modified_time, last_modified_user, read_num)
+        VALUES (NULL, #{chapterId}, #{content},#{catalogue}, #{creator}, #{createTime}, #{lastModifiedTime}, #{lastModifiedUser}, 0)
     </insert>
 
     <update id="updateArticle">
         UPDATE md_article SET content=#{content},
+                              catalogue=#{catalogue},
                               last_modified_time=#{lastModifiedTime},
                               last_modified_user=#{lastModifiedUser}
         WHERE id=#{id}
@@ -63,6 +72,10 @@
 
     <delete id="delChapter">
         DELETE FROM md_chapter WHERE id=#{id}
+    </delete>
+
+    <delete id="delCourse">
+        DELETE FROM md_course WHERE id=#{id}
     </delete>
 
 </mapper>

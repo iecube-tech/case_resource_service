@@ -25,6 +25,9 @@ public interface MarkdownMapper {
 
     List<MDCourse> allCourse();
     List<MDChapter> allChapterByCourseId(Integer courseId);
+
+    MDChapter chapterById(Integer id);
+
     MDArticle articleByChapterId(Integer chapterId);
 
     MDArticle articleById(Integer id);
@@ -32,6 +35,8 @@ public interface MarkdownMapper {
     Integer addCourse(MDCourse course);
 
     Integer addChapter(MDChapter chapter);
+
+    Integer updateChapter(MDChapter chapter);
 
     Integer addArticle(MDArticle article);
 
@@ -41,6 +46,7 @@ public interface MarkdownMapper {
 
     Integer delChapter(Integer id);
 
+    Integer delCourse(Integer id);
 
 
 

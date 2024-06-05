@@ -61,6 +61,8 @@ public class ResourceController extends ResourceBaseController {
         Resource resource = resourceService.UploadImage(file,creator);
         WangEditorRes wangEditorRes = new WangEditorRes();
         wangEditorRes.setUrl("/files/image/"+resource.getFilename());
+        wangEditorRes.setAlt(resource.getOriginFilename());
+        wangEditorRes.setTitle(resource.getOriginFilename());
         return new JsonResult<>(OK,0,wangEditorRes);
     }
 

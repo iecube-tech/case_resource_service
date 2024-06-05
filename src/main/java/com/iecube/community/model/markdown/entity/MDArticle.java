@@ -9,5 +9,6 @@ public class MDArticle extends BaseEntity {
     Integer id;
     Integer chapterId;
     String content;
+    String catalogue;
     Integer readNum;
 }

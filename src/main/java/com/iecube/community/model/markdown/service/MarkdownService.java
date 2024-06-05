@@ -11,6 +11,8 @@ import java.util.List;
 public interface MarkdownService {
     List<MDCatalogue> getCatalogue();
 
+    MDChapter getChapterById(Integer chapterId);
+
     MDArticle getArticleByChapter(Integer chapterId);
 
     List<MDCatalogue> addCourse(MDCourse mdCourse);
@@ -18,4 +20,10 @@ public interface MarkdownService {
     List<MDCatalogue> addChapter(MDChapter mdChapter);
 
     MDArticle updateArticle(MDArticleQo articleQo);
+
+    MDChapter updateChapter(MDChapter chapter);
+
+    List<MDCatalogue> delChapter(Integer id);
+
+    List<MDCatalogue> delCourse(Integer id);
 }

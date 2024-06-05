@@ -2,6 +2,7 @@ package com.iecube.community.model.markdown.service.Impl;
 
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
+import com.iecube.community.model.direction.service.ex.DeleteException;
 import com.iecube.community.model.markdown.entity.MDArticle;
 import com.iecube.community.model.markdown.entity.MDChapter;
 import com.iecube.community.model.markdown.entity.MDCourse;
@@ -35,6 +36,12 @@ public class MarkdownServiceImpl implements MarkdownService {
             mdCatalogueList.add(mdCatalogue);
         }
         return mdCatalogueList;
+    }
+
+    @Override
+    public MDChapter getChapterById(Integer chapterId){
+        MDChapter chapter = markdownMapper.chapterById(chapterId);
+        return chapter;
     }
 
     @Override
@@ -96,12 +103,49 @@ public class MarkdownServiceImpl implements MarkdownService {
         article.setLastModifiedUser(0);
         article.setLastModifiedTime(new Date());
         article.setContent(articleQo.getContent());
+        article.setCatalogue(articleQo.getCatalogue());
         Integer row = markdownMapper.updateArticle(article);
         if(row != 1){
             throw new UpdateException("更新数据异常");
         }
         MDArticle newArticle = markdownMapper.articleById(articleQo.getId());
         return newArticle;
+    }
+
+    @Override
+    public MDChapter updateChapter(MDChapter chapter){
+        if(chapter.getId()==null){
+            throw new UpdateException("数据提交异常");
+        }
+        if(chapter.getName()==null || chapter.getName()==""){
+            throw new UpdateException("数据提交异常");
+        }
+        Integer row = markdownMapper.updateChapter(chapter);
+        if(row != 1){
+            throw new UpdateException("更新数据异常");
+        }
+        MDChapter newChapter = markdownMapper.chapterById(chapter.getId());
+        return newChapter;
+    }
+
+    @Override
+    public List<MDCatalogue> delChapter(Integer id){
+        Integer row = markdownMapper.delChapter(id);
+        if(row != 1){
+            throw new DeleteException("删除数据异常");
+        }
+        List<MDCatalogue> ca = this.getCatalogue();
+        return ca;
+    }
+
+
+    @Override
+    public List<MDCatalogue> delCourse(Integer id){
+        if(id != null){
+            throw new DeleteException("拒绝删除");
+        }
+        List<MDCatalogue> ca = this.getCatalogue();
+        return ca;
     }
 
 

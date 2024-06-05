@@ -26,6 +26,12 @@ public class MarkdownController extends MarkdownBaseController {
         return new JsonResult<>(OK, catalogueList);
     }
 
+    @GetMapping("/ch/{chapterId}")
+    public JsonResult<MDChapter> getChapter(@PathVariable Integer chapterId){
+        MDChapter chapter = markdownService.getChapterById(chapterId);
+        return new JsonResult<>(OK, chapter);
+    }
+
     @GetMapping("/ar/{chapterId}")
     public JsonResult<MDArticle> getArticle(@PathVariable Integer chapterId){
         MDArticle article = markdownService.getArticleByChapter(chapterId);
@@ -48,6 +54,24 @@ public class MarkdownController extends MarkdownBaseController {
     public JsonResult<MDArticle> updateArticle(@RequestBody MDArticleQo mdArticleQo){
         MDArticle mdArticle = markdownService.updateArticle(mdArticleQo);
         return new JsonResult<>(OK, mdArticle);
+    }
+
+    @PostMapping("/ch/up")
+    public JsonResult<MDChapter> updateChapter(@RequestBody MDChapter chapter){
+        MDChapter chapter1 = markdownService.updateChapter(chapter);
+        return new JsonResult<>(OK, chapter1);
+    }
+
+    @DeleteMapping("/ch/del")
+    public JsonResult<List> delChapter(Integer id){
+        List<MDCatalogue> catalogueList = markdownService.delChapter(id);
+        return new JsonResult<>(OK, catalogueList);
+    }
+
+    @DeleteMapping("/co/del")
+    public JsonResult<List> delCourse(Integer id){
+        List<MDCatalogue> catalogueList = markdownService.delCourse(id);
+        return new JsonResult<>(OK, catalogueList);
     }
 
 }

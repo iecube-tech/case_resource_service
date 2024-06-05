@@ -6,4 +6,5 @@ import lombok.Data;
 public class MDArticleQo {
     Integer id;
     String content;
+    String catalogue;
 }
