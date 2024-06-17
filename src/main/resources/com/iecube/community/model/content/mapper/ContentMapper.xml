@@ -17,6 +17,7 @@
         <result column="last_modified_time" property="lastModifiedTime"></result>
         <result column="device_id" property="deviceId"></result>
         <result column="is_private" property="isPrivate"></result>
+        <result column="md_course" property="mdCourse"></result>
     </resultMap>
 
     <resultMap id="taskTemplates" type="com.iecube.community.model.content.entity.taskTemplates">
@@ -39,10 +40,10 @@
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO solution_or_case
-            (id, name, device_id, is_private, parent_id, cover, introduction, introduce, target, guidance, third, fourth, key_word,completion,
+            (id, name, md_course, device_id, is_private, parent_id, cover, introduction, introduce, target, guidance, third, fourth, key_word,completion,
              is_delete,creator_type, creator, create_time, last_modified_user, last_modified_time)
         VALUES
-            (NULL, #{name},#{deviceId}, 0, #{parentId}, #{cover}, #{introduction}, #{introduce}, #{target}, #{guidance}, #{third}, #{fourth},
+            (NULL, #{name}, #{mdCourse}, #{deviceId}, 0, #{parentId}, #{cover}, #{introduction}, #{introduce}, #{target}, #{guidance}, #{third}, #{fourth},
              #{keyWord}, #{completion},#{isDelete},#{creatorType}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
     </insert>
 
@@ -69,6 +70,7 @@
                                     introduce=#{introduce},
                                     target=#{target},
                                     device_id=#{deviceId},
+                                    md_course=#{mdCourse},
                                     last_modified_user=#{lastModifiedUser},
                                     last_modified_time=#{lastModifiedTime}
         WHERE id=#{id}
@@ -132,7 +134,7 @@
     </select>
 
     <select id="findByTeacherId" resultMap="ContentEntity">
-        SELECT solution_or_case.id, solution_or_case.name, solution_or_case.introduction, solution_or_case.cover, solution_or_case.device_id
+        SELECT solution_or_case.id, solution_or_case.name, solution_or_case.introduction, solution_or_case.cover, solution_or_case.device_id, solution_or_case.md_course
         FROM solution_or_case INNER JOIN teacher_case ON solution_or_case.id=teacher_case.case_id
         WHERE teacher_case.teacher_id=#{teacherId} AND solution_or_case.third=0
     </select>
@@ -142,13 +144,13 @@
     </select>
 
     <select id="findByParentId" resultMap="ContentEntity">
-        SELECT id,name,parent_id, cover,introduction,device_id
+        SELECT id,name,parent_id, cover,introduction,device_id,md_course
         FROM solution_or_case
         WHERE parent_id=#{parentId} AND completion=10 AND is_private=0 AND is_delete=0
     </select>
 
     <select id="findNotDelByParentId" resultMap="ContentEntity">
-        SELECT id,name,parent_id, cover,introduction,device_id FROM solution_or_case WHERE parent_id=#{parentId} and is_delete=0 AND is_private=0
+        SELECT id,name,parent_id, cover,introduction,device_id, md_course FROM solution_or_case WHERE parent_id=#{parentId} and is_delete=0 AND is_private=0
     </select>
 
     <update id="restore" >
@@ -197,17 +199,17 @@
     </delete>
 
     <select id="allCourse" resultMap="ContentEntity">
-        SELECT id, name, cover, introduction FROM solution_or_case WHERE completion=10 AND third=1 AND is_private=0 AND is_delete=0
+        SELECT id, name, cover, introduction, device_id,md_course FROM solution_or_case WHERE completion=10 AND third=1 AND is_private=0 AND is_delete=0
     </select>
 
     <select id="teacherCourse" resultMap="ContentEntity">
-        SELECT solution_or_case.id, solution_or_case.name, solution_or_case.introduction, solution_or_case.cover
+        SELECT solution_or_case.id, solution_or_case.name, solution_or_case.introduction, solution_or_case.cover, solution_or_case.device_id, solution_or_case.md_course
         FROM solution_or_case INNER JOIN teacher_case ON solution_or_case.id=teacher_case.case_id
         WHERE teacher_case.teacher_id=#{teacherId} AND solution_or_case.third=1 AND solution_or_case.is_delete=0
     </select>
 
     <select id="teacherCreateCourseList" resultMap="ContentEntity">
-        SELECT * FROM solution_or_case WHERE creator_type='teacher' AND creator=#{creator} AND is_delete=0 AND third=1
+        SELECT * FROM solution_or_case WHERE creator_type='teacher' AND creator=#{creator} AND is_delete=0 AND third=1 AND md_course IS NULL
     </select>
 
 
@@ -218,4 +220,12 @@
     <update id="updateIsPrivate">
         UPDATE solution_or_case SET is_private=#{isPrivate} WHERE id=#{contentId}
     </update>
+
+    <select id="getMdCourseCreated" resultMap="ContentEntity">
+        SELECT * FROM solution_or_case
+                 WHERE solution_or_case.creator=6
+                   AND solution_or_case.third=1
+                   AND solution_or_case.is_delete=0
+                   AND solution_or_case.md_course
+    </select>
 </mapper>

@@ -1,5 +1,6 @@
 package com.iecube.community.model.task.entity;
 
+import com.iecube.community.model.markdown.entity.MDChapter;
 import com.iecube.community.model.resource.entity.Resource;
 import com.iecube.community.model.task_attention.entity.Attention;
 import com.iecube.community.model.task_back_drop.entity.BackDrop;
@@ -35,4 +36,6 @@ public class TaskVo {
     List<Attention> attentionList;
     List<ExperimentalSubject> experimentalSubjectList;
     String taskDetails;
+    Integer taskMdDoc;
+    MDChapter mdChapter;
 }

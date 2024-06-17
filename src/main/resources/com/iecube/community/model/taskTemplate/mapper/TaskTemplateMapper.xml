@@ -10,13 +10,12 @@
         <result column="task_name" property="taskName"></result>
         <result column="task_cover" property="taskCover"></result>
         <result column="task_device" property="taskDevice"></result>
-        <result column="task_data_tables" property="taskDataTables"></result>
     </resultMap>
 
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
         INSERT INTO
-            task_templates (id, content_id, num, weighting, class_hour, task_name, task_cover, task_device, task_data_tables, creator, create_time, last_modified_user, last_modified_time)
-        VALUES (null, #{contentId}, #{num}, #{weighting}, #{classHour}, #{taskName}, #{taskCover}, #{taskDevice}, #{taskDataTables}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
+            task_templates (id, content_id, num, weighting, class_hour, task_name, task_cover, task_device, creator, create_time, last_modified_user, last_modified_time)
+        VALUES (null, #{contentId}, #{num}, #{weighting}, #{classHour}, #{taskName}, #{taskCover}, #{taskDevice},  #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
     </insert>
 
     <update id="update">
@@ -27,7 +26,6 @@
                                   task_name=#{taskName},
                                   task_cover=#{taskCover},
                                   task_device=#{taskDevice},
-                                  task_data_tables=#{taskDataTables},
                                   last_modified_user=#{lastModifiedUser},
                                   last_modified_time=#{lastModifiedTime} WHERE id=#{id}
     </update>

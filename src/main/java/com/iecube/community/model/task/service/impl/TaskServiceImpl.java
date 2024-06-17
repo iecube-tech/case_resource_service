@@ -3,6 +3,8 @@ package com.iecube.community.model.task.service.impl;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
+import com.iecube.community.model.markdown.entity.MDChapter;
+import com.iecube.community.model.markdown.service.MarkdownService;
 import com.iecube.community.model.project.entity.ProjectStudentVo;
 import com.iecube.community.model.project.mapper.ProjectMapper;
 import com.iecube.community.model.project_student_group.entity.GroupStudent;
@@ -39,6 +41,8 @@ import com.iecube.community.model.task_details.mapper.TaskDetailsMapper;
 import com.iecube.community.model.task_experimental_subject.entity.ExperimentalSubject;
 import com.iecube.community.model.task_experimental_subject.entity.TaskExperimentalSubject;
 import com.iecube.community.model.task_experimental_subject.mapper.TaskExperimentalSubjectMapper;
+import com.iecube.community.model.task_md_doc.entity.TaskMdDoc;
+import com.iecube.community.model.task_md_doc.mapper.TaskMdDocMapper;
 import com.iecube.community.model.task_reference_file.entity.TaskReferenceFile;
 import com.iecube.community.model.task_reference_file.mapper.ReferenceFileMapper;
 import com.iecube.community.model.task_reference_link.entity.ReferenceLink;
@@ -98,6 +102,12 @@ public class TaskServiceImpl implements TaskService {
 
     @Autowired
     private TaskDetailsMapper taskDetailsMapper;
+
+    @Autowired
+    private TaskMdDocMapper taskMdDocMapper;
+
+    @Autowired
+    private MarkdownService markdownService;
 
     @Autowired
     private TagMapper tagMapper;
@@ -241,6 +251,18 @@ public class TaskServiceImpl implements TaskService {
                 }
             }
         }
+
+        // markDown指导书
+        if(task.getTaskMdDoc() != null){
+            TaskMdDoc taskMdDoc = new TaskMdDoc();
+            taskMdDoc.setTaskId(task.getId());
+            taskMdDoc.setMdDocId(task.getTaskMdDoc());
+            Integer co = taskMdDocMapper.connect(taskMdDoc);
+            if(co != 1){
+                throw new InsertException("插入数据异常");
+            }
+        }
+
         //任务详情
         if(task.getTaskDetails()!=null && !task.getTaskDetails().equals("")){
             Details details = new Details();
@@ -537,6 +559,12 @@ public class TaskServiceImpl implements TaskService {
             Details details = taskDetailsMapper.getDetailsByTaskId(task.getId());
             if(details!=null){
                 task.setTaskDetails(details.getName());
+            }
+            TaskMdDoc taskMdDoc = taskMdDocMapper.getTaskMdDocByTask(task.getId());
+            if(taskMdDoc!=null){
+                task.setTaskMdDoc(taskMdDoc.getMdDocId());
+                MDChapter mdChapter = markdownService.getChapterById(taskMdDoc.getMdDocId());
+                task.setMdChapter(mdChapter);
             }
         }
         return tasks;

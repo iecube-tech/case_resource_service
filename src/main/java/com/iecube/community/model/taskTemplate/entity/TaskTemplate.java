@@ -13,5 +13,4 @@ public class TaskTemplate extends BaseEntity {
     String taskName;
     String taskCover;
     Integer taskDevice;
-    String taskDataTables;
 }

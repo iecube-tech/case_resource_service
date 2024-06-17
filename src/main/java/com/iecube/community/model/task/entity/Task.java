@@ -1,6 +1,7 @@
 package com.iecube.community.model.task.entity;
 
 import com.iecube.community.entity.BaseEntity;
+import com.iecube.community.model.markdown.entity.MDChapter;
 import com.iecube.community.model.resource.entity.Resource;
 import com.iecube.community.model.task_attention.entity.Attention;
 import com.iecube.community.model.task_back_drop.entity.BackDrop;
@@ -35,4 +36,6 @@ public class Task extends BaseEntity {
     String taskDetails;
     Date taskStartTime;
     Date taskEndTime;
+    Integer taskMdDoc;
+    MDChapter mdChapter;
 }

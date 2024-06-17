@@ -8,4 +8,5 @@ public class WangEditorRes {
      String alt;
      String href;
      String title;
+     String filename;
 }

@@ -95,13 +95,13 @@ public class DesignServiceImpl implements DesignService {
         for(GraduationRequirement graduationRequirement : graduationRequirementList){
             List<GraduationPoint> graduationPointList = designMapper.getGraduationPointList(graduationRequirement.getId());
             List<CourseTarget> courseTargetList = designMapper.getCourseTargetList(graduationRequirement.getId());
-            List<CourseChapter> courseChapterList = designMapper.getCourseChapterList(graduationRequirement.getId());
+//            List<CourseChapter> courseChapterList = designMapper.getCourseChapterList(graduationRequirement.getId());
             CourseDesign courseDesign = new CourseDesign();
             courseDesign.setGraduationRequirementId(graduationRequirement.getId());
             courseDesign.setGraduationRequirementName(graduationRequirement.getName());
             courseDesign.setGraduationPointList(graduationPointList);
             courseDesign.setCourseTargetList(courseTargetList);
-            courseDesign.setCourseChapterList(courseChapterList);
+//            courseDesign.setCourseChapterList(courseChapterList);
             courseDesignList.add(courseDesign);
         }
         return courseDesignList;
@@ -122,10 +122,10 @@ public class DesignServiceImpl implements DesignService {
             courseTarget.setParentId(parentId);
             designMapper.addCourseTarget(courseTarget);
         }
-        for(CourseChapter courseChapter: courseDesignQo.getCourseChapterList()){
-            courseChapter.setParentId(parentId);
-            designMapper.addCourseChapter(courseChapter);
-        }
+//        for(CourseChapter courseChapter: courseDesignQo.getCourseChapterList()){
+//            courseChapter.setParentId(parentId);
+//            designMapper.addCourseChapter(courseChapter);
+//        }
     }
 
     @Override

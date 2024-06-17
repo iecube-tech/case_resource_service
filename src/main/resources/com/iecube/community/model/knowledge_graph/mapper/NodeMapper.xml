@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.knowledge_graph.mapper.NodeMapper">
+
+    <resultMap id="Node" type="com.iecube.community.model.knowledge_graph.entity.Node">
+        <result column="p_id" property="pId"></result>
+        <result column="item_color" property="itemColor"></result>
+        <result column="label_color" property="labelColor"></result>
+        <result column="label_position" property="labelPosition"></result>
+        <result column="label_font_size" property="labelFontSize"></result>
+        <result column="symbol_size" property="symbolSize"></result>
+    </resultMap>
+
+    <insert id="insertNode" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO map_node (id, p_id, level, name, item_color, label_color, label_position, label_font_size, symbol_size, link)
+        VALUES (NULL,#{pId},#{level},#{name},#{itemColor},#{labelColor},#{labelPosition},#{labelFontSize},#{symbolSize},#{link})
+    </insert>
+
+    <update id="updateNode">
+        UPDATE map_node SET p_id=#{pId},
+                            level=#{level},
+                            name=#{name},
+                            item_color=#{itemColor},
+                            label_color=#{labelColor},
+                            label_position=#{labelPosition},
+                            label_font_size=#{labelFontSize},
+                            symbol_size=#{symbolSize},
+                            link=#{link}
+                        WHERE id=#{id}
+    </update>
+
+    <delete id="delNode">
+        DELETE FROM map_node WHERE id=#{id}
+    </delete>
+
+    <select id="getNodeById" resultMap="Node">
+        SELECT * FROM map_node WHERE id=#{id}
+    </select>
+
+    <select id="getNodeByPId" resultMap="Node">
+        SELECT * FROM map_node WHERE id=#{pId}
+    </select>
+
+    <select id="allNode" resultMap="Node">
+        SELECT * FROM map_node
+    </select>
+</mapper>

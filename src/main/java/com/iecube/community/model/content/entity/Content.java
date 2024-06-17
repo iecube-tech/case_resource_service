@@ -25,6 +25,7 @@ public class Content extends BaseEntity {
     private Integer completion; // 该案例的完善度
     private Integer deviceId;
     private Integer isPrivate;
+    private Integer mdCourse; // md_course的id
 }
 
 /**

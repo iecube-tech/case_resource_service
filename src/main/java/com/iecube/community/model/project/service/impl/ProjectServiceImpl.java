@@ -121,6 +121,7 @@ public class ProjectServiceImpl implements ProjectService {
         project.setDeviceId(content.getDeviceId());
         project.setUseGroup(projectDto.getUseGroup());
         project.setGroupLimit(projectDto.getGroupLimit());
+        project.setMdCourse(content.getMdCourse());
         Integer row = projectMapper.insert(project);
         if (row != 1){
             throw new InsertException("插入数据异常");
@@ -318,6 +319,7 @@ public class ProjectServiceImpl implements ProjectService {
         studentProject.setProjectIntroduction(project.getIntroduction());
         studentProject.setProjectTarget(project.getTarget());
         studentProject.setProjectDeviceId(project.getDeviceId());
+        studentProject.setProjectMdCourseId(project.getMdCourse());
         List<TaskVo> tasks = taskService.studentGetProjectTasks(projectId);
         studentProject.setProjectTaskList(tasks);
         return studentProject;

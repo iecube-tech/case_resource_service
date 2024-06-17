@@ -9,6 +9,7 @@ import com.iecube.community.model.markdown.entity.MDCourse;
 import com.iecube.community.model.markdown.mapper.MarkdownMapper;
 import com.iecube.community.model.markdown.qo.MDArticleQo;
 import com.iecube.community.model.markdown.service.MarkdownService;
+import com.iecube.community.model.markdown.vo.ArticleVo;
 import com.iecube.community.model.markdown.vo.MDCatalogue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -148,5 +149,22 @@ public class MarkdownServiceImpl implements MarkdownService {
         return ca;
     }
 
+    @Override
+    public List<MDChapter> getChapterListByCourseId(Integer courseId){
+        List<MDChapter> chapterList = markdownMapper.allChapterByCourseId(courseId);
+        return chapterList;
+    }
 
+    @Override
+    public ArticleVo getArticleVoByChapterId(Integer chapterId){
+        ArticleVo articleVo = markdownMapper.getArticleVoByChapterId(chapterId);
+        this.updateReadNum(articleVo.getArticleId(), articleVo.getReadNum()+1);
+        return articleVo;
+    }
+
+    @Override
+    public List<ArticleVo> getArticleVoListByCourseId(Integer courseId){
+        List<ArticleVo> articleVoList = markdownMapper.getArticleVoListByCourseId(courseId);
+        return articleVoList;
+    }
 }

@@ -12,5 +12,5 @@ public class CourseDesignQo {
     String graduationRequirementName;
     List<GraduationPoint> graduationPointList;
     List<CourseTarget> courseTargetList;
-    List<CourseChapter> courseChapterList;
+//    List<CourseChapter> courseChapterList;
 }

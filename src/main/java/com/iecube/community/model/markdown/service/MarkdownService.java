@@ -4,6 +4,7 @@ import com.iecube.community.model.markdown.entity.MDArticle;
 import com.iecube.community.model.markdown.entity.MDChapter;
 import com.iecube.community.model.markdown.entity.MDCourse;
 import com.iecube.community.model.markdown.qo.MDArticleQo;
+import com.iecube.community.model.markdown.vo.ArticleVo;
 import com.iecube.community.model.markdown.vo.MDCatalogue;
 
 import java.util.List;
@@ -26,4 +27,11 @@ public interface MarkdownService {
     List<MDCatalogue> delChapter(Integer id);
 
     List<MDCatalogue> delCourse(Integer id);
+
+    List<MDChapter> getChapterListByCourseId(Integer courseId);
+
+
+    ArticleVo getArticleVoByChapterId(Integer chapterId);
+
+    List<ArticleVo> getArticleVoListByCourseId(Integer courseId);
 }

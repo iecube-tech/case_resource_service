@@ -65,4 +65,6 @@ public interface ContentService {
     Integer copyOldCaseAsTeacherNewCase(Integer oldCaseId, Integer teacherId, List<Task> taskList);
 
     Integer updateIsPrivate(Integer contentId, Integer teacherId);
+
+    List<Content> getMdCourseCreated(Integer user);
 }

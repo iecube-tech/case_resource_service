@@ -21,6 +21,14 @@
         <result property="lastModifiedTime" column="last_modified_time"></result>
     </resultMap>
 
+    <resultMap id="ArticleVo" type="com.iecube.community.model.markdown.vo.ArticleVo">
+        <result property="chapterId" column="chapter_id"></result>
+        <result property="courseId" column="course_id"></result>
+        <result property="articleId" column="article_id"></result>
+        <result property="chapterName" column="chapter_name"></result>
+        <result property="readNum" column="read_num"></result>
+    </resultMap>
+
     <select id="allCourse" resultMap="MDCourse">
         SELECT * FROM md_course
     </select>
@@ -77,5 +85,21 @@
     <delete id="delCourse">
         DELETE FROM md_course WHERE id=#{id}
     </delete>
+
+    <select id="getArticleVoByChapterId" resultMap="ArticleVo">
+        SELECT md_article.id AS article_id, md_article.content, md_article.catalogue, md_article.read_num, md_chapter.id AS chapter_id,
+               md_chapter.name AS chapter_name, md_course.id AS course_id
+        FROM md_article INNER JOIN md_chapter on md_article.chapter_id=md_chapter.id
+                        INNER JOIN md_course on md_chapter.course_id=md_course.id
+        WHERE md_chapter.id=#{chapterId}
+    </select>
+
+    <select id="getArticleVoListByCourseId" resultMap="ArticleVo">
+        SELECT md_article.id AS article_id, md_article.content, md_article.catalogue, md_article.read_num, md_chapter.id AS chapter_id,
+               md_chapter.name AS chapter_name, md_course.id AS course_id
+        FROM md_article INNER JOIN md_chapter on md_article.chapter_id=md_chapter.id
+            INNER JOIN md_course on md_chapter.course_id=md_course.id
+        WHERE md_course.id=#{courseId}
+    </select>
 
 </mapper>

@@ -396,4 +396,11 @@ public class ContentServiceImpl implements ContentService {
         return newPrivate;
     }
 
+
+
+    public List<Content> getMdCourseCreated(Integer user){
+     List<Content> contentList = contentMapper.getMdCourseCreated(user);
+     return contentList;
+    }
+
 }

@@ -22,4 +22,5 @@ public class Project extends BaseEntity {
     Integer useGroup;
     Integer groupLimit;
     Integer hidden;
+    Integer mdCourse;
 }

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.task_md_doc.mapper.TaskMdDocMapper">
+    <resultMap id="taskMdDoc" type="com.iecube.community.model.task_md_doc.entity.TaskMdDoc">
+        <result column="md_doc_id" property="mdDocId"></result>
+        <result column="task_template_id" property="taskTemplateId"></result>
+        <result column="task_id" property="taskId"></result>
+    </resultMap>
+
+    <insert id="connect" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO task_md_doc (id, md_doc_id, task_template_id, task_id )
+        VALUES (NULL, #{mdDocId},#{taskTemplateId}, #{taskId} )
+    </insert>
+
+    <select id="getTaskMdDocByTaskTemplateId" resultMap="taskMdDoc">
+        SELECT * FROM task_md_doc WHERE task_template_id=#{templateId}
+    </select>
+
+    <select id="getTaskMdDocByTask" resultMap="taskMdDoc">
+        SELECT * FROM task_md_doc WHERE task_id=#{taskId}
+    </select>
+
+    <delete id="deleteByTaskTemplateId">
+        DELETE FROM task_md_doc WHERE task_template_id=#{taskTemplateId}
+    </delete>
+
+    <delete id="deleteByTaskId">
+        DELETE FROM task_md_doc WHERE task_id=#{taskId}
+    </delete>
+
+</mapper>

@@ -63,6 +63,7 @@ public class ResourceController extends ResourceBaseController {
         wangEditorRes.setUrl("/files/image/"+resource.getFilename());
         wangEditorRes.setAlt(resource.getOriginFilename());
         wangEditorRes.setTitle(resource.getOriginFilename());
+        wangEditorRes.setFilename(resource.getFilename());
         return new JsonResult<>(OK,0,wangEditorRes);
     }
 

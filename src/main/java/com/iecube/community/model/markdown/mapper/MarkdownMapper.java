@@ -3,6 +3,7 @@ package com.iecube.community.model.markdown.mapper;
 import com.iecube.community.model.markdown.entity.MDArticle;
 import com.iecube.community.model.markdown.entity.MDChapter;
 import com.iecube.community.model.markdown.entity.MDCourse;
+import com.iecube.community.model.markdown.vo.ArticleVo;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -48,6 +49,9 @@ public interface MarkdownMapper {
 
     Integer delCourse(Integer id);
 
+    ArticleVo getArticleVoByChapterId(Integer chapterId);
+
+    List<ArticleVo> getArticleVoListByCourseId(Integer courseId);
 
 
 }

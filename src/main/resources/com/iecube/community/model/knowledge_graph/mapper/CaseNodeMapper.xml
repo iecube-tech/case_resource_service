@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.knowledge_graph.mapper.CaseNodeMapper">
+
+    <resultMap id="CaseNode" type="com.iecube.community.model.knowledge_graph.entity.CaseNode">
+        <result column="case_id" property="caseId"></result>
+        <result column="node_id" property="nodeId"></result>
+    </resultMap>
+
+    <insert id="insertCaseNode" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO map_case_node (id, case_id, node_id) VALUES (NULL, #{caseId}, #{nodeId})
+    </insert>
+
+    <select id="getByCaseId" resultMap="CaseNode">
+        SELECT * FROM map_case_node WHERE case_id=#{caseId}
+    </select>
+
+</mapper>
