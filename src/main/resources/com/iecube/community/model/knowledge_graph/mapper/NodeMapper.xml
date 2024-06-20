@@ -32,6 +32,59 @@
                         WHERE id=#{id}
     </update>
 
+    <update id="" parameterType="java.util.List">
+        <foreach collection="list" index="index" item="item" separator=";">
+            UPDATE map_node
+            SET
+            item_color = #{item.itemColor},
+            label_color = #{item.labelColor},
+            label_position = #{item.labelPosition},
+            label_font_size = #{item.labelFontSize},
+            symbol_size = #{item.symbolSize}
+            WHERE id = #{item.id}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateMapNode" parameterType="java.util.List">
+        update map_node
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix="item_color =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                        when id=#{item.id} then #{item.itemColor}
+                </foreach>
+            </trim>
+
+            <trim prefix="label_color =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                        when id=#{item.id} then #{item.labelColor}
+                </foreach>
+            </trim>
+
+            <trim prefix="label_position =case" suffix="end," >
+                <foreach collection="list" item="item" index="index">
+                        when id=#{item.id} then #{item.labelPosition}
+                </foreach>
+            </trim>
+
+            <trim prefix="label_font_size =case" suffix="end," >
+                <foreach collection="list" item="item" index="index">
+                        when id=#{item.id} then #{item.labelFontSize}
+                </foreach>
+            </trim>
+
+            <trim prefix="symbol_size =case" suffix="end," >
+                <foreach collection="list" item="item" index="index">
+                        when id=#{item.id} then #{item.symbolSize}
+                </foreach>
+            </trim>
+
+        </trim>
+        where
+        <foreach collection="list" separator="or" item="item" index="index" >
+            id=#{item.id}
+        </foreach>
+    </update>
+
     <delete id="delNode">
         DELETE FROM map_node WHERE id=#{id}
     </delete>

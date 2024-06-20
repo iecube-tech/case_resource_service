@@ -83,6 +83,43 @@ public class KnowledgeGraphServiceImpl implements KnowledgeGraphService {
         if(res!= 1){
             throw new UpdateException("更新数据异常");
         }
+        this.updateSameLevelNode(node);
+    }
+
+    public void updateSameLevelNode(Node node){
+        List<Node> sameLevelNodeList = this.getSameLevelNode(node);
+        for (Node nd : sameLevelNodeList){
+            nd.setSymbolSize(node.getSymbolSize());
+            nd.setLabelPosition(node.getLabelPosition());
+            nd.setLabelFontSize(node.getLabelFontSize());
+            nd.setLabelColor(node.getLabelColor());
+            nd.setItemColor(node.getItemColor());
+        }
+        nodeMapper.batchUpdateMapNode(sameLevelNodeList);
+//        System.out.println(sameLevelNodeList.size());
+//        System.out.println(res);
+    }
+
+    @Override
+    public List<Node> getSameLevelNode(Node node){
+        Node rootNode = this.getRootNode(node);
+        List<Node> nodeTree = this.getNodeTree(rootNode.getId());
+        List<Node> allTreeNode = this.getAllNodeInTree(nodeTree);
+        List<Node> sameLevelNode = new ArrayList<>();
+        for(Node nd : allTreeNode){
+            if(nd.getLevel().equals(node.getLevel())){
+                sameLevelNode.add(nd);
+            }
+        }
+        return sameLevelNode;
+    }
+
+    public Node getRootNode(Node childNode){
+        Node parentNode = nodeMapper.getNodeById(childNode.getPId());
+        if(parentNode.getPId()!=null){
+            parentNode = getRootNode(parentNode);
+        }
+        return parentNode;
     }
 
     @Override
@@ -146,10 +183,9 @@ public class KnowledgeGraphServiceImpl implements KnowledgeGraphService {
     /**
      * 根据根节点构建树
      * @param rootId 根节点
-     * @return
+     * @return List<NodeVo>
      */
     public List<NodeVo> getTree(Integer rootId){
-        allNodeList = nodeMapper.allNode();
         List<NodeVo> nodeVoList = new ArrayList<>();
         // 根节点的信息
         Node node = nodeMapper.getNodeById(rootId);
@@ -164,9 +200,10 @@ public class KnowledgeGraphServiceImpl implements KnowledgeGraphService {
     /**
      * 递归构建子树
      * @param pNodeVo
-     * @return
+     * @return NodeVo
      */
     public NodeVo getChildTree(NodeVo pNodeVo){
+        allNodeList = nodeMapper.allNode();
         List<NodeVo> childTree = new ArrayList<>();
         // 在所有的节点中判断其pId与当前的pNode的id是不是相同 相同就是他的子节点
         for(Node node : allNodeList){
@@ -182,4 +219,53 @@ public class KnowledgeGraphServiceImpl implements KnowledgeGraphService {
         return pNodeVo;
     }
 
+
+    public List<Node> getNodeTree(Integer rootId){
+        List<Node> nodeList = new ArrayList<>();
+        Node node = nodeMapper.getNodeById(rootId);
+        node = this.getNodeChildTree(node);
+        nodeList.add(node);
+        return nodeList;
+    }
+
+    public Node getNodeChildTree(Node pNode){
+        allNodeList = nodeMapper.allNode();
+        List<Node> childTree = new ArrayList<>();
+        for(Node node : allNodeList){
+            if(node.getPId()!=null){
+                if(node.getPId().equals(pNode.getId())){
+                    childTree.add(getNodeChildTree(node));
+                }
+            }
+        }
+        pNode.setChildren(childTree);
+        return pNode;
+    }
+
+    /**
+     * 获取树中的所有节点
+     * @param nodeList
+     * @return
+     */
+    public List<Node> getAllNodeInTree(List<Node> nodeList){
+        List<Node> allTreeNode = new ArrayList<>();
+        for(Node node:nodeList){
+            Node newNode = new Node();
+            newNode.setId(node.getId());
+            newNode.setPId(node.getPId());
+            newNode.setName(node.getName());
+            newNode.setLink(node.getLink());
+            newNode.setLevel(node.getLevel());
+            newNode.setLabelColor(node.getLabelColor());
+            newNode.setLabelPosition(node.getLabelPosition());
+            newNode.setLabelFontSize(node.getLabelFontSize());
+            newNode.setItemColor(node.getItemColor());
+            newNode.setSymbolSize(node.getSymbolSize());
+            allTreeNode.add(newNode);
+            if(node.getChildren().size()>0){
+                allTreeNode.addAll(getAllNodeInTree(node.getChildren()));
+            }
+        }
+        return allTreeNode;
+    }
 }

@@ -2,6 +2,7 @@ package com.iecube.community.model.knowledge_graph.mapper;
 
 import com.iecube.community.model.knowledge_graph.entity.Node;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -18,4 +19,6 @@ public interface NodeMapper {
     List<Node> getNodeByPId(Integer pId);
 
     List<Node> allNode();
+
+    Integer batchUpdateMapNode(@Param("list")  List<Node> nodeList);
 }

@@ -1,5 +1,6 @@
 package com.iecube.community.model.knowledge_graph.service;
 
+import com.iecube.community.model.knowledge_graph.entity.Node;
 import com.iecube.community.model.knowledge_graph.qo.NodeQo;
 import com.iecube.community.model.knowledge_graph.vo.NodeVo;
 
@@ -17,5 +18,5 @@ public interface KnowledgeGraphService {
 
     List<NodeVo> getNodeVoByCourse(Integer courseId);
 
-
+    List<Node> getSameLevelNode(Node node);
 }

@@ -1,69 +1,109 @@
 package com.iecube.community.util.pdf;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iecube.community.model.iecube3835.dto.StudentSubmitContentDetails;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.task.entity.StudentTaskDetailVo;
-import com.itextpdf.text.*;
-import com.itextpdf.text.pdf.BaseFont;
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfWriter;
-import org.springframework.beans.factory.annotation.Value;
+import com.itextpdf.html2pdf.ConverterProperties;
+import com.itextpdf.html2pdf.HtmlConverter;
+import com.itextpdf.html2pdf.resolver.font.DefaultFontProvider;
+import com.itextpdf.io.font.FontConstants;
+import com.itextpdf.io.font.FontProgram;
+import com.itextpdf.io.font.FontProgramFactory;
+import com.itextpdf.io.font.PdfEncodings;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.geom.PageSize;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfPage;
+import com.itextpdf.kernel.pdf.PdfReader;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.*;
+import com.itextpdf.layout.font.FontProvider;
+import com.itextpdf.layout.font.FontSet;
+import com.itextpdf.layout.property.HorizontalAlignment;
+import com.itextpdf.layout.property.Property;
+import com.itextpdf.layout.property.TextAlignment;
+import com.itextpdf.layout.property.UnitValue;
+import com.vladsch.flexmark.ext.abbreviation.AbbreviationExtension;
+import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
+import com.vladsch.flexmark.ext.emoji.EmojiExtension;
+import com.vladsch.flexmark.ext.footnotes.FootnoteExtension;
+import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
+import com.vladsch.flexmark.ext.gfm.tasklist.TaskListExtension;
+import com.vladsch.flexmark.ext.gitlab.GitLabExtension;
+import com.vladsch.flexmark.ext.tables.TablesExtension;
+import com.vladsch.flexmark.html.HtmlRenderer;
+import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.util.options.MutableDataSet;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.core.io.Resource;
-import org.springframework.util.ResourceUtils;
-
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.List;
 
-public class GenerateStudentReport{
+public class GenerateStudentReport {
 
-    private String genFileDir;
+    private static String genFileDir;
 
-    public static Font TitleFont;
-    public static Font TextFont1;
-    public static Font TextFont;
+    public static PdfFont TitleFont;
+    public static PdfFont TextFont1;
+    public static PdfFont TextFont;
     public static String fontPath = "/community/service/fonts/simfang.ttf";
+    public static String fontPathW = "D:\\work\\iecube_community\\service\\community\\src\\main\\resources\\fonts\\simfang.ttf";
+
 
     public GenerateStudentReport(String genFilePath){
         this.genFileDir = genFilePath;
+        if(isWindows()){
+            fontPath = fontPathW;
+        }
     }
 
-    public MultipartFile startGen(StudentDto studentDto, StudentTaskDetailVo studentTaskDetailVo, String studentData) throws IOException, DocumentException{
-//        fontPath = ResourceUtils.getFile("classpath:fonts/simfang.ttf").getAbsolutePath();
+
+    public static boolean isWindows() {
+        return System.getProperty("os.name").toLowerCase().contains("windows");
+    }
+
+    public MultipartFile startGen(StudentDto studentDto, StudentTaskDetailVo studentTaskDetailVo, String studentData) throws IOException {
         String FileName = studentTaskDetailVo.getProjectId() +"-"+studentTaskDetailVo.getTaskNum()+"-"+studentDto.getStudentName()
                 +"-"+studentTaskDetailVo.getTaskName()+""+".pdf";
         String filePath = genFileDir+"/"+FileName;
-            // 创建文档对象并设置页面大小
-        Document document = new Document(PageSize.A4);
-        PdfWriter.getInstance(document, new FileOutputStream(filePath));
-        document.open();
-        TitleFont = FontFactory.getFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 12);
-        TextFont1 = FontFactory.getFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 10);
-        TextFont = FontFactory.getFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 8);
-        // 添加学生信息
+        // 设置字体
+        TitleFont = PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
+        TextFont = PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
+        // 创建文档对象并设置页面大小
+        PdfDocument pdf = new PdfDocument(new PdfWriter(new FileOutputStream(filePath)));
+        pdf.setDefaultPageSize(PageSize.A4);
+        Document document = new Document(pdf);
+        document.setFont(TextFont);
+
         Paragraph studentInfoParagraph = studentInfo(studentDto, studentTaskDetailVo);
         document.add(studentInfoParagraph);
         JsonNode tableJsonNode = genTableJsonNode(studentData);
         JsonNode questionSJsonNode = genQuestionJsonNode(studentData);
-        // 添加表格
         if(tableJsonNode != null){
             for(JsonNode tableData: tableJsonNode){
-                Paragraph nameParagraph = new Paragraph(tableData.get("name").asText(),TextFont1);
+                // 表格名称
+                Paragraph nameParagraph = new Paragraph(tableData.get("name").asText()).setFont(TextFont).setFontSize(10);
+                nameParagraph.setHorizontalAlignment(HorizontalAlignment.CENTER);
+                nameParagraph.setTextAlignment(TextAlignment.CENTER);
+                // 表格参数
                 Paragraph paramsParagraph = null;
                 if(tableData.get("params").size()>0){
                     String params = "";
                     for(JsonNode param: tableData.get("params")){
                         params = params+param.get("name").asText()+"：" +param.get("value").asText()+"    ";
                     }
-                    paramsParagraph = new Paragraph(params,TextFont);
-                    paramsParagraph.setSpacingAfter(10); // 设置段落间距
+                    paramsParagraph = new Paragraph(params).setFont(TextFont).setFontSize(10);
+                    paramsParagraph.setPaddingBottom(10); // 设置段落间距
                 }
-                PdfPTable table = createTable(tableData);
+                Table table = createTable(tableData);
 
                 if(nameParagraph!=null){
                     document.add(nameParagraph);
@@ -76,17 +116,13 @@ public class GenerateStudentReport{
                 }
                 document.add(new Paragraph("\n")); // 添加空行分隔表格
             }
-
         }
-        //添加思考题
+
         if(questionSJsonNode!=null){
-            for(JsonNode question: questionSJsonNode){
-                Paragraph quesAnswerParagraph = createQuestion(question);
-                document.add(quesAnswerParagraph);
-            }
+            createQuestion(questionSJsonNode,document);
         }
         document.close();
-
+        pdf.close();
         File file = new File(genFileDir,FileName);
         MultipartFile multipartFile=new MultipartFile() {
             @Override
@@ -139,23 +175,32 @@ public class GenerateStudentReport{
     public static Paragraph studentInfo(StudentDto studentDto, StudentTaskDetailVo studentTaskDetailVo){
         String studentInfo = "姓名："+studentDto.getStudentName() +"    学号：" + studentDto.getStudentId() +"    实验："+
                 studentTaskDetailVo.getTaskName();
-        Paragraph paragraph =new Paragraph(studentInfo, TitleFont);
-        paragraph.setAlignment(Paragraph.ALIGN_LEFT);
-        paragraph.setIndentationLeft(20); // 设置左缩进距离
-        paragraph.setIndentationRight(20); // 设置右缩进距离
-        paragraph.setSpacingAfter(10); // 设置段落间距
+        Paragraph paragraph =new Paragraph(studentInfo);
+        paragraph.setFont(TitleFont);
+        paragraph.setFontSize(12);
+        paragraph.setTextAlignment(TextAlignment.LEFT);
+        paragraph.setMargins(20, 10, 20, 10); // 设置上、右、下、左边距
+        // paragraph.setPadding(10); // 设置内边距
         return paragraph;
     }
 
-    public static PdfPTable createTable(JsonNode jsonNode){
+    public static Table createTable(JsonNode jsonNode){
         int columns = jsonNode.get("columnList").size();
         int rows = jsonNode.get("rowData").size();
-        PdfPTable table = new PdfPTable(columns); // 创建表格对象
-        table.setWidthPercentage(100); // 设置表格宽度为100%
+        Table table = new Table(columns); // 创建表格对象
+        table.setWidth(UnitValue.createPercentValue(100)); // 设置表格宽度为100%
         // 添加表头
         for (int j = 0; j < columns; j++) {
-            PdfPCell headerCell = new PdfPCell(new Paragraph(jsonNode.get("columnList").get(j).get("label").asText(), TextFont));
-            headerCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            Cell headerCell = new Cell();
+            Paragraph paragraph = new Paragraph().setFont(TextFont).setFontSize(10);
+            String value="";
+
+            if(jsonNode.get("columnList").get(j).get("label")!= null){
+                value = jsonNode.get("columnList").get(j).get("label").asText();
+            }
+            paragraph.add(value);
+            headerCell.add(paragraph);
+            headerCell.setHorizontalAlignment(HorizontalAlignment.CENTER);
             table.addCell(headerCell); // 添加表头单元格
         }
         // 添加表格内容
@@ -166,31 +211,28 @@ public class GenerateStudentReport{
                 if(jsonNode.get("rowData").get(i).get(prop) != null && jsonNode.get("rowData").get(i).get(prop).asText()!="null"){
                     value=jsonNode.get("rowData").get(i).get(prop).asText();
                 }
-                PdfPCell cell = new PdfPCell(new Paragraph(value, TextFont));
+                Cell cell = new Cell().add(new Paragraph(value).setFont(TextFont).setFontSize(10));
                 table.addCell(cell); // 添加内容单元格
             }
         }
         return table;
     }
 
-    public static Paragraph createQuestion(JsonNode question){
-        String ques = question.get("question").asText();
-        String answer = "";
-        if(question.get("answer").asText()!="null" && question.get("answer")!=null){
-            answer = question.get("answer").asText();
+    public static void createQuestion(JsonNode questionSJsonNode, Document document) throws IOException{
+        String markdownText = "";
+        for(JsonNode question: questionSJsonNode){
+            String ques = question.get("question").asText();
+            String answer = "";
+            if(question.get("answer").asText()!="null" && question.get("answer")!=null){
+                answer = question.get("answer").asText();
+            }
+            markdownText = markdownText + "\n\n" + ques + "\n\n\n" + answer + "\n\n\n";
         }
-        Paragraph quesAnswer = new Paragraph();
-
-        Paragraph questionParagraph = new Paragraph(ques, TextFont1);
-        questionParagraph.setSpacingAfter(10);
-        Paragraph answerParagraph = new Paragraph(answer, TextFont);
-        answerParagraph.setIndentationLeft(10); // 设置左缩进距离
-        answerParagraph.setIndentationRight(10); // 设置右缩进距离
-        answerParagraph.setSpacingAfter(10); // 设置段落间距
-
-        quesAnswer.add(questionParagraph);
-        quesAnswer.add(answerParagraph);
-        return quesAnswer;
+        String htmlContent = convertMarkdownToHtml(markdownText);
+        List<IElement> elements = convertHtmlToDocument(htmlContent);
+        for(IElement iElement : elements){
+            document.add((IBlockElement)iElement);
+        }
     }
 
     public static JsonNode genTableJsonNode(String jsonString){
@@ -219,6 +261,67 @@ public class GenerateStudentReport{
         return jsonNodeQuestions;
     }
 
+    public static String convertMarkdownToHtml(String markdown) throws IOException {
+        MutableDataSet options = new MutableDataSet();
+        options.set(Parser.EXTENSIONS, Arrays.asList(
+                AbbreviationExtension.create(),
+                AutolinkExtension.create(),
+                EmojiExtension.create(),
+                StrikethroughExtension.create(),
+                TablesExtension.create(),
+                FootnoteExtension.create(),
+                TaskListExtension.create(),
+                GitLabExtension.create()
+        )).toImmutable();
 
+        Parser parser = Parser.builder(options).build();
+        HtmlRenderer renderer = HtmlRenderer.builder(options).build();
 
+        String htmlWithoutCss  =  renderer.render(parser.parse(markdown));
+        String htmlWithCss = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"> <link rel=\"modulepreload\" href=\"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.esm.min.mjs\"\n" +
+                "    id=\"md-editor-mermaid-m\">\n" +
+                "  <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css\"\n" +
+                "    id=\"md-editor-katexCss\">\n" +
+                "  <script src=\"https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js\" id=\"md-editor-katex\"></script>\n" +
+                "  <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js\"\n" +
+                "    id=\"md-editor-hljs\"></script>\n" +
+                "  <link href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css\" rel=\"stylesheet\"\n" +
+                "    id=\"md-editor-hlCss\"><style>" +  "</style></head><body>\n" +
+                htmlWithoutCss + "\n"+
+                "</body>\n"+
+                "<script>\n" +
+                "    (function () {\n" +
+                "        document.addEventListener(\"DOMContentLoaded\", function () {\n" +
+                "            var mathElems = document.getElementsByClassName(\"katex\");\n" +
+                "            var elems = [];\n" +
+                "            for (const i in mathElems) {\n" +
+                "                if (mathElems.hasOwnProperty(i)) elems.push(mathElems[i]);\n" +
+                "            }\n" +
+                "\n" +
+                "            elems.forEach(elem => {\n" +
+                "                katex.render(elem.textContent, elem, { throwOnError: false, displayMode: elem.nodeName !== 'SPAN', });\n" +
+                "            });\n" +
+                "        });\n" +
+                "    })();\n" +
+                "</script> </html>";
+        return htmlWithCss;
+    }
+
+    public static List convertHtmlToDocument(String html) throws IOException{
+        InputStream htmlStream = new ByteArrayInputStream(html.getBytes("UTF-8"));
+        ConverterProperties properties = creatBaseFont(fontPath);
+//        HtmlConverter.convertToDocument(htmlStream,pdf, properties);
+        List<IElement>  elements = HtmlConverter.convertToElements(htmlStream, properties);
+        return elements;
+    }
+
+    private static ConverterProperties creatBaseFont(String fontPath) throws IOException{
+        ConverterProperties properties = new ConverterProperties();
+        FontProvider fontProvider = new DefaultFontProvider();
+        FontProgram fontProgram;
+        fontProgram = FontProgramFactory.createFont(fontPath);
+        fontProvider.addFont(fontProgram);
+        properties.setFontProvider(fontProvider);
+        return properties;
+    }
 }

@@ -31,6 +31,11 @@ public class DeviceDetailDataServiceTests {
         deviceDetailDataService.submit(7962,35);
     }
 
+    @Test
+    public void genGData(){
+        deviceDetailDataService.groupSubmit(14, 8182,35);
+    }
+
 
     @Test
     public void test(){

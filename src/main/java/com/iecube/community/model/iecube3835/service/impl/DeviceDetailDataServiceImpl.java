@@ -25,7 +25,7 @@ import com.iecube.community.model.task.entity.StudentTaskDetailVo;
 import com.iecube.community.model.task.mapper.TaskMapper;
 import com.iecube.community.model.task.service.TaskService;
 import com.iecube.community.util.pdf.GenerateStudentReport;
-import com.itextpdf.text.DocumentException;
+//import com.itextpdf.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -152,9 +152,10 @@ public class DeviceDetailDataServiceImpl implements DeviceDetailDataService {
         }catch (IOException e){
             e.printStackTrace();
             throw new ReportIOException("报告IO操作异常");
-        }catch (DocumentException e){
-            throw new GenerateStudentReportException("报告生成异常");
         }
+//        catch (DocumentException e){
+//            throw new GenerateStudentReportException("报告生成异常");
+//        }
 
     }
 
