@@ -135,6 +135,9 @@ public class DeviceDetailDataServiceImpl implements DeviceDetailDataService {
     @Override
     public PSTDetailDevice submit(Integer pstId, Integer studentId) {
         PSTDetailDevice pstDetailDevice = pstDetailsDeviceMapper.getByPSTId(pstId);
+//        if(pstDetailDevice.getSubmit()){
+//            return null;
+//        }
         StudentDto studentDto = studentMapper.getById(studentId);
         StudentTaskDetailVo studentTaskDetailVo = taskMapper.findStudentTaskByPSTId(pstId);
         String jsonString = pstDetailDevice.getData();
@@ -174,5 +177,16 @@ public class DeviceDetailDataServiceImpl implements DeviceDetailDataService {
 
 //    public void synchronousData(Integer groupId, Integer studentId){
 //
+//    }
+
+//    @Override
+//    public void genTest(String html){
+//        GenHtmlToPdf genHtmlToPdf = new GenHtmlToPdf();
+//        try {
+//            genHtmlToPdf.genHtmlToPdf(html);
+//        }
+//        catch (IOException){
+//            e.printStackTrace();
+//        }
 //    }
 }

@@ -8,6 +8,7 @@ import com.iecube.community.model.task.entity.StudentTaskDetailVo;
 import com.itextpdf.html2pdf.ConverterProperties;
 import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.html2pdf.resolver.font.DefaultFontProvider;
+import com.itextpdf.html2pdf.attach.impl.tags.ImgTagWorker;
 import com.itextpdf.io.font.FontConstants;
 import com.itextpdf.io.font.FontProgram;
 import com.itextpdf.io.font.FontProgramFactory;
@@ -28,6 +29,8 @@ import com.itextpdf.layout.property.HorizontalAlignment;
 import com.itextpdf.layout.property.Property;
 import com.itextpdf.layout.property.TextAlignment;
 import com.itextpdf.layout.property.UnitValue;
+import com.itextpdf.layout.renderer.IRenderer;
+import com.itextpdf.layout.renderer.TextRenderer;
 import com.vladsch.flexmark.ext.abbreviation.AbbreviationExtension;
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
 import com.vladsch.flexmark.ext.emoji.EmojiExtension;
@@ -38,7 +41,7 @@ import com.vladsch.flexmark.ext.gitlab.GitLabExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
-import com.vladsch.flexmark.util.options.MutableDataSet;
+import com.vladsch.flexmark.util.data.MutableDataSet;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
@@ -230,7 +233,26 @@ public class GenerateStudentReport {
         }
         String htmlContent = convertMarkdownToHtml(markdownText);
         List<IElement> elements = convertHtmlToDocument(htmlContent);
+        PageSize pageSize = document.getPdfDocument().getDefaultPageSize();
+        float pageWidth = pageSize.getWidth();
+        float pageHeight = pageSize.getHeight();
+
         for(IElement iElement : elements){
+            if(iElement instanceof Paragraph){
+                List<IElement> childElements = ((Paragraph) iElement).getChildren();
+                for (IElement child : childElements){
+                    if(child instanceof Image){
+                        float imgWidth = ((Image) child).getImageWidth();
+                        float imgHeight = ((Image) child).getImageHeight();
+                        if(imgWidth > pageWidth-document.getLeftMargin()-document.getRightMargin()){
+                            float newImgWidth = pageWidth-document.getLeftMargin()-document.getRightMargin();
+                            float newImgHeight = imgHeight*newImgWidth / imgWidth;
+                            ((Image) child).setHeight(newImgHeight);
+                            ((Image) child).setWidth(newImgWidth);
+                        }
+                    }
+                }
+            }
             document.add((IBlockElement)iElement);
         }
     }
@@ -262,6 +284,8 @@ public class GenerateStudentReport {
     }
 
     public static String convertMarkdownToHtml(String markdown) throws IOException {
+        //markdown = markdown.replaceAll("\\$(.*?)\\$", "\\$`$1`\\$");
+        //markdown = markdown.replaceAll("\\$\\$(.*?)\\$\\$", "\\$`$1`\\$");
         MutableDataSet options = new MutableDataSet();
         options.set(Parser.EXTENSIONS, Arrays.asList(
                 AbbreviationExtension.create(),

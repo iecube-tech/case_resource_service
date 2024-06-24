@@ -28,12 +28,18 @@ public class DeviceDetailDataServiceTests {
 
     @Test
     public void genData(){
-        deviceDetailDataService.submit(7962,35);
+//        deviceDetailDataService.submit(7962,35);
+        deviceDetailDataService.submit(8182,35);
     }
 
     @Test
     public void genGData(){
         deviceDetailDataService.groupSubmit(14, 8182,35);
+    }
+
+    @Test
+    public void genGData2(){
+        deviceDetailDataService.groupSubmit(15, 8173,36);
     }
 
 

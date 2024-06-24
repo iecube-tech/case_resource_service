@@ -2,6 +2,7 @@ package com.iecube.community.model.iecube3835.controller;
 
 import com.iecube.community.basecontroller.iecube3835.DeviceDetailDataControllerBaseController;
 import com.iecube.community.model.iecube3835.entity.PSTDetailDevice;
+import com.iecube.community.model.iecube3835.qo.HtmlValue;
 import com.iecube.community.model.iecube3835.service.DeviceDetailDataService;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -15,4 +15,5 @@ public interface DeviceDetailDataService {
 
     PSTDetailDevice groupSubmit(Integer groupId, Integer pstId, Integer studentId);
 
+//    void genTest(String html);
 }

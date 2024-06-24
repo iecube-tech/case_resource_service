@@ -142,13 +142,13 @@
         <dependency>
             <groupId>com.vladsch.flexmark</groupId>
             <artifactId>flexmark-all</artifactId>
-            <version>0.36.8</version>
+            <version>0.62.2</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.vladsch.flexmark</groupId>
             <artifactId>flexmark-profile-pegdown</artifactId>
-            <version>0.36.8</version>
+            <version>0.62.2</version>
         </dependency>
 <!--        <dependency>-->
 <!--            <groupId>com.vladsch.flexmark</groupId>-->
