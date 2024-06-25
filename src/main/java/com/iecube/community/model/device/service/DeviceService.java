@@ -22,6 +22,8 @@ public interface DeviceService {
 
     Device changeRemoteControl(Integer id, Integer targetState, Integer user);
 
+    Device refreshDeviceStatus(Integer id, Integer user);
+
     String connectOnlineBoxTest(String ip, Integer port);
 
     VncResponse startVnc(String ip, Integer vnc, Integer listen);

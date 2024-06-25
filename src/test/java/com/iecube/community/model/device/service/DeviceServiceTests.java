@@ -2,6 +2,7 @@ package com.iecube.community.model.device.service;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
@@ -11,6 +12,9 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RunWith(SpringRunner.class)
 public class DeviceServiceTests {
+
+    @Autowired
+    private DeviceService deviceService;
 
     @Test
     public void sendTest(){
@@ -32,6 +36,11 @@ public class DeviceServiceTests {
 
         // 处理响应
         System.out.println("Response: " + response);
+    }
+
+    @Test
+    public void refresh(){
+        deviceService.refreshDeviceStatus(2, 6);
     }
 
 }

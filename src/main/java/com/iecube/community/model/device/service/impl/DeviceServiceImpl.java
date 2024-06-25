@@ -296,6 +296,46 @@ public class DeviceServiceImpl implements DeviceService {
         }
     }
 
+    @Override
+    public Device refreshDeviceStatus(Integer id, Integer user){
+        Device existDevice = deviceMapper.getDeviceById(id);
+        FrpServerPortManage frpServerPortManage = deviceMapper.getFrpServerPortManageByDeviceId(id);
+        FrpServer frpServer = deviceMapper.getFrpServerById(existDevice.getPId()/10000);
+        TcpMessageDto tcpMessageDto = new TcpMessageDto();
+        DeviceDetail deviceDetail = new DeviceDetail();
+        deviceDetail.setId(existDevice.getId());
+        deviceDetail.setPid(existDevice.getBoxPid());
+        deviceDetail.setFrpServerPort(frpServer.getPort());
+        deviceDetail.setFrpServerIp(frpServer.getIp());
+        deviceDetail.setLocalIp(existDevice.getIp());
+        deviceDetail.setLocalPort(existDevice.getPort());
+        deviceDetail.setRemotePort(frpServerPortManage.getRemotePort());
+        tcpMessageDto.setDeviceDetail(deviceDetail);
+        tcpMessageDto.setType("status");
+        String boxResponse = this.connectOnlineBox(frpServer.getIp(), existDevice.getPId()%10000, tcpMessageDto);
+        ObjectMapper objectMapper = new ObjectMapper();
+        //允许json使用单引号
+        objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+        try{
+            OnlineBoxResponse onlineBoxResponse = objectMapper.readValue(boxResponse, OnlineBoxResponse.class);
+            if(onlineBoxResponse.getRes().equals(1)){
+                Integer remoteControl = 1;
+                if(onlineBoxResponse.getPid().equals(0)){
+                    remoteControl = 0;
+                }
+                deviceMapper.updateRemoteControl(existDevice.getId(), remoteControl,
+                        onlineBoxResponse.getDeviceState(), onlineBoxResponse.getPid(), user, new Date());
+            }else {
+                throw new OnlineBoxHandleException("OnlineBox处理失败: "+ onlineBoxResponse.getStrData());
+            }
+        }catch (JsonProcessingException e){
+            throw new ReceivedMessageException("解析OnlineBox数据异常: "+ e.getMessage());
+        }
+        Device newDevice = deviceMapper.getDeviceById(existDevice.getId());
+        return newDevice;
+    }
+
+
     public Device startRemoteDeviceRemoteControl(Device existDevice, Integer user){
         FrpServer frpServer = deviceMapper.getFrpServerById(existDevice.getPId()/10000);
         FrpServerPortManage frpServerPortManage = deviceMapper.getFrpServerPortManageByDeviceId(existDevice.getId());

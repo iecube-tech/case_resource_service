@@ -65,6 +65,14 @@ public class DeviceController extends DeviceBaseController {
         return new JsonResult<>(OK, device);
     }
 
+    @PostMapping("/refresh_status")
+    public JsonResult<Device> refreshStatus(Integer id, HttpSession session){
+        Integer user = getUserIdFromSession(session);
+        Device device = deviceService.refreshDeviceStatus(id, user);
+        return new JsonResult<>(OK, device);
+    }
+
+    // test util
     @GetMapping("/connect")
     public JsonResult<String> connectOnlineBox(String ip, Integer port){
         String res = deviceService.connectOnlineBoxTest(ip, port);
