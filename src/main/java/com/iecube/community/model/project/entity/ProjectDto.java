@@ -14,6 +14,8 @@ public class ProjectDto {
     String projectName;
     Integer useGroup;
     Integer groupLimit;
+    Integer useRemote;
+    RemoteQo remoteQo;
     List<Date> date;
     List<Student> students;
     List<Task> task;

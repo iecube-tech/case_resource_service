@@ -32,19 +32,6 @@
                         WHERE id=#{id}
     </update>
 
-    <update id="" parameterType="java.util.List">
-        <foreach collection="list" index="index" item="item" separator=";">
-            UPDATE map_node
-            SET
-            item_color = #{item.itemColor},
-            label_color = #{item.labelColor},
-            label_position = #{item.labelPosition},
-            label_font_size = #{item.labelFontSize},
-            symbol_size = #{item.symbolSize}
-            WHERE id = #{item.id}
-        </foreach>
-    </update>
-
     <update id="batchUpdateMapNode" parameterType="java.util.List">
         update map_node
         <trim prefix="set" suffixOverrides=",">

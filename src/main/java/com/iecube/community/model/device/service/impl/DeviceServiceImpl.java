@@ -515,6 +515,12 @@ public class DeviceServiceImpl implements DeviceService {
         }
     }
 
+    @Override
+    public List<Device> deviceList(Integer user){
+        List<Device> deviceList = deviceMapper.deviceList(user);
+        return deviceList;
+    }
+
     public String connectOnlineBoxTest(String ip, Integer port){
         TcpMessageDto tcpMessageDto = new TcpMessageDto();
         DeviceDetail deviceDetail = new DeviceDetail();

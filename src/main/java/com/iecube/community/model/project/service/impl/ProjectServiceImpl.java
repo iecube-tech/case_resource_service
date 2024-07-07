@@ -4,6 +4,10 @@ import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.content.entity.Content;
 import com.iecube.community.model.project.service.ex.GenerateFileException;
+import com.iecube.community.model.remote_project.entity.RemoteProject;
+import com.iecube.community.model.remote_project.qo.RemoteProjectQo;
+import com.iecube.community.model.remote_project.service.RemoteProjectService;
+import com.iecube.community.model.remote_project_join_device.entity.RemoteProjectDevice;
 import com.iecube.community.model.tag.service.TagService;
 import com.iecube.community.model.taskTemplate.dto.TaskTemplateDto;
 import com.iecube.community.model.content.service.ContentService;
@@ -44,6 +48,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -97,11 +105,15 @@ public class ProjectServiceImpl implements ProjectService {
     @Autowired
     private TagService tagService;
 
+    @Autowired
+    private RemoteProjectService remoteProjectService;
+
 
     SimpleDateFormat dateFormat =new SimpleDateFormat("YYYY-MM-dd");
 
     @Override
     public Integer addProject(ProjectDto projectDto, Integer teacherId) {
+        // todo 数据校验 必须要包含的数据
 //        先判断创建的是课程还是案例
 //        更改案例名称  如果和原来的案例不同  则不动   如果不同，则添加时间后缀
 //        this.checkProject(projectDto, teacherId);
@@ -122,11 +134,59 @@ public class ProjectServiceImpl implements ProjectService {
         project.setUseGroup(projectDto.getUseGroup());
         project.setGroupLimit(projectDto.getGroupLimit());
         project.setMdCourse(content.getMdCourse());
+        project.setUseRemote(projectDto.getUseRemote());
         Integer row = projectMapper.insert(project);
         if (row != 1){
             throw new InsertException("插入数据异常");
         }
         Integer projectId = project.getId();
+        // 开启远程实验
+        if(project.getUseRemote() == 1){
+            // 检查数据是否合理
+            RemoteQo remoteQo = projectDto.getRemoteQo();
+            if(remoteQo.getRemoteDeviceIdList().size() == 0){
+                projectMapper.delete(projectId);
+                throw new InsertException("没有添加远程设备");
+            }
+            if(remoteQo.getEndTime() == null || remoteQo.getStartTime()== null || remoteQo.getStartDate()== null || remoteQo.getEndDate()== null){
+                projectMapper.delete(projectId);
+                throw new InsertException("没有添加远程实验时间信息");
+            }
+            if(remoteQo.getAppointmentCount() == null|| remoteQo.getAppointmentDuration() == null){
+                projectMapper.delete(projectId);
+                throw new InsertException("没有添加远程实验学生限制");
+            }
+            // 定义日期时间格式化器，根据日期字符串的格式定义
+            DateTimeFormatter formatterDate = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter formatterTime = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+            LocalDate startLocalDate = LocalDate.parse(remoteQo.getStartDate(), formatterDate);
+            LocalDate endLocalDate = LocalDate.parse(remoteQo.getEndDate(), formatterDate);
+            LocalTime startLocalTime = LocalTime.parse(remoteQo.getStartTime(), formatterTime);
+            LocalTime endLocalTime = LocalTime.parse(remoteQo.getEndTime(), formatterTime);
+            RemoteProject remoteProject = new RemoteProject();
+            remoteProject.setProjectId(projectId);
+            remoteProject.setStartDate(startLocalDate);
+            remoteProject.setEndDate(endLocalDate);
+            remoteProject.setStartTime(startLocalTime);
+            remoteProject.setEndTime(endLocalTime);
+            remoteProject.setAppointmentCount(remoteQo.getAppointmentCount());
+            remoteProject.setAppointmentDuration(remoteQo.getAppointmentDuration());
+            remoteProject.setDayLimit(remoteQo.getDayLimit());
+            List<RemoteProjectDevice> remoteDeviceList = new ArrayList<>();
+            remoteQo.getRemoteDeviceIdList().forEach(item -> {
+                RemoteProjectDevice remoteProjectDevice = new RemoteProjectDevice();
+                remoteProjectDevice.setDeviceId(item);
+                remoteProjectDevice.setProjectId(projectId);
+                remoteDeviceList.add(remoteProjectDevice);
+            });
+            RemoteProjectQo remoteProjectQo = new RemoteProjectQo();
+            remoteProjectQo.setRemoteProjectDeviceList(remoteDeviceList);
+            remoteProjectQo.setRemoteProject(remoteProject);
+
+            remoteProjectService.addRemoteProject(remoteProjectQo);
+        }
+
         // 添加项目的学生
         for(Student student: projectDto.getStudents()){
             ProjectStudent pStudent = new ProjectStudent();

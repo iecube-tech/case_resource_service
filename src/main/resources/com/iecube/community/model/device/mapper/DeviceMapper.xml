@@ -203,5 +203,14 @@
         UPDATE device_frp_service_port_manage SET vnc_pid=#{vncPid} WHERE id=#{id}
     </update>
 
+    <select id="deviceList" resultMap="Device">
+        SELECT device_device.id, device_device.sn_id, device_device.name, device_device.collage_id, device_device.p_id,
+               device_device.type, device_device.ip, device_device.port, device_device.live_url, device_device.device_state,
+               device_device.remote_control, device_device.remote_url, device_device.box_pid, device_device.single_duration,
+               device_device.allow_appointment, device_device.creator, device_device.create_time,
+               device_device.last_modified_user, device_device.last_modified_time
+        FROM `device_device` INNER JOIN teacher ON device_device.collage_id=teacher.collage_id
+        WHERE teacher.id=#{user};
+    </select>
 
 </mapper>

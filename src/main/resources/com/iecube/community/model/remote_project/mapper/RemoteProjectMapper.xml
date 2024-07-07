@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.remote_project.mapper.RemoteProjectMapper">
+
+    <resultMap id="RemoteProject" type="com.iecube.community.model.remote_project.entity.RemoteProject">
+        <result column="project_id" property="projectId" ></result>
+        <result column="start_date" property="startDate" ></result>
+        <result column="end_date" property="endDate" ></result>
+        <result column="start_time" property="startTime" ></result>
+        <result column="end_time" property="endTime" ></result>
+        <result column="appointment_duration" property="appointmentDuration" ></result>
+        <result column="appointment_count" property="appointmentCount" ></result>
+        <result column="day_limit" property="dayLimit" ></result>
+    </resultMap>
+
+    <insert id="addRemoteProject" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO remote_project (id, project_id, start_date, end_date, start_time, end_time, appointment_duration,
+                                    appointment_count, day_limit)
+        VALUES (NULL, #{ projectId },#{ startDate },#{ endDate },#{ startTime },#{ endTime },#{ appointmentDuration },
+                #{ appointmentCount }, #{dayLimit})
+    </insert>
+
+
+    <select id="checkDeviceTime" resultMap="RemoteProject">
+        SELECT rp.*
+        FROM remote_project rp
+                 LEFT JOIN remote_project_join_device rpjd ON rp.project_id = rpjd.project_id
+        WHERE rpjd.device_id = #{deviceId}
+          AND (
+                (#{startDate} BETWEEN rp.start_date AND rp.end_date) OR
+                (#{endDate} BETWEEN rp.start_date AND rp.end_date) OR
+                (rp.start_date BETWEEN #{startDate} AND #{endDate}) OR
+                (rp.end_date BETWEEN #{startDate} AND #{endDate})
+            )
+    </select>
+
+    <select id="getByProjectId" resultMap="RemoteProject">
+        SELECT * FROM remote_project WHERE project_id=#{projectId}
+    </select>
+
+</mapper>

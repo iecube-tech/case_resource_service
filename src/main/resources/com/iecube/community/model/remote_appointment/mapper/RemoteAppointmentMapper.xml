@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.remote_appointment.mapper.RemoteAppointmentMapper">
+
+    <resultMap id="RemoteAppointment" type="com.iecube.community.model.remote_appointment.entity.RemoteAppointment">
+        <result column="student_id" property="studentId"></result>
+        <result column="project_id" property="projectId"></result>
+        <result column="device_id" property="deviceId"></result>
+        <result column="appointment_date" property="appointmentDate"></result>
+        <result column="appointment_start_time" property="appointmentStartTime"></result>
+        <result column="appointment_end_time" property="appointmentEndTime"></result>
+    </resultMap>
+
+    <resultMap id="RemoteAppointmentVo" type="com.iecube.community.model.remote_appointment.vo.RemoteAppointmentVo">
+        <result column="student_id" property="studentId"></result>
+        <result column="project_id" property="projectId"></result>
+        <result column="project_name" property="projectName"></result>
+        <result column="device_id" property="deviceId"></result>
+        <result column="device_name" property="deviceName"></result>
+        <result column="appointment_date" property="appointmentDate"></result>
+        <result column="appointment_start_time" property="appointmentStartTime"></result>
+        <result column="appointment_end_time" property="appointmentEndTime"></result>
+
+    </resultMap>
+
+    <insert id="batchAdd" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO remote_appointment
+        (
+            id, student_id, project_id, device_id, appointment_date, appointment_start_time, appointment_end_time, status
+        )
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (
+            NUll, #{item.studentId},#{ item.projectId },#{ item.deviceId },#{ item.appointmentDate},
+             #{ item.appointmentStartTime},#{ item.appointmentEndTime },#{item.status}
+            )
+        </foreach>
+    </insert>
+
+    <select id="listAppointmentDate" resultType="java.time.LocalDate">
+        SELECT remote_appointment.appointment_date
+        FROM remote_appointment
+        WHERE project_id=#{projectId} GROUP BY appointment_date
+    </select>
+
+    <select id="listByDeviceAndDate" resultMap="RemoteAppointment">
+        SELECT * FROM remote_appointment WHERE device_id=#{deviceId} AND appointment_date=#{appointmentDate} AND project_id=#{projectId}
+    </select>
+
+    <select id="studentAppointmentList" resultMap="RemoteAppointmentVo">
+        SELECT ra.id, ra.student_id, ra.project_id, ra.device_id, ra.appointment_date, ra.appointment_start_time,
+               ra.appointment_end_time, ra.status, p.project_name, d.name AS device_name
+        FROM remote_appointment ra INNER JOIN project p ON ra.project_id=p.id
+            INNER JOIN device_device d ON ra.device_id=d.id
+        WHERE ra.project_id=#{projectId} AND ra.student_id=#{studentId}
+    </select>
+
+    <select id="getById" resultMap="RemoteAppointment">
+        SELECT * FROM remote_appointment WHERE id=#{appointmentId}
+    </select>
+
+    <update id="studentAppointment">
+        UPDATE remote_appointment
+        SET student_id=#{studentId},
+            status=0
+        WHERE id=#{appointmentId}
+    </update>
+
+    <update id="studentCancelAppointment">
+        UPDATE remote_appointment
+        SET student_id=NULL,
+            status=1
+        WHERE id=#{appointmentId}
+    </update>
+
+</mapper>

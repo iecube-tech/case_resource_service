@@ -49,4 +49,5 @@ public interface DeviceMapper {
 
     Integer updateVncPid(FrpServerPortManage frpServerPortManage);
 
+    List<Device> deviceList(Integer user);
 }

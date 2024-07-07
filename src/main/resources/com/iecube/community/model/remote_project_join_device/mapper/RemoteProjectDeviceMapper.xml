@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.remote_project_join_device.mapper.RemoteProjectDeviceMapper">
+
+    <resultMap id="RemoteDeviceDto" type="com.iecube.community.model.remote_project_join_device.dto.RemoteDeviceDto">
+    </resultMap>
+
+    <insert id="batchAddRemoteProjectDevice" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO remote_project_join_device (id, project_id, device_id) VALUES
+        <foreach collection="list" separator="," item="item">
+            (NULL, #{item.projectId}, #{item.deviceId})
+        </foreach>
+    </insert>
+
+    <select id="listByProjectId" resultMap="RemoteDeviceDto">
+        SELECT device.id, device.name
+        FROM remote_project_join_device rpjd INNER JOIN device_device device ON rpjd.device_id=device.id
+        WHERE rpjd.project_id=#{projectId}
+    </select>
+
+
+</mapper>
+
+
+
+

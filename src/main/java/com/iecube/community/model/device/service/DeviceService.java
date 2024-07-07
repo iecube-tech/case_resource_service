@@ -27,4 +27,6 @@ public interface DeviceService {
     String connectOnlineBoxTest(String ip, Integer port);
 
     VncResponse startVnc(String ip, Integer vnc, Integer listen);
+
+    List<Device> deviceList(Integer user);
 }

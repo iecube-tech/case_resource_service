@@ -86,4 +86,11 @@ public class DeviceController extends DeviceBaseController {
         System.out.println(vncResponse);
         return new JsonResult<>(OK,vncResponse);
     }
+
+    @GetMapping("/my")
+    public JsonResult<List> remoteDeviceList(HttpSession session){
+        Integer user = getUserIdFromSession(session);
+        List<Device> deviceList = deviceService.deviceList(user);
+        return new JsonResult<>(OK, deviceList);
+    }
 }
