@@ -1,5 +1,6 @@
 package com.iecube.community.model.task.entity;
 
+import com.iecube.community.model.pst_article.entity.PSTArticle;
 import com.iecube.community.model.pst_resource.entity.PSTResourceVo;
 import com.iecube.community.model.resource.entity.Resource;
 import com.iecube.community.model.resource.entity.ResourceVo;
@@ -30,4 +31,6 @@ public class StudentTaskDetailVo {
     Date taskStartTime;
     Date taskEndTime;
     Integer questionListSize;
+//    PSTMarkdownOperate pstMarkdownOperate;
+    PSTArticle pstArticle;
 }

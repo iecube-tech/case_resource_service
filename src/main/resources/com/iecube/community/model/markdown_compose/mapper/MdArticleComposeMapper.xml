@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.markdown_compose.mapper.MdArticleComposeMapper">
+    <resultMap id="MdArticleCompose" type="com.iecube.community.model.markdown_compose.entity.MdArticleCompose">
+        <result property="articleId" column="article_id"></result>
+        <result property="q_type" column="qType"></result>
+    </resultMap>
+
+    <insert id="batchAdd" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO md_article_compose (id, article_id, `index`, `name`, val, answer, score, `result`,
+                                        subjective, q_type, question)
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (NULL, #{item.articleId}, #{item.index}, #{item.name}, #{item.val}, #{item.answer}, #{item.score}, NULL,
+             #{item.subjective}, #{item.qType}, #{item.question})
+        </foreach>
+    </insert>
+
+    <delete id="deleteByArticle">
+        DELETE FROM md_article_compose WHERE article_id=#{articleId}
+    </delete>
+
+    <update id="updateValById">
+        UPDATE md_article_compose SET val=#{val} WHERE id=#{id}
+    </update>
+
+    <update id="updateAnswerById">
+        UPDATE md_article_compose SET answer=#{answer} WHERE id=#{id}
+    </update>
+
+    <update id="updateScoreById">
+        UPDATE md_article_compose SET score=#{score} WHERE id=#{id}
+    </update>
+
+    <update id="updateSubjectiveById">
+        UPDATE md_article_compose SET subjective=#{subjective} WHERE id=#{id}
+    </update>
+
+    <select id="getByArticleIndex" resultMap="MdArticleCompose">
+        SELECT * FROM  md_article_compose WHERE article_id=#{articleId} and `index`=#{index}
+    </select>
+
+    <select id="getById" resultMap="MdArticleCompose">
+        SELECT * FROM  md_article_compose WHERE id=#{id}
+    </select>
+
+    <select id="getByArticle" resultMap="MdArticleCompose">
+        SELECT * FROM  md_article_compose WHERE article_id=#{articleId}
+    </select>
+
+</mapper>

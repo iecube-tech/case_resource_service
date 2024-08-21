@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class TaskMdDoc {
     Integer id;
-    Integer mdDocId;
+    Integer mdDocId; // 对应markdown的chapterId
     Integer taskTemplateId;
     Integer taskId;
 }

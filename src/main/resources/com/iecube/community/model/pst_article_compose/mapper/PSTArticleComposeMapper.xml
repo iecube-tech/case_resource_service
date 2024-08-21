@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.pst_article_compose.mapper.PSTArticleComposeMapper">
+    <resultMap id="PSTArticleCompose" type="com.iecube.community.model.pst_article_compose.entity.PSTArticleCompose">
+        <result property="pstId" column="pst_id"></result>
+        <result property="pstArticleId" column="pst_article_id"></result>
+        <result property="q_type" column="qType"></result>
+    </resultMap>
+
+    <insert id="batchAdd" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO pst_article_compose (id, pst_id, pst_article_id, `index`, `name`, val, answer, score, `result`, status,
+                                         subjective, q_type, question)
+        VALUES
+            <foreach collection="list" separator="," index="index" item="item">
+                (NULL, #{item.pstId}, #{item.pstArticleId}, #{item.index}, #{item.name}, #{item.val}, #{item.answer},#{item.score},NULL,0,
+                 #{item.subjective}, #{item.qType}, #{item.question})
+            </foreach>
+    </insert>
+
+    <select id="getByArticleId" resultMap="PSTArticleCompose">
+        SELECT * FROM pst_article_compose WHERE pst_article_id=#{pstArticleId}
+    </select>
+
+    <select id="getByArticleIndex" resultMap="PSTArticleCompose">
+        SELECT * FROM pst_article_compose WHERE pst_article_id=#{articleId} and `index`=#{index}
+    </select>
+
+    <select id="getById" resultMap="PSTArticleCompose">
+        SELECT * FROM pst_article_compose WHERE id=#{id}
+    </select>
+
+    <update id="composeUpdateVal">
+        UPDATE pst_article_compose SET val=#{val} WHERE id=#{id}
+    </update>
+
+    <update id="composeUpdateResult">
+        UPDATE pst_article_compose SET `result`=#{result} WHERE id=#{id}
+    </update>
+
+    <select id="composeListByPstId" resultMap="PSTArticleCompose">
+        SELECT * FROM pst_article_compose WHERE pst_id=#{pstId}
+    </select>
+</mapper>

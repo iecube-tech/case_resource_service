@@ -11,6 +11,8 @@ import com.iecube.community.model.markdown.qo.MDArticleQo;
 import com.iecube.community.model.markdown.service.MarkdownService;
 import com.iecube.community.model.markdown.vo.ArticleVo;
 import com.iecube.community.model.markdown.vo.MDCatalogue;
+import com.iecube.community.model.markdown_compose.entity.MdArticleCompose;
+import com.iecube.community.model.markdown_compose.service.MdArticleComposeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,9 @@ public class MarkdownServiceImpl implements MarkdownService {
 
     @Autowired
     private MarkdownMapper markdownMapper;
+
+    @Autowired
+    private MdArticleComposeService mdArticleComposeService;
 
     @Override
     public List<MDCatalogue> getCatalogue(){
@@ -48,6 +53,14 @@ public class MarkdownServiceImpl implements MarkdownService {
     @Override
     public MDArticle getArticleByChapter(Integer chapterId){
         MDArticle article = markdownMapper.articleByChapterId(chapterId);
+        this.updateReadNum(article.getId(), article.getReadNum()+1);
+        return article;
+    }
+
+    @Override
+    public MDArticle getFullArticleByChapter(Integer chapterId){
+        MDArticle article = markdownMapper.articleByChapterId(chapterId);
+        article.setComposeList(mdArticleComposeService.getComposeByArticleId(article.getId()));
         this.updateReadNum(article.getId(), article.getReadNum()+1);
         return article;
     }
@@ -110,6 +123,8 @@ public class MarkdownServiceImpl implements MarkdownService {
             throw new UpdateException("更新数据异常");
         }
         MDArticle newArticle = markdownMapper.articleById(articleQo.getId());
+        List<MdArticleCompose> mdArticleComposeList = mdArticleComposeService.MdArticleUpdate(articleQo.getId(), articleQo.getComposeList());
+        newArticle.setComposeList(mdArticleComposeList);
         return newArticle;
     }
 

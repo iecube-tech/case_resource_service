@@ -16,6 +16,8 @@ public interface MarkdownService {
 
     MDArticle getArticleByChapter(Integer chapterId);
 
+    MDArticle getFullArticleByChapter(Integer chapterId);
+
     List<MDCatalogue> addCourse(MDCourse mdCourse);
 
     List<MDCatalogue> addChapter(MDChapter mdChapter);

@@ -44,4 +44,8 @@ public interface TaskMapper {
 
     ProjectStudentTask getProjectStudentTaskById(Integer pstId);
     List<ProjectStudentTask> getProjectStudentTaskByProjectIdAndTaskId(Integer projectId, Integer taskId);
+
+    List<PSTBaseDetail> getPSTBaseDetailByProject(Integer projectId);
+
+    PSTBaseDetail getPstBaseDetail(Integer pstId);
 }

@@ -93,7 +93,7 @@ public class ResourceController extends ResourceBaseController {
      * @param fileName
      * @param response
      */
-    @GetMapping("image/{fileName}")
+    @GetMapping("/image/{fileName}")
     public void GetImage(@PathVariable String fileName, HttpServletResponse response){
         Resource resource = resourceService.getResourceByFilename(fileName);
 //        DownloadUtil.httpDownload(new File(this.image, fileName), resource.getOriginFilename(), response);
@@ -105,10 +105,16 @@ public class ResourceController extends ResourceBaseController {
      * @param fileName
      * @param response
      */
-    @GetMapping("file/{fileName}")
+    @GetMapping("/file/{fileName}")
     public void GetFile(@PathVariable String fileName, HttpServletResponse response){
         Resource resource = resourceService.getResourceByFilename(fileName);
         DownloadUtil.httpDownload(new File(this.files, fileName), resource.getOriginFilename(), response);
+    }
+
+    @DeleteMapping("/del/{fileName}")
+    public JsonResult<Void> DeleteImage(@PathVariable String fileName, HttpServletResponse response){
+        resourceService.deleteResource(fileName);
+        return new JsonResult<Void>(OK);
     }
 
 }

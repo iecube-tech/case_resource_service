@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.pst_markdown_operate.mapper.PSTMarkdownOperateMapper">
+
+    <resultMap id="PSTMarkdownOperate" type="com.iecube.community.model.pst_markdown_operate.entity.PSTMarkdownOperate">
+        <result column="pst_id" property="pstId"></result>
+    </resultMap>
+
+    <insert id="batchAdd" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO pst_markdown_operate
+        (
+        id, pst_id, content, element
+        )
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (
+            NUll, #{item.pstId}, #{item.content}, #{item.element}
+            )
+        </foreach>
+    </insert>
+
+    <update id="update">
+        UPDATE pst_markdown_operate SET element=#{element} WHERE id=#{id}
+    </update>
+
+    <select id="getByPstId" resultMap="PSTMarkdownOperate">
+        SELECT * FROM pst_markdown_operate WHERE pst_id=#{pstId}
+    </select>
+
+</mapper>

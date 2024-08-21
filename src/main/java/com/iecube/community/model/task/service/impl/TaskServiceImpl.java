@@ -9,12 +9,15 @@ import com.iecube.community.model.project.entity.ProjectStudentVo;
 import com.iecube.community.model.project.mapper.ProjectMapper;
 import com.iecube.community.model.project_student_group.entity.GroupStudent;
 import com.iecube.community.model.project_student_group.mapper.ProjectStudentGroupMapper;
+import com.iecube.community.model.pst_article.entity.PSTArticle;
+import com.iecube.community.model.pst_article.service.PSTArticleService;
 import com.iecube.community.model.question_bank.mapper.QuestionBankMapper;
 import com.iecube.community.model.question_bank.service.QuestionBankService;
 import com.iecube.community.model.question_bank.service.ex.NoQuestionException;
 import com.iecube.community.model.tag.entity.Tag;
 import com.iecube.community.model.tag.mapper.TagMapper;
 import com.iecube.community.model.task.entity.*;
+import com.iecube.community.model.task.service.ex.GenStudentReportFiledException;
 import com.iecube.community.model.task.service.ex.PSTResourceNotFoundException;
 import com.iecube.community.model.task.service.ex.PermissionDeniedException;
 import com.iecube.community.model.pst_resource.entity.PSTResource;
@@ -51,7 +54,11 @@ import com.iecube.community.model.task_reference_link.mapper.ReferenceLinkMapper
 import com.iecube.community.model.task_requirement.entity.Requirement;
 import com.iecube.community.model.task_requirement.entity.TaskRequirement;
 import com.iecube.community.model.task_requirement.mapper.RequirementMapper;
+import com.iecube.community.util.pdf.MdArticleStudentReportGen;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -118,6 +125,12 @@ public class TaskServiceImpl implements TaskService {
     @Autowired
     private ProjectStudentGroupMapper projectStudentGroupMapper;
 
+    @Autowired
+    private PSTArticleService pstArticleService;
+
+    @Value("${generated-report}")
+    private String genStudentReportDir;
+
     /**
      * 任务状态
      * 0 未提交 => wait
@@ -125,14 +138,14 @@ public class TaskServiceImpl implements TaskService {
      * 2 已完成content并点击保存 =>  finish
      * 3 教师已经提交批改
      */
-    public static final int DEFAULT_STATUS=0;
-    public static final int SUBMIT_FILE_STATUS=1;
-    public static final int SUBMIT_CONTENT_STATUS=2;
+    public static final int DEFAULT_STATUS=0; //未提交
+    public static final int SUBMIT_FILE_STATUS=1; // 进行时，将要做的
+    public static final int SUBMIT_CONTENT_STATUS=2; // 已提交
 
-    public static final int TEACHER_READ_OVER=3;
+    public static final int TEACHER_READ_OVER=3; // 已批阅
 
     @Override
-    public Integer createTask(Task task, Integer user) {
+    public Task createTask(Task task, Integer user) {
         task.setTaskTemplateId(task.getId());
         task.setCreator(user);
         task.setLastModifiedUser(user);
@@ -280,7 +293,7 @@ public class TaskServiceImpl implements TaskService {
             }
         }
 
-        return task.getId();
+        return task;
     }
 
     @Override
@@ -318,6 +331,8 @@ public class TaskServiceImpl implements TaskService {
                 task.setQuestionListSize(0);
             }
 
+            PSTArticle pstArticle = pstArticleService.getByPstId(task.getPSTId());
+            task.setPstArticle(pstArticle);
         }
         return tasks;
     }
@@ -670,6 +685,28 @@ public class TaskServiceImpl implements TaskService {
         return taskDetail;
     }
 
+    @Override
+    public StudentTaskDetailVo studentSubmit(Integer pstId, Integer studentId) {
+        StudentTaskDetailVo oldTaskDetail = this.findStudentTaskByPSTId(pstId);
+        //通过pstId查询task
+        Task task = taskMapper.findTaskByPSTId(pstId);
+        //判断是否在时间内 如果不在时间内 是否为resubmit
+//        Date CurrDate = new Date();
+
+//        if(CurrDate.after(task.getTaskEndTime()) || task.getTaskStartTime().after(CurrDate)){
+//            if(oldTaskDetail.getTaskResubmit()!=1){
+//                throw new PermissionDeniedException("不在任务时间内");
+//            }
+//        }
+        Integer row1 = taskMapper.updatePSTStatus(pstId, SUBMIT_CONTENT_STATUS);
+        if (row1 !=1){
+            throw new UpdateException("更改任务状态失败");
+        }
+        taskMapper.updatePSTResubmit(pstId,0);
+        StudentTaskDetailVo taskDetail = this.findStudentTaskByPSTId(pstId);
+        return taskDetail;
+    }
+
     /**
      * 学生将任务状态从2 修改为1
      * @param pstId
@@ -701,6 +738,54 @@ public class TaskServiceImpl implements TaskService {
     public List<TaskBriefVo> getProjectTaskBriefList(Integer projectId) {
         List<TaskBriefVo> result = taskMapper.getProjectBriefVo(projectId);
         return result;
+    }
+
+    @Override
+    public List<PSTBaseDetail> getPSTBaseDetailByProject(Integer projectId) {
+        List<PSTBaseDetail> pstBaseDetailList = taskMapper.getPSTBaseDetailByProject(projectId);
+        return pstBaseDetailList;
+    }
+
+    @Override
+    public PSTBaseDetail readOverPSTArticle(Integer pstId, Integer teacherId){
+        Double grade = pstArticleService.computeGrade(pstId);
+        taskMapper.updatePSTGrade(pstId, grade,grade);
+        taskMapper.updatePSTStatus(pstId, TEACHER_READ_OVER);
+        // 报告
+
+        PSTBaseDetail pstBaseDetail = taskMapper.getPstBaseDetail(pstId);
+        return pstBaseDetail;
+    }
+
+    @Override
+    @Async
+    public void genMdArticleReport(Integer pstId , PSTBaseDetail pstBaseDetail, Integer teacherId){
+        PSTArticle pstArticle = pstArticleService.getByPstId(pstId);
+        MdArticleStudentReportGen mdArticleStudentReportGen = new MdArticleStudentReportGen(genStudentReportDir);
+        MultipartFile readOverReport = null;
+        try{
+            readOverReport =  mdArticleStudentReportGen.startGen(pstBaseDetail, pstArticle.getComposeList());
+        }catch (Exception e){
+           throw new GenStudentReportFiledException(pstId+"学生报告生成异常");
+        }
+        try{
+            Resource resource = resourceService.UploadFile(readOverReport, teacherId);
+            List<PSTResource> pstResourceList = pstResourceMapper.getPSTResourcesByPSTId(pstId);
+            if(pstResourceList.size()>0){
+                for(PSTResource pstResource:pstResourceList){
+                    if(pstResource.getReadOverResourceId()!=null){
+                        resourceService.deleteById(pstResource.getReadOverResourceId());
+                        pstResourceMapper.deleteById(pstResource.getId());
+                    }
+                }
+            }
+            PSTResource newPstResource = new PSTResource();
+            newPstResource.setPSTId(pstId);
+            newPstResource.setReadOverResourceId(resource.getId());
+            int res = pstResourceMapper.add(newPstResource);
+        }catch (Exception e){
+            throw new GenStudentReportFiledException(pstId+"学生报告持久化异常");
+        }
     }
 
 }

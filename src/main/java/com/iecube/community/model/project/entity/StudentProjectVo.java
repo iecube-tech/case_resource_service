@@ -11,12 +11,6 @@ import java.util.List;
  */
 @Data
 public class StudentProjectVo {
-    String projectName;
-    String projectIntroduce;
-    String projectIntroduction;
-    String projectTarget;
-    String projectCover;
-    Integer projectDeviceId;
-    Integer projectMdCourseId;
+    Project project;
     List<TaskVo> projectTaskList;
 }

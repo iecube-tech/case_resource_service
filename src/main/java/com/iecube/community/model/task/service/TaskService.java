@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.List;
 
 public interface TaskService {
-    Integer createTask(Task task, Integer user);
+    Task createTask(Task task, Integer user);
 
     List<ProjectStudentTask> getPSTByProjectId(Integer projectId);
 
@@ -35,6 +35,8 @@ public interface TaskService {
 
     StudentTaskDetailVo studentSubmitContent(String content, Integer pstId,Integer studentId);
 
+    StudentTaskDetailVo studentSubmit(Integer pstId,Integer studentId);
+
     StudentTaskDetailVo studentChangeStatus(Integer pstId);
 
     List<TaskVo> getProjectTasks(Integer projectId);
@@ -42,4 +44,10 @@ public interface TaskService {
     Void updateDataTables(Integer pstId, String dataTables);
 
     List<TaskBriefVo> getProjectTaskBriefList(Integer projectId);
+
+    List<PSTBaseDetail> getPSTBaseDetailByProject(Integer projectId);
+
+    PSTBaseDetail readOverPSTArticle(Integer pstId, Integer teacherId);
+
+    void genMdArticleReport(Integer pstId, PSTBaseDetail pstBaseDetail, Integer teacherId);
 }

@@ -63,7 +63,7 @@
 
     <insert id="addArticle" useGeneratedKeys="true"  keyProperty="id">
         INSERT INTO md_article (id, chapter_id, content, catalogue, creator, create_time, last_modified_time, last_modified_user, read_num)
-        VALUES (NULL, #{chapterId}, #{content},#{catalogue}, #{creator}, #{createTime}, #{lastModifiedTime}, #{lastModifiedUser}, 0)
+        VALUES (NULL, #{chapterId}, #{content}, #{catalogue}, #{creator}, #{createTime}, #{lastModifiedTime}, #{lastModifiedUser}, 0)
     </insert>
 
     <update id="updateArticle">

@@ -1,11 +1,8 @@
-package com.iecube.community.model.task.controller;
+package com.iecube.community.model.markdown_compose.controller;
 
 import com.iecube.community.basecontroller.task.TaskBaseController;
 import com.iecube.community.model.pst_resource.entity.PSTResourceVo;
-import com.iecube.community.model.task.entity.PSTDataTables;
-import com.iecube.community.model.task.entity.ProjectStudentTaskQo;
-import com.iecube.community.model.task.entity.StudentTaskDetailVo;
-import com.iecube.community.model.task.entity.TaskVo;
+import com.iecube.community.model.task.entity.*;
 import com.iecube.community.model.task.service.TaskService;
 import com.iecube.community.model.task.vo.TaskBriefVo;
 import com.iecube.community.util.JsonResult;
@@ -93,6 +90,13 @@ public class TaskController extends TaskBaseController {
         return new JsonResult<>(OK, taskDetail);
     }
 
+    @PostMapping("/submit")
+    public JsonResult<StudentTaskDetailVo> studentSubmit(Integer pstId, HttpSession session){
+        Integer studentId = getUserIdFromSession(session);
+        StudentTaskDetailVo taskDetail =taskService.studentSubmit(pstId, studentId);
+        return new JsonResult<>(OK, taskDetail);
+    }
+
     @GetMapping("/taskdetail")
     public JsonResult<StudentTaskDetailVo> getTaskDetailByPSTId(Integer pstId, HttpSession session){
         Integer studentId = getUserIdFromSession(session);
@@ -125,5 +129,18 @@ public class TaskController extends TaskBaseController {
         return new JsonResult<>(OK, result);
     }
 
+    @GetMapping("/psts/{projectId}")
+    public JsonResult<List> getPSTBaseDetailByProject(@PathVariable Integer projectId){
+        List<PSTBaseDetail> pstBaseDetailList = taskService.getPSTBaseDetailByProject(projectId);
+        return new JsonResult<>(OK, pstBaseDetailList);
+    }
+
+    @PostMapping("/md/readover/{pstId}")
+    public JsonResult<PSTBaseDetail> teacherReadOverMdTask(@PathVariable Integer pstId, HttpSession session){
+        Integer teacherId = getUserIdFromSession(session);
+        PSTBaseDetail pstBaseDetail = taskService.readOverPSTArticle(pstId, teacherId);
+        taskService.genMdArticleReport(pstId, pstBaseDetail, teacherId);
+        return new JsonResult<>(OK, pstBaseDetail);
+    }
 
 }

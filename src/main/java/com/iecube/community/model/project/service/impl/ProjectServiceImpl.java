@@ -3,7 +3,12 @@ package com.iecube.community.model.project.service.impl;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.content.entity.Content;
+import com.iecube.community.model.markdown.entity.MDArticle;
+import com.iecube.community.model.markdown.service.MarkdownService;
 import com.iecube.community.model.project.service.ex.GenerateFileException;
+import com.iecube.community.model.pst_article.entity.PSTArticle;
+import com.iecube.community.model.pst_article.service.PSTArticleService;
+import com.iecube.community.model.pst_article_compose.entity.PSTArticleCompose;
 import com.iecube.community.model.remote_project.entity.RemoteProject;
 import com.iecube.community.model.remote_project.qo.RemoteProjectQo;
 import com.iecube.community.model.remote_project.service.RemoteProjectService;
@@ -108,6 +113,12 @@ public class ProjectServiceImpl implements ProjectService {
     @Autowired
     private RemoteProjectService remoteProjectService;
 
+    @Autowired
+    private MarkdownService markdownService;
+
+    @Autowired
+    private PSTArticleService pstArticleService;
+
 
     SimpleDateFormat dateFormat =new SimpleDateFormat("YYYY-MM-dd");
 
@@ -133,7 +144,7 @@ public class ProjectServiceImpl implements ProjectService {
         project.setDeviceId(content.getDeviceId());
         project.setUseGroup(projectDto.getUseGroup());
         project.setGroupLimit(projectDto.getGroupLimit());
-        project.setMdCourse(content.getMdCourse());
+        project.setMdCourse(content.getMdCourse()); // 是否使用markdown的形式
         project.setUseRemote(projectDto.getUseRemote());
         Integer row = projectMapper.insert(project);
         if (row != 1){
@@ -200,22 +211,52 @@ public class ProjectServiceImpl implements ProjectService {
             }
         }
         // 有了项目之后创建项目的任务
+        List<PSTArticle> willAddPSTArticle = new ArrayList<>();
         for(Task task: projectDto.getTask()){
             task.setProjectId(projectId);
             // 创建项目任务  返回一个创建好的taskId
-            Integer pTaskId = taskService.createTask(task, teacherId);
+            Task createdTask = taskService.createTask(task, teacherId);
             // 项目学生任务关联
             for(Student student: projectDto.getStudents()){
                 ProjectStudentTask PST = new ProjectStudentTask();
                 PST.setProjectId(projectId);
-                PST.setTaskId(pTaskId);
+                PST.setTaskId(createdTask.getId());
                 PST.setStudentId(student.getId());
                 PST.setStatus(0);
                 if (task.getNum()==1) {
                     PST.setStatus(1);
                 }
-                taskMapper.addStudentTask(PST);
+                Integer res = taskMapper.addStudentTask(PST);
+                if(createdTask.getTaskMdDoc()!=null){
+                    // 生成pst的markdownOperate
+                    MDArticle mdArticle = markdownService.getFullArticleByChapter(createdTask.getTaskMdDoc());
+                    //todo 复制原文档到每个pst
+                    List<PSTArticleCompose> pstArticleComposeList = new ArrayList<>();
+                    mdArticle.getComposeList().forEach(mdArticleCompose -> {
+                        PSTArticleCompose pstArticleCompose = new PSTArticleCompose();
+                        pstArticleCompose.setPstId(PST.getId());
+                        pstArticleCompose.setName(mdArticleCompose.getName());
+                        pstArticleCompose.setIndex(mdArticleCompose.getIndex());
+                        pstArticleCompose.setVal(mdArticleCompose.getVal());
+                        pstArticleCompose.setAnswer(mdArticleCompose.getAnswer());
+                        pstArticleCompose.setScore(mdArticleCompose.getScore());
+                        pstArticleCompose.setSubjective(mdArticleCompose.getSubjective());
+                        pstArticleCompose.setQType(mdArticleCompose.getQType());
+                        pstArticleCompose.setQuestion(mdArticleCompose.getQuestion());
+                        pstArticleComposeList.add(pstArticleCompose);
+                    });
+                    PSTArticle pstArticle = new PSTArticle();
+                    pstArticle.setPstId(PST.getId());
+                    pstArticle.setContent(mdArticle.getContent());
+                    pstArticle.setCatalogue(mdArticle.getCatalogue());
+                    pstArticle.setComposeList(pstArticleComposeList);
+                    willAddPSTArticle.add(pstArticle);
+                }
             }
+        }
+        if(willAddPSTArticle.size()>0){
+            //todo 复制的内容存储
+            pstArticleService.addedProject(willAddPSTArticle);
         }
         //创建项目tag
         tagService.tagTemplateToTag(projectDto.getCaseId(),projectId,teacherId);
@@ -267,35 +308,35 @@ public class ProjectServiceImpl implements ProjectService {
     private void checkProject(ProjectDto projectDto, Integer teacherId){
         List<Task> newTasks = projectDto.getTask();
         List<TaskTemplateDto> oldTask = taskTemplateService.findTaskTemplateByContent(projectDto.getCaseId());
-        System.out.println(newTasks);
-        System.out.println(oldTask);
+//        System.out.println(newTasks);
+//        System.out.println(oldTask);
         if(newTasks.size()!=oldTask.size()){
             //new case
-            System.out.println("new case");
+//            System.out.println("new case");
             return;
         }
         for(int i=0; i<newTasks.size(); i++){
             if(newTasks.get(i).getRequirementList().size()!=oldTask.get(i).getRequirementList().size()){
                 //new case
-                System.out.println("new case");
+//                System.out.println("new case");
                 return;
             }
             for(int j=0; j<newTasks.get(i).getRequirementList().size();j++){
                 if(newTasks.get(i).getRequirementList().get(j).getName() != oldTask.get(i).getRequirementList().get(j).getName()){
                     //new case
-                    System.out.println("new case");
+//                    System.out.println("new case");
                     return;
                 }
             }
             if(newTasks.get(i).getDeliverableRequirementList().size()!=oldTask.get(i).getDeliverableRequirementList().size()){
                 //new case
-                System.out.println("new case");
+//                System.out.println("new case");
                 return;
             }
             for(int j=0; j<newTasks.get(i).getDeliverableRequirementList().size(); i++){
                 if(newTasks.get(i).getDeliverableRequirementList().get(j).getName() != oldTask.get(i).getDeliverableRequirementList().get(j).getName()){
                     //new case
-                    System.out.println("new case");
+//                    System.out.println("new case");
                     return;
                 }
             }
@@ -373,13 +414,7 @@ public class ProjectServiceImpl implements ProjectService {
     public StudentProjectVo studentProjectDetail(Integer projectId){
         Project project = projectMapper.findById(projectId);
         StudentProjectVo studentProject = new StudentProjectVo();
-        studentProject.setProjectName(project.getProjectName());
-        studentProject.setProjectCover(project.getCover());
-        studentProject.setProjectIntroduce(project.getIntroduce());
-        studentProject.setProjectIntroduction(project.getIntroduction());
-        studentProject.setProjectTarget(project.getTarget());
-        studentProject.setProjectDeviceId(project.getDeviceId());
-        studentProject.setProjectMdCourseId(project.getMdCourse());
+        studentProject.setProject(project);
         List<TaskVo> tasks = taskService.studentGetProjectTasks(projectId);
         studentProject.setProjectTaskList(tasks);
         return studentProject;
@@ -498,7 +533,7 @@ public class ProjectServiceImpl implements ProjectService {
             workbook.write(outputStream);
             outputStream.close();
             workbook.close();
-            System.out.println("");
+//            System.out.println("");
             log.info(project.getProjectName()+"项目，id:"+projectId+"的导出文件:"+excelPath+"创建成功!");
             return new File(excelPath);
         } catch (IOException e) {
@@ -509,6 +544,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public void deleteProject(Integer projectId) {
+        //todo
         Integer row = projectMapper.delete(projectId);
         if(row!= 1){
             throw new UpdateException("数据更新异常");
