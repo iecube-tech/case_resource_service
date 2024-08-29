@@ -331,10 +331,10 @@ public class TaskServiceImpl implements TaskService {
                 task.setQuestionListSize(0);
             }
             // todo null异常 处理  --- 清华版本中不执行 没有数据库表
-            PSTArticle pstArticle = pstArticleService.getByPstId(task.getPSTId());
-            if(pstArticle != null){
-                task.setPstArticle(pstArticle);
-            }
+//            PSTArticle pstArticle = pstArticleService.getByPstId(task.getPSTId());
+//            if(pstArticle != null){
+//                task.setPstArticle(pstArticle);
+//            }
         }
         return tasks;
     }
@@ -578,12 +578,12 @@ public class TaskServiceImpl implements TaskService {
                 task.setTaskDetails(details.getName());
             }
             // todo null异常 处理
-            TaskMdDoc taskMdDoc = taskMdDocMapper.getTaskMdDocByTask(task.getId());
-            if(taskMdDoc!=null){
-                task.setTaskMdDoc(taskMdDoc.getMdDocId());
-                MDChapter mdChapter = markdownService.getChapterById(taskMdDoc.getMdDocId());
-                task.setMdChapter(mdChapter);
-            }
+//            TaskMdDoc taskMdDoc = taskMdDocMapper.getTaskMdDocByTask(task.getId());
+//            if(taskMdDoc!=null){
+//                task.setTaskMdDoc(taskMdDoc.getMdDocId());
+//                MDChapter mdChapter = markdownService.getChapterById(taskMdDoc.getMdDocId());
+//                task.setMdChapter(mdChapter);
+//            }
         }
         return tasks;
     }
