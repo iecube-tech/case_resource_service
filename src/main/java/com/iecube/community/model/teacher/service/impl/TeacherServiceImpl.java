@@ -1,5 +1,6 @@
 package com.iecube.community.model.teacher.service.impl;
 
+import com.iecube.community.email.EmailSender;
 import com.iecube.community.model.auth.entity.User;
 import com.iecube.community.model.auth.mapper.UserMapper;
 import com.iecube.community.model.auth.service.ex.*;
@@ -11,16 +12,22 @@ import com.iecube.community.model.teacher.entity.Teacher;
 import com.iecube.community.model.teacher.mapper.TeacherMapper;
 import com.iecube.community.model.teacher.service.TeacherService;
 import com.iecube.community.model.teacher.vo.TeacherVo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.FileCopyUtils;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.*;
 
 @Service
+@Slf4j
 public class TeacherServiceImpl implements TeacherService {
 
     @Autowired
@@ -35,6 +42,17 @@ public class TeacherServiceImpl implements TeacherService {
     @Autowired
     private ContentMapper contentMapper;
 
+    @Value("${email.template.teacher-activate}")
+    private Resource userActivateEmail;
+
+    @Value("${DomainName.teacher}")
+    private String DomainName;
+
+    @Autowired
+    private EmailSender emailSender;
+
+    private static final String EMAIL_SUBJECT = "IECUBE产业案例资教学资源库和过程评价系统-新用户通知";
+
     @Override
     public Teacher login(String email, String password) {
         Teacher result = teacherMapper.findByEmail(email);
@@ -42,7 +60,7 @@ public class TeacherServiceImpl implements TeacherService {
             throw new UserNotFoundException("用户未找到");
         }
         if(result.getIsDelete() == 1){
-            throw new UserNotFoundException("用户数据不存在");
+            throw new UserNotFoundException("用户不可用");
         }
         // 检测密码
         // 先获取数据库加密后的密码 盐值  和用户传递过来的密码(相同的方法进行加密)进行比较
@@ -72,7 +90,9 @@ public class TeacherServiceImpl implements TeacherService {
         // 密码加密处理 md5 加密算法
         // （串 + password + 串）  全部交给md5加密 连续加载3次
         // 盐值 + password + 盐值 盐值就是一个随机的字符串
-        String oldPassword = user.getPassword();
+//        Integer number = this.getRandomNumberInRange(8,16);
+//        String oldPassword = this.getRandomString(number);
+        String oldPassword = "111111";
         // 获取盐值（随机生成一个盐值）
         String salt = UUID.randomUUID().toString().toUpperCase();
         //将密码和盐值作为一个整体进行加密处理
@@ -86,6 +106,46 @@ public class TeacherServiceImpl implements TeacherService {
         if (rows != 1){
             throw new InsertException("在用户注册过程中产生未知异常");
         }
+        this.sendStudentActiveEmail(user.getUsername(), user.getEmail(),oldPassword);
+    }
+
+    @Async
+    public void sendStudentActiveEmail(String teacherName, String teacherEmail, String password) {
+        String text = this.buildText(userActivateEmail, teacherName, password, DomainName);
+        System.out.println(text);
+        emailSender.send(teacherEmail, EMAIL_SUBJECT, text);
+    }
+
+    private static String getRandomString(int length){
+        String str="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        Random random=new Random();
+        StringBuffer sb=new StringBuffer();
+        for(int i=0;i<length;i++){
+            int number=random.nextInt(62);
+            sb.append(str.charAt(number));
+        }
+        return sb.toString();
+    }
+
+    //生成指定区间的随机数
+    private static int getRandomNumberInRange(int min, int max) {
+        if (min >= max) {
+            throw new IllegalArgumentException("max must be greater than min");
+        }
+        Random r = new Random();
+        return r.nextInt((max - min) + 1) + min;
+    }
+
+    private String buildText(Resource resource, Object... params) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            FileCopyUtils.copy(resource.getInputStream(), out);
+        } catch (IOException e) {
+            log.error("IO异常", e);
+        }
+        String text = out.toString();
+        text = MessageFormat.format(text, params);
+        return text;
     }
 
     @Override
@@ -164,6 +224,12 @@ public class TeacherServiceImpl implements TeacherService {
     @Override
     public void teacherDisable(Integer teacherId) {
         teacherMapper.teacherDisable(teacherId);
+    }
+
+    @Override
+    public List<Teacher> collageTeachers(Integer teacherId) {
+        List<Teacher> teacherList = teacherMapper.collageTeachers(teacherId);
+        return teacherList;
     }
 
     /**定义一个md5算法加密**/

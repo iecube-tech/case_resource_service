@@ -42,6 +42,9 @@ public class PSTArticleServiceImpl implements PSTArticleService {
     @Override
     public PSTArticle getByPstId(Integer pstId) {
         PSTArticle pstArticle = pstArticleMapper.getByPstId(pstId);
+        if(pstArticle == null){
+            return null;
+        }
         List<PSTArticleCompose> pstArticleComposeList = pstArticleComposeMapper.getByArticleId(pstArticle.getId());
         pstArticle.setComposeList(pstArticleComposeList);
         return pstArticle;

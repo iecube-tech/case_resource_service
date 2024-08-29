@@ -17,6 +17,7 @@ public class RemoteOperationVo {
     Integer remoteControl;   // 开启关闭远程 0 off  1 on --展示当前的状态， 由控制器返回
     String remoteUrl;
     String liveUrl;
+    String ysAccessToken;
     @JsonFormat(pattern = "yyyy-MM-dd")
     LocalDate appointmentDate;
     @JsonFormat(pattern = "HH:mm")

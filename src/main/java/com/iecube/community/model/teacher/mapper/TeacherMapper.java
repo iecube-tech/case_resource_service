@@ -20,4 +20,6 @@ public interface TeacherMapper {
     Integer teacherEnable(Integer teacherId);
 
     Integer teacherDisable(Integer teacherId);
+
+    List<Teacher> collageTeachers(Integer teacherId);
 }

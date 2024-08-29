@@ -92,4 +92,11 @@ public class TeacherController extends AuthBaseController {
         TeacherVo teacherVo = teacherService.teacherInfo(teacherId);
         return new JsonResult<>(OK, teacherVo);
     }
+
+    @GetMapping("/collage_teachers")
+    public JsonResult<List> collageTeachers(HttpSession session){
+        Integer teacher = getUserIdFromSession(session);
+        List<Teacher> teacherList = teacherService.collageTeachers(teacher);
+        return new JsonResult<>(OK, teacherList);
+    }
 }

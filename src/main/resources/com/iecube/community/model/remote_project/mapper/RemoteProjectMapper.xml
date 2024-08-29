@@ -41,4 +41,8 @@
         SELECT * FROM remote_project WHERE project_id=#{projectId}
     </select>
 
+    <delete id="deleteRemoteProject">
+        DELETE FROM remote_project WHERE project_id=#{projectId};
+    </delete>
+
 </mapper>

@@ -7,8 +7,10 @@ server:
 spring:
   datasource:
 #    url: jdbc:mysql://47.108.137.115:7999/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+#    url: jdbc:mysql://192.168.1.93:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    西安数据库穿透
     url: jdbc:mysql://192.168.1.4:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+#    url: jdbc:mysql://47.108.137.115:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    url: jdbc:mysql://172.24.92.225:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    url: jdbc:mysql://47.94.161.154:8001/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
     username: root
@@ -16,6 +18,7 @@ spring:
 #    password: Root@123
     # 线上数据库密码
 
+#    password: 123456
     password: 12345678
     # 办公室服务器sql密码
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -23,11 +26,14 @@ spring:
       maximum-pool-size: 10
       max-lifetime: 10000
       minimum-idle: 3
+#  redis:
+#    host: 192.168.1.4
+#    port: 6379
   mail:
     port: 587
     host: smtp.partner.outlook.cn
     username: iecubeonline@iecube.com.cn
-    password: Iecube2021.
+    password: 11223366zxl.
     default-encoding: UTF-8
     properties:
       mail:
@@ -75,8 +81,26 @@ generated-report: D:\learn\java\generatedReport
 email:
   template:
     user-activate: classpath:templates/user-activate.ftl
+    teacher-activate: classpath:templates/teacher-activate.ftl
 
 business:
   user:
     template:
       path: classpath:templates/user_template.xls
+
+DomainName:
+  teacher: https://www.iecube.online/login
+  student: https://studnet.iecube.online/login
+
+# 配置是否使用萤石摄像头
+ys:
+  enable: false
+  host: 'https://open.ys7.com'
+  app-key: '5714850ab2174d868eb99e8916099e1f'
+  secret: 'b78c1c789ada73f50d91e7021c7e4b94'
+
+# 配置是否使用默认密码 清华版本后添加
+#password:
+#  default: true
+#  student: 111111
+#  teacher: 111111

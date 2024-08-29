@@ -15,4 +15,6 @@ public interface RemoteProjectService {
     RemoteProjectVo studentGetRemoteProject(Integer projectId);
 
     RemoteOperationVo remoteOperation(Integer appointmentId, Integer studentId);
+
+    void deleteRemoteProject(Integer projectId);
 }

@@ -13,4 +13,6 @@ public interface RemoteProjectMapper {
     List<RemoteProject> checkDeviceTime(Integer deviceId, LocalDate startDate, LocalDate endDate);
 
     RemoteProject getByProjectId(Integer projectId);
+
+    Integer deleteRemoteProject(Integer projectId);
 }

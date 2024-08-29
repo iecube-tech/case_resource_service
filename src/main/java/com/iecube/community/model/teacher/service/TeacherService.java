@@ -22,4 +22,6 @@ public interface TeacherService {
 
     void teacherDisable(Integer teacherId);
 
+    List<Teacher> collageTeachers(Integer teacherId);
+
 }

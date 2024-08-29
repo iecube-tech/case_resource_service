@@ -58,6 +58,9 @@ public class StudentServiceImpl implements StudentService {
     @Value("${email.template.user-activate}")
     private Resource userActivateEmail;
 
+    @Value("${DomainName.student}")
+    private String DomainName;
+
     @Autowired
     private StudentMapper studentMapper;
 
@@ -152,7 +155,8 @@ public class StudentServiceImpl implements StudentService {
     public void addStudent(AddStudentQo addStudentQo, Integer teacherId) {
         AddStudentDto addStudentDto = this.initAddStudentDto(addStudentQo,teacherId);
         Integer number = this.getRandomNumberInRange(8,16);
-        String password = this.getRandomString(number);
+//        String password = this.getRandomString(number);
+        String password = "111111";
         // sha256先加密 再使用md5 对sha256加密
         String sha256Password = SHA256.encryptStringWithSHA256(password);
         String md5Password = this.getMD5Password(sha256Password, addStudentDto.getSalt());
@@ -266,7 +270,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Async
     public void sendStudentActiveEmail(String studentName, String studentEmail, String password) {
-        String text = this.buildText(userActivateEmail, studentName, password);
+        String text = this.buildText(userActivateEmail, studentName, password, DomainName);
         emailSender.send(studentEmail, EMAIL_SUBJECT, text);
     }
 
@@ -312,7 +316,8 @@ public class StudentServiceImpl implements StudentService {
                     String salt = UUID.randomUUID().toString().toUpperCase();
                     addStudentDto.setSalt(salt);
                     Integer number = this.getRandomNumberInRange(8,16);
-                    String password = this.getRandomString(number);
+//                    String password = this.getRandomString(number);
+                    String password = "111111";
                     String sha256Password = SHA256.encryptStringWithSHA256(password);
                     String md5Password = this.getMD5Password(sha256Password, addStudentDto.getSalt());
                     addStudentDto.setPassword(md5Password);

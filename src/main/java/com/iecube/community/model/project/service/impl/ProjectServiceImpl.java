@@ -546,6 +546,7 @@ public class ProjectServiceImpl implements ProjectService {
     public void deleteProject(Integer projectId) {
         //todo
         Integer row = projectMapper.delete(projectId);
+        remoteProjectService.deleteRemoteProject(projectId);
         if(row!= 1){
             throw new UpdateException("数据更新异常");
         }

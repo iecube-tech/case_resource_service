@@ -24,9 +24,9 @@ public class DownloadUtil {
     public static void httpDownload(File file, String filename, HttpServletResponse response) {
         try {
             httpDownload(new FileInputStream(file), filename, response);
-        } catch (FileNotFoundException e) {
-            LOGGER.error("文件不存在:"+filename, e);
-            throw new SystemException("系统错误"+filename);
+        } catch (SystemException | FileNotFoundException e) {
+            LOGGER.error("文件不存在:", e);
+            throw new SystemException("文件未找到");
         }
     }
 

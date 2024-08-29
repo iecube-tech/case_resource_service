@@ -330,9 +330,11 @@ public class TaskServiceImpl implements TaskService {
             }catch (NoQuestionException e ){
                 task.setQuestionListSize(0);
             }
-
+            // todo null异常 处理  --- 清华版本中不执行 没有数据库表
             PSTArticle pstArticle = pstArticleService.getByPstId(task.getPSTId());
-            task.setPstArticle(pstArticle);
+            if(pstArticle != null){
+                task.setPstArticle(pstArticle);
+            }
         }
         return tasks;
     }
@@ -575,6 +577,7 @@ public class TaskServiceImpl implements TaskService {
             if(details!=null){
                 task.setTaskDetails(details.getName());
             }
+            // todo null异常 处理
             TaskMdDoc taskMdDoc = taskMdDocMapper.getTaskMdDocByTask(task.getId());
             if(taskMdDoc!=null){
                 task.setTaskMdDoc(taskMdDoc.getMdDocId());

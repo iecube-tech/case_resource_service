@@ -1,6 +1,8 @@
 package com.iecube.community.basecontroller;
 
+import com.iecube.community.baseservice.ex.ServiceException;
 import com.iecube.community.util.JsonResult;
+
 import com.iecube.community.util.ex.SystemException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -29,7 +31,7 @@ public class BaseController {
         return session.getAttribute("type").toString();
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(ServiceException.class)
     public JsonResult<Void> handleException(Throwable e){
         JsonResult<Void> result = new JsonResult<>(e);
         if(e instanceof SystemException) {

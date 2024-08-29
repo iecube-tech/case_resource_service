@@ -54,4 +54,8 @@
         UPDATE teacher SET is_delete=1 WHERE id=#{reacherId}
     </update>
 
+    <select id="collageTeachers" resultMap="TeacherEntity">
+        SELECT username, email, is_delete FROM teacher WHERE collage_id=(SELECT collage_id FROM teacher WHERE id=#{teacherId}) and id != #{teacherId};
+    </select>
+
 </mapper>

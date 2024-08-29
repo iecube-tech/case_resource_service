@@ -20,7 +20,9 @@ import com.iecube.community.model.remote_project.vo.RemoteProjectVo;
 import com.iecube.community.model.remote_project_join_device.dto.RemoteDeviceDto;
 import com.iecube.community.model.remote_project_join_device.entity.RemoteProjectDevice;
 import com.iecube.community.model.remote_project_join_device.mapper.RemoteProjectDeviceMapper;
+import com.iecube.community.ys.YsApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -46,6 +48,12 @@ public class RemoteProjectServiceImpl implements RemoteProjectService {
 
     @Autowired
     private ProjectMapper projectMapper;
+
+    @Autowired
+    private YsApi ysApi;
+
+    @Value("${ys.enable}")
+    private Boolean ysEnable;
 
     @Override
     public void addRemoteProject(RemoteProjectQo remoteProjectQo) {
@@ -162,6 +170,14 @@ public class RemoteProjectServiceImpl implements RemoteProjectService {
         remoteOperationVo.setAppointmentDate(remoteAppointment.getAppointmentDate());
         remoteOperationVo.setAppointmentStartTime(remoteAppointment.getAppointmentStartTime());
         remoteOperationVo.setAppointmentEndTime(remoteAppointment.getAppointmentEndTime());
+        if(ysEnable){
+            remoteOperationVo.setYsAccessToken(ysApi.getAccessToken());
+        }
         return remoteOperationVo;
+    }
+
+    @Override
+    public void deleteRemoteProject(Integer projectId) {
+        remoteProjectMapper.deleteRemoteProject(projectId);
     }
 }
