@@ -12,7 +12,6 @@ import com.iecube.community.model.major.entity.Major;
 import com.iecube.community.model.major.mapper.MajorMapper;
 import com.iecube.community.model.major.service.MajorService;
 import com.iecube.community.model.major.vo.CollageMajors;
-import com.iecube.community.model.major.vo.MajorClass;
 import com.iecube.community.model.major.vo.SchoolCollageMajors;
 import com.iecube.community.model.student.dto.AddStudentDto;
 import com.iecube.community.model.student.entity.Student;
@@ -24,11 +23,9 @@ import com.iecube.community.model.student.service.ex.StudentDuplicateException;
 import com.iecube.community.model.student.service.ex.StudentKeyFieldNotExistException;
 import com.iecube.community.model.student.service.ex.StudentNotFoundException;
 import com.iecube.community.model.student.service.ex.UnprocessableException;
-import com.iecube.community.model.teacher.entity.Teacher;
 import com.iecube.community.model.teacher.mapper.TeacherMapper;
 import com.iecube.community.util.ex.SystemException;
 import lombok.Getter;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +72,12 @@ public class StudentServiceImpl implements StudentService {
 
     @Autowired
     private EmailSender emailSender;
+
+    @Value("${password.default-enable}")
+    private Boolean passwordDefaultEnable;
+
+    @Value("${password.student}")
+    static private String defaultPassword;
 
     @Override
     public List<StudentDto> findStudentsLimitByTeacherId(Integer teacherId, Integer page, Integer pageSize) {
@@ -155,8 +158,7 @@ public class StudentServiceImpl implements StudentService {
     public void addStudent(AddStudentQo addStudentQo, Integer teacherId) {
         AddStudentDto addStudentDto = this.initAddStudentDto(addStudentQo,teacherId);
         Integer number = this.getRandomNumberInRange(8,16);
-//        String password = this.getRandomString(number);
-        String password = "111111";
+        String password = this.getRandomString(number);
         // sha256先加密 再使用md5 对sha256加密
         String sha256Password = SHA256.encryptStringWithSHA256(password);
         String md5Password = this.getMD5Password(sha256Password, addStudentDto.getSalt());
@@ -236,7 +238,10 @@ public class StudentServiceImpl implements StudentService {
     }
 
     //length用户要求产生字符串的长度
-    private static String getRandomString(int length){
+    private String getRandomString(int length){
+        if(passwordDefaultEnable){
+            return defaultPassword;
+        }
         String str="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         Random random=new Random();
         StringBuffer sb=new StringBuffer();
@@ -316,8 +321,7 @@ public class StudentServiceImpl implements StudentService {
                     String salt = UUID.randomUUID().toString().toUpperCase();
                     addStudentDto.setSalt(salt);
                     Integer number = this.getRandomNumberInRange(8,16);
-//                    String password = this.getRandomString(number);
-                    String password = "111111";
+                    String password = this.getRandomString(number);
                     String sha256Password = SHA256.encryptStringWithSHA256(password);
                     String md5Password = this.getMD5Password(sha256Password, addStudentDto.getSalt());
                     addStudentDto.setPassword(md5Password);

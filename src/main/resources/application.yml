@@ -99,8 +99,8 @@ ys:
   app-key: '5714850ab2174d868eb99e8916099e1f'
   secret: 'b78c1c789ada73f50d91e7021c7e4b94'
 
-# 配置是否使用默认密码 清华版本后添加
-#password:
-#  default: true
-#  student: 111111
-#  teacher: 111111
+ #配置是否使用默认密码 清华版本后添加
+password:
+  default-enable: true
+  student: 111111
+  teacher: 111111

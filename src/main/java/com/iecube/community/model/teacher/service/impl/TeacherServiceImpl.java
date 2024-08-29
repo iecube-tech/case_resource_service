@@ -42,6 +42,12 @@ public class TeacherServiceImpl implements TeacherService {
     @Autowired
     private ContentMapper contentMapper;
 
+    @Value("${password.default-enable}")
+    private Boolean passwordDefaultEnable;
+
+    @Value("${password.teacher}")
+    private String defaultPassword;
+
     @Value("${email.template.teacher-activate}")
     private Resource userActivateEmail;
 
@@ -90,9 +96,8 @@ public class TeacherServiceImpl implements TeacherService {
         // 密码加密处理 md5 加密算法
         // （串 + password + 串）  全部交给md5加密 连续加载3次
         // 盐值 + password + 盐值 盐值就是一个随机的字符串
-//        Integer number = this.getRandomNumberInRange(8,16);
-//        String oldPassword = this.getRandomString(number);
-        String oldPassword = "111111";
+        Integer number = this.getRandomNumberInRange(8,16);
+        String oldPassword = this.getRandomString(number);
         // 获取盐值（随机生成一个盐值）
         String salt = UUID.randomUUID().toString().toUpperCase();
         //将密码和盐值作为一个整体进行加密处理
@@ -106,17 +111,23 @@ public class TeacherServiceImpl implements TeacherService {
         if (rows != 1){
             throw new InsertException("在用户注册过程中产生未知异常");
         }
-        this.sendStudentActiveEmail(user.getUsername(), user.getEmail(),oldPassword);
+        if(!passwordDefaultEnable){
+            this.sendActiveEmail(user.getUsername(), user.getEmail(),oldPassword);
+        }
+
     }
 
     @Async
-    public void sendStudentActiveEmail(String teacherName, String teacherEmail, String password) {
+    public void sendActiveEmail(String teacherName, String teacherEmail, String password) {
         String text = this.buildText(userActivateEmail, teacherName, password, DomainName);
         System.out.println(text);
         emailSender.send(teacherEmail, EMAIL_SUBJECT, text);
     }
 
-    private static String getRandomString(int length){
+    private String getRandomString(int length){
+        if(passwordDefaultEnable){
+            return defaultPassword;
+        }
         String str="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         Random random=new Random();
         StringBuffer sb=new StringBuffer();
