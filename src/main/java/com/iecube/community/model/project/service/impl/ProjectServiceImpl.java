@@ -243,6 +243,7 @@ public class ProjectServiceImpl implements ProjectService {
                         pstArticleCompose.setSubjective(mdArticleCompose.getSubjective());
                         pstArticleCompose.setQType(mdArticleCompose.getQType());
                         pstArticleCompose.setQuestion(mdArticleCompose.getQuestion());
+                        pstArticleCompose.setArgs(mdArticleCompose.getArgs());
                         pstArticleComposeList.add(pstArticleCompose);
                     });
                     PSTArticle pstArticle = new PSTArticle();

@@ -26,9 +26,9 @@ spring:
       maximum-pool-size: 10
       max-lifetime: 10000
       minimum-idle: 3
-#  redis:
-#    host: 192.168.1.4
-#    port: 6379
+  redis:
+    host: 192.168.1.4
+    port: 6379
   mail:
     port: 587
     host: smtp.partner.outlook.cn

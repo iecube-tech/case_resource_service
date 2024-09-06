@@ -17,4 +17,5 @@ public class PSTArticleCompose {
     Boolean subjective;
     Integer qType;
     String question;
+    String args;
 }

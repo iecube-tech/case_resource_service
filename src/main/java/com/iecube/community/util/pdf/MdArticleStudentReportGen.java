@@ -2,6 +2,7 @@ package com.iecube.community.util.pdf;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.iecube.community.model.pst_article_compose.entity.PSTArticleCompose;
 import com.iecube.community.model.task.entity.PSTBaseDetail;
 import com.itextpdf.html2pdf.ConverterProperties;
@@ -31,9 +32,9 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.xml.bind.Element;
 import java.io.*;
 import java.nio.file.Files;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
+
 
 public class MdArticleStudentReportGen {
     private static String genFileDir;
@@ -41,12 +42,15 @@ public class MdArticleStudentReportGen {
     public static PdfFont TitleFont;
     public static PdfFont TextFont1;
     public static PdfFont TextFont;
-    public static String fontPath = "/community/service/fonts/simfang.ttf";
+//    public static String fontPath = "/community/service/fonts/simfang.ttf";
+    public static String fontPath = "D:\\work\\iecube_community\\service\\community\\src\\main\\resources\\fonts\\simfang.ttf";
     public static String fontPathW = "D:\\work\\iecube_community\\service\\community\\src\\main\\resources\\fonts\\simfang.ttf";
 
     private static String IMAGEPath="D:/community/service/resource/image/";
 
     private static String IMAGEPathW="D:\\learn\\java\\resources\\image\\";
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public MdArticleStudentReportGen(String genFilePath){
         this.genFileDir = genFilePath;
@@ -171,13 +175,15 @@ public class MdArticleStudentReportGen {
                 return typeTwo(pstArticleCompose);
             case 3:
                 return typeThree(pstArticleCompose, document);
+            case 4:
+                return typeFour(pstArticleCompose);
+//            case 5:
+//                return typeFive(pstArticleCompose);
             default:
                 return new Paragraph(pstArticleCompose.getName()).setFont(TitleFont).setFontSize(12);
         }
 
     }
-
-
 
     private static Paragraph typeOne(PSTArticleCompose pstArticleCompose) {
         Paragraph paragraph = new Paragraph();
@@ -270,6 +276,113 @@ public class MdArticleStudentReportGen {
         return paragraph;
     }
 
+    private static Paragraph typeFour(PSTArticleCompose pstArticleCompose){
+        Paragraph paragraph = new Paragraph();
+        String ques = pstArticleCompose.getQuestion()+"("+pstArticleCompose.getScore()+"分) ";
+        // 题目
+        Paragraph titleParagraph = genHtmlQues(ques);
+        paragraph.add(titleParagraph);
+        // 得分
+        Paragraph gradePar = new Paragraph(((pstArticleCompose.getResult() != null)?pstArticleCompose.getResult().toString():"0")+"\n")
+                .setFont(TextFont).setFontSize(10).setFontColor(new DeviceCmyk(0.0f,1.0f,1.0f,0.0f));
+        paragraph.add(gradePar);
+        paragraph.add("\n");
+        // 单选
+//        String[] nameParts = pstArticleCompose.getName().split("\\|");
+//        String[] options = java.util.Arrays.copyOfRange(nameParts, 2, nameParts.length); // 选项
+        JsonNode args = genJsonNode(pstArticleCompose.getArgs());
+
+        List<String> argList = arrayJsonNodeToList(args,String.class);
+        List<String> optionList = new ArrayList<>(argList.subList(2, argList.size()));
+//        System.out.println("argList");
+//        System.out.println(argList);
+//        System.out.println("optionList");
+//        System.out.println(optionList);
+
+
+        // 作答内容
+        JsonNode val = genJsonNode(pstArticleCompose.getVal());
+        Integer valValue= val.get("val").asInt(); //学生选项
+        // 参考答案
+        JsonNode answer = genJsonNode(pstArticleCompose.getAnswer());
+        Integer answerValue = answer.get("val").asInt(); // 答案选项
+
+        Paragraph submitParagraph = new Paragraph();
+        Paragraph answerParagraph = new Paragraph();
+        answerParagraph.add("参考答案：\n");
+        for(int i= 0; i<optionList.size();i++){
+//            Paragraph optionParagraph = genHtmlQues(optionList.get(i));
+            String option = optionList.get(i);
+            Paragraph optionParagraph = genHtmlQues(option);
+//            System.out.println(optionParagraph);
+            if(valValue.equals(i)){
+                optionParagraph.setFontColor(new DeviceCmyk(0.88f,0.0f,0.58f,0.28f));
+            }
+            submitParagraph.add(optionParagraph);
+//            submitParagraph.add("\t");
+//            optionParagraph.setFontColor(null);
+            if(answerValue.equals(i)){
+                optionParagraph.setFontColor(new DeviceCmyk(0.88f,0.0f,0.58f,0.28f));
+            }
+            answerParagraph.add(optionParagraph);
+//            answerParagraph.add("\t");
+        }
+        paragraph.add(submitParagraph);
+        paragraph.add("\n");
+        paragraph.add(answerParagraph);
+        return paragraph;
+    }
+
+    private static Paragraph typeFive(PSTArticleCompose pstArticleCompose){
+        Paragraph paragraph = new Paragraph();
+        String ques = pstArticleCompose.getQuestion()+"("+pstArticleCompose.getScore()+"分) ";
+        // 题目
+        Paragraph titleParagraph = genHtmlQues(ques);
+        paragraph.add(titleParagraph);
+        // 得分
+        Paragraph gradePar = new Paragraph(((pstArticleCompose.getResult() != null)?pstArticleCompose.getResult().toString():"0")+"\n")
+                .setFont(TextFont).setFontSize(10).setFontColor(new DeviceCmyk(0.0f,1.0f,1.0f,0.0f));
+        paragraph.add(gradePar);
+        // 多选
+//        String[] nameParts = pstArticleCompose.getName().split("\\|");
+//        String[] options = java.util.Arrays.copyOfRange(nameParts, 2, nameParts.length); // 选项
+        JsonNode args = genJsonNode(pstArticleCompose.getArgs());
+        List<String> argList = arrayJsonNodeToList(args,String.class);
+        List<String> optionList = new ArrayList<>(argList.subList(2, argList.size()));
+
+        // 作答
+        JsonNode val = genJsonNode(pstArticleCompose.getVal());
+        List submitList = arrayJsonNodeToList(val, Integer.class); //学生选项
+        // 答案
+        JsonNode answer = genJsonNode(pstArticleCompose.getAnswer());
+        List<Integer> answerList = arrayJsonNodeToList(answer, Integer.class);
+//        System.out.println("submitList");
+//        System.out.println(submitList);
+//        System.out.println("answerList");
+//        System.out.println(answerList);
+        Paragraph submitParagraph = new Paragraph();
+        Paragraph answerParagraph = new Paragraph();
+        answerParagraph.add("参考答案：\n");
+        for(Integer i= 0; i<optionList.size();i++){
+            Paragraph optionParagraph = genHtmlQues(optionList.get(i));
+            if(submitList.contains(i)){
+                optionParagraph.setFontColor(new DeviceCmyk(0.88f,0.0f,0.58f,0.28f));
+            }
+            submitParagraph.add(optionParagraph);
+            submitParagraph.add("\t");
+            optionParagraph.setFontColor(null);
+            if(answerList.contains(i)){
+                optionParagraph.setFontColor(new DeviceCmyk(0.88f,0.0f,0.58f,0.28f));
+            }
+            answerParagraph.add(optionParagraph);
+            answerParagraph.add("\t");
+        }
+        paragraph.add(submitParagraph);
+        paragraph.add("\n\n");
+        paragraph.add(answerParagraph);
+        return paragraph;
+    }
+
     private static Paragraph genPic(JsonNode picList, Document document){
         PageSize pageSize = document.getPdfDocument().getDefaultPageSize();
         float pageWidth = pageSize.getWidth();
@@ -289,7 +402,7 @@ public class MdArticleStudentReportGen {
                 paragraph.add(image);
                 paragraph.add("\n");
             }catch (Exception e){
-                System.out.println(IMAGEPath+picName);
+//                System.out.println(IMAGEPath+picName);
                 e.printStackTrace();
                 paragraph.add("加载失败的图片\n").setFontSize(8);
             }
@@ -327,6 +440,31 @@ public class MdArticleStudentReportGen {
         return table;
     }
 
+    private static <T> List<T> arrayJsonNodeToList(JsonNode jsonNodeArray, Class<T> elementType){
+        List<T> list = new ArrayList<>();
+        if (jsonNodeArray != null && jsonNodeArray.isArray()) {
+            ArrayNode arrayNode = (ArrayNode) jsonNodeArray;
+            Iterator<JsonNode> elements = arrayNode.elements();
+            while (elements.hasNext()) {
+                JsonNode node = elements.next();
+                T element = convertJsonNode(node, elementType);
+                if (element != null) {
+                    list.add(element);
+                }
+            }
+        }
+        return list;
+    }
+
+    private static <T> T convertJsonNode(JsonNode node, Class<T> clazz) {
+        try {
+            return objectMapper.treeToValue(node, clazz);
+        } catch (Exception e) {
+            e.printStackTrace(); // Handle exception as needed
+            return null;
+        }
+    }
+
     private static JsonNode genJsonNode(String jsonString){
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = null;
@@ -340,15 +478,19 @@ public class MdArticleStudentReportGen {
 
     private static Paragraph genHtmlQues(String ques){
         Paragraph paragraph = new Paragraph();
+        System.out.println(ques);
         if(ques.contains("katex")){
             try{
                 String htmlQues = genHtmlString(ques);
                 // 标题内容
                 List<IElement> elements = convertHtmlToDocument(htmlQues);
+                System.out.println("elements");
+                System.out.println(elements);
                 for(IElement iElement : elements){
                     paragraph.add((IBlockElement)iElement);
                 }
             }catch (Exception e){
+                e.printStackTrace();
                 return paragraph.add(ques);
             }
         }else {
@@ -358,7 +500,7 @@ public class MdArticleStudentReportGen {
     }
 
 
-    private static String genHtmlString(String text){
+    public static String genHtmlString(String text){
         String htmlWithCss = "<!DOCTYPE html>" +
                 "<html>" +
                 "<head>" +
@@ -380,20 +522,41 @@ public class MdArticleStudentReportGen {
         return htmlWithCss;
     }
 
-    private static List convertHtmlToDocument(String html) throws IOException{
-        InputStream htmlStream = new ByteArrayInputStream(html.getBytes("UTF-8"));
-        ConverterProperties properties = creatBaseFont(fontPath);
-        List<IElement>  elements = HtmlConverter.convertToElements(htmlStream, properties);
-        return elements;
+    public static List<IElement> convertHtmlToDocument(String html) throws IOException{
+        System.out.println(html);
+        InputStream htmlStream=null;
+        try{
+             htmlStream = new ByteArrayInputStream(html.getBytes("UTF-8"));
+            ConverterProperties properties = creatBaseFont(fontPath);
+            List<IElement>  elements = HtmlConverter.convertToElements(htmlStream, properties);
+//            List<IElement>  elements = HtmlConverter.convertToElements(htmlStream);
+            System.out.println(elements);
+            return elements;
+        }catch (Exception e){
+            e.printStackTrace();
+            return new ArrayList<>();
+        }finally {
+            if(htmlStream!=null){
+                htmlStream.close();
+            }
+
+        }
     }
 
-    private static ConverterProperties creatBaseFont(String fontPath) throws IOException{
-        ConverterProperties properties = new ConverterProperties();
-        FontProvider fontProvider = new DefaultFontProvider();
-        FontProgram fontProgram;
-        fontProgram = FontProgramFactory.createFont(fontPath);
-        fontProvider.addFont(fontProgram);
-        properties.setFontProvider(fontProvider);
-        return properties;
+    private static ConverterProperties creatBaseFont(String fontPath){
+        try{
+            ConverterProperties properties = new ConverterProperties();
+            FontProvider fontProvider = new DefaultFontProvider();
+            FontProgram fontProgram;
+            fontProgram = FontProgramFactory.createFont(fontPath);
+            fontProvider.addFont(fontProgram);
+            properties.setFontProvider(fontProvider);
+            return properties;
+        }catch (UnsupportedEncodingException e){
+            e.printStackTrace();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        return new ConverterProperties();
     }
 }

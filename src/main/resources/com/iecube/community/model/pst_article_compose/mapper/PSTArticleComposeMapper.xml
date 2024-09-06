@@ -12,11 +12,11 @@
 
     <insert id="batchAdd" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO pst_article_compose (id, pst_id, pst_article_id, `index`, `name`, val, answer, score, `result`, status,
-                                         subjective, q_type, question)
+                                         subjective, q_type, question, args)
         VALUES
             <foreach collection="list" separator="," index="index" item="item">
                 (NULL, #{item.pstId}, #{item.pstArticleId}, #{item.index}, #{item.name}, #{item.val}, #{item.answer},#{item.score},NULL,0,
-                 #{item.subjective}, #{item.qType}, #{item.question})
+                 #{item.subjective}, #{item.qType}, #{item.question}, #{item.args})
             </foreach>
     </insert>
 

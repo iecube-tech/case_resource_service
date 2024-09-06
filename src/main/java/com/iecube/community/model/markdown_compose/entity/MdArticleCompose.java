@@ -18,4 +18,5 @@ public class MdArticleCompose {
     @JsonProperty("qType")
     Integer qType;
     String question;
+    String args;
 }

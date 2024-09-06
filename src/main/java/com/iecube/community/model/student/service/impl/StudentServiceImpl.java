@@ -77,7 +77,7 @@ public class StudentServiceImpl implements StudentService {
     private Boolean passwordDefaultEnable;
 
     @Value("${password.student}")
-    static private String defaultPassword;
+    private String defaultPassword;
 
     @Override
     public List<StudentDto> findStudentsLimitByTeacherId(Integer teacherId, Integer page, Integer pageSize) {
