@@ -42,8 +42,7 @@ public class MdArticleStudentReportGen {
     public static PdfFont TitleFont;
     public static PdfFont TextFont1;
     public static PdfFont TextFont;
-//    public static String fontPath = "/community/service/fonts/simfang.ttf";
-    public static String fontPath = "D:\\work\\iecube_community\\service\\community\\src\\main\\resources\\fonts\\simfang.ttf";
+    public static String fontPath = "/community/service/fonts/simfang.ttf";
     public static String fontPathW = "D:\\work\\iecube_community\\service\\community\\src\\main\\resources\\fonts\\simfang.ttf";
 
     private static String IMAGEPath="D:/community/service/resource/image/";
@@ -70,8 +69,12 @@ public class MdArticleStudentReportGen {
                 pstBaseDetail.getTaskName()+"_"+pstBaseDetail.getGrade()+"分.pdf";
         String filePath = genFileDir+"/"+FileName;
         // 设置字体
-        TitleFont = PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
-        TextFont = PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
+        try{
+            TitleFont = PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
+            TextFont = PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         // 创建文档对象并设置页面大小
         PdfDocument pdf = new PdfDocument(new PdfWriter(new FileOutputStream(filePath)));
         pdf.setDefaultPageSize(PageSize.A4);
@@ -177,8 +180,8 @@ public class MdArticleStudentReportGen {
                 return typeThree(pstArticleCompose, document);
             case 4:
                 return typeFour(pstArticleCompose);
-//            case 5:
-//                return typeFive(pstArticleCompose);
+            case 5:
+                return typeFive(pstArticleCompose);
             default:
                 return new Paragraph(pstArticleCompose.getName()).setFont(TitleFont).setFontSize(12);
         }
@@ -288,44 +291,36 @@ public class MdArticleStudentReportGen {
         paragraph.add(gradePar);
         paragraph.add("\n");
         // 单选
-//        String[] nameParts = pstArticleCompose.getName().split("\\|");
-//        String[] options = java.util.Arrays.copyOfRange(nameParts, 2, nameParts.length); // 选项
         JsonNode args = genJsonNode(pstArticleCompose.getArgs());
-
         List<String> argList = arrayJsonNodeToList(args,String.class);
         List<String> optionList = new ArrayList<>(argList.subList(2, argList.size()));
-//        System.out.println("argList");
-//        System.out.println(argList);
-//        System.out.println("optionList");
-//        System.out.println(optionList);
-
-
         // 作答内容
         JsonNode val = genJsonNode(pstArticleCompose.getVal());
         Integer valValue= val.get("val").asInt(); //学生选项
         // 参考答案
         JsonNode answer = genJsonNode(pstArticleCompose.getAnswer());
-        Integer answerValue = answer.get("val").asInt(); // 答案选项
+        Integer answerValue = answer.get("val").asInt(); // 参考答案选项
 
         Paragraph submitParagraph = new Paragraph();
         Paragraph answerParagraph = new Paragraph();
         answerParagraph.add("参考答案：\n");
         for(int i= 0; i<optionList.size();i++){
-//            Paragraph optionParagraph = genHtmlQues(optionList.get(i));
             String option = optionList.get(i);
             Paragraph optionParagraph = genHtmlQues(option);
-//            System.out.println(optionParagraph);
+            Paragraph answerOptionParagraph = new Paragraph();
+            answerOptionParagraph = optionParagraph;
             if(valValue.equals(i)){
-                optionParagraph.setFontColor(new DeviceCmyk(0.88f,0.0f,0.58f,0.28f));
+                submitParagraph.add(new Paragraph("-->").setFontColor(new DeviceCmyk(0.88f,0.0f,0.58f,0.28f)));
             }
             submitParagraph.add(optionParagraph);
-//            submitParagraph.add("\t");
-//            optionParagraph.setFontColor(null);
+            submitParagraph.add("\n");
+//            optionParagraph.setFontColor(new DeviceCmyk(0f,0f,0f,1f));
+
             if(answerValue.equals(i)){
-                optionParagraph.setFontColor(new DeviceCmyk(0.88f,0.0f,0.58f,0.28f));
+                answerParagraph.add(new Paragraph("-->").setFontColor(new DeviceCmyk(0.88f,0.0f,0.58f,0.28f)));
             }
-            answerParagraph.add(optionParagraph);
-//            answerParagraph.add("\t");
+            answerParagraph.add(answerOptionParagraph);
+            answerParagraph.add("\n");
         }
         paragraph.add(submitParagraph);
         paragraph.add("\n");
@@ -344,38 +339,35 @@ public class MdArticleStudentReportGen {
                 .setFont(TextFont).setFontSize(10).setFontColor(new DeviceCmyk(0.0f,1.0f,1.0f,0.0f));
         paragraph.add(gradePar);
         // 多选
-//        String[] nameParts = pstArticleCompose.getName().split("\\|");
-//        String[] options = java.util.Arrays.copyOfRange(nameParts, 2, nameParts.length); // 选项
+        paragraph.add("\n");
         JsonNode args = genJsonNode(pstArticleCompose.getArgs());
         List<String> argList = arrayJsonNodeToList(args,String.class);
         List<String> optionList = new ArrayList<>(argList.subList(2, argList.size()));
 
         // 作答
-        JsonNode val = genJsonNode(pstArticleCompose.getVal());
+        JsonNode val = genJsonNode(pstArticleCompose.getVal()).get("val");
         List submitList = arrayJsonNodeToList(val, Integer.class); //学生选项
         // 答案
-        JsonNode answer = genJsonNode(pstArticleCompose.getAnswer());
+        JsonNode answer = genJsonNode(pstArticleCompose.getAnswer()).get("val");
         List<Integer> answerList = arrayJsonNodeToList(answer, Integer.class);
-//        System.out.println("submitList");
-//        System.out.println(submitList);
-//        System.out.println("answerList");
-//        System.out.println(answerList);
         Paragraph submitParagraph = new Paragraph();
         Paragraph answerParagraph = new Paragraph();
         answerParagraph.add("参考答案：\n");
         for(Integer i= 0; i<optionList.size();i++){
             Paragraph optionParagraph = genHtmlQues(optionList.get(i));
+            Paragraph answerOptionParagraph = new Paragraph();
+            answerOptionParagraph = optionParagraph;
             if(submitList.contains(i)){
-                optionParagraph.setFontColor(new DeviceCmyk(0.88f,0.0f,0.58f,0.28f));
+                submitParagraph.add(new Paragraph("-->").setFontColor(new DeviceCmyk(0.88f,0.0f,0.58f,0.28f)));
             }
             submitParagraph.add(optionParagraph);
-            submitParagraph.add("\t");
-            optionParagraph.setFontColor(null);
+            submitParagraph.add("\n");
+//            optionParagraph.setFontColor(new DeviceCmyk(0f,0f,0f,1f));
             if(answerList.contains(i)){
-                optionParagraph.setFontColor(new DeviceCmyk(0.88f,0.0f,0.58f,0.28f));
+                answerParagraph.add(new Paragraph("-->").setFontColor(new DeviceCmyk(0.88f,0.0f,0.58f,0.28f)));
             }
-            answerParagraph.add(optionParagraph);
-            answerParagraph.add("\t");
+            answerParagraph.add(answerOptionParagraph);
+            answerParagraph.add("\n");
         }
         paragraph.add(submitParagraph);
         paragraph.add("\n\n");
@@ -478,14 +470,11 @@ public class MdArticleStudentReportGen {
 
     private static Paragraph genHtmlQues(String ques){
         Paragraph paragraph = new Paragraph();
-        System.out.println(ques);
         if(ques.contains("katex")){
             try{
                 String htmlQues = genHtmlString(ques);
                 // 标题内容
                 List<IElement> elements = convertHtmlToDocument(htmlQues);
-                System.out.println("elements");
-                System.out.println(elements);
                 for(IElement iElement : elements){
                     paragraph.add((IBlockElement)iElement);
                 }
@@ -523,14 +512,11 @@ public class MdArticleStudentReportGen {
     }
 
     public static List<IElement> convertHtmlToDocument(String html) throws IOException{
-        System.out.println(html);
         InputStream htmlStream=null;
         try{
              htmlStream = new ByteArrayInputStream(html.getBytes("UTF-8"));
             ConverterProperties properties = creatBaseFont(fontPath);
             List<IElement>  elements = HtmlConverter.convertToElements(htmlStream, properties);
-//            List<IElement>  elements = HtmlConverter.convertToElements(htmlStream);
-            System.out.println(elements);
             return elements;
         }catch (Exception e){
             e.printStackTrace();
@@ -539,7 +525,6 @@ public class MdArticleStudentReportGen {
             if(htmlStream!=null){
                 htmlStream.close();
             }
-
         }
     }
 

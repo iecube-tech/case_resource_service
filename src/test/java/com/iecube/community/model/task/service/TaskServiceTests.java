@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.FileOutputStream;
@@ -18,6 +19,7 @@ import java.util.List;
 
 // @RunWith 表示启动这个单元测试类， 需要传递一个参数 必须是SpringRunner的实列类型
 @RunWith(SpringRunner.class)
+@EnableAsync
 public class TaskServiceTests {
     @Autowired
     private TaskService taskService;
@@ -39,10 +41,10 @@ public class TaskServiceTests {
 
     @Test
     public void genStudentMdDocReport(){
-//        PSTBaseDetail pstBaseDetail = taskService.readOverPSTArticle(8774, 6);
-//        taskService.genMdArticleReport(8774, pstBaseDetail, 6);
-        PSTBaseDetail pstBaseDetail = taskService.readOverPSTArticle(8346, 6);
-        taskService.genMdArticleReport(8346, pstBaseDetail, 6);
+        PSTBaseDetail pstBaseDetail = taskService.readOverPSTArticle(8774, 6);
+        taskService.genMdArticleReport(8774, pstBaseDetail, 6);
+//        PSTBaseDetail pstBaseDetail = taskService.readOverPSTArticle(8346, 6);
+//        taskService.genMdArticleReport(8346, pstBaseDetail, 6);
     }
     @Test
     public void test1(){

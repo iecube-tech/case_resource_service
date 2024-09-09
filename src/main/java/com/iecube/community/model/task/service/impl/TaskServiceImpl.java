@@ -769,6 +769,7 @@ public class TaskServiceImpl implements TaskService {
         try{
             readOverReport =  mdArticleStudentReportGen.startGen(pstBaseDetail, pstArticle.getComposeList());
         }catch (Exception e){
+            e.printStackTrace();
            throw new GenStudentReportFiledException(pstId+"学生报告生成异常");
         }
         try{
