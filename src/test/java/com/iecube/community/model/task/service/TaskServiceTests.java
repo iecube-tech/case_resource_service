@@ -60,10 +60,10 @@ public class TaskServiceTests {
             "c</span></span></span></span> ";
 //        PdfDocument pdf = new PdfDocument(new PdfWriter(new FileOutputStream()));
 
-        String htmlStr = MdArticleStudentReportGen.genHtmlString(a);
+//        String htmlStr = MdArticleStudentReportGen.genHtmlString(a);
         try{
-            List<IElement> elements = MdArticleStudentReportGen.convertHtmlToDocument(htmlStr);
-            System.out.println(elements);
+//            List<IElement> elements = MdArticleStudentReportGen.convertHtmlToDocument(htmlStr);
+//            System.out.println(elements);
         }catch (Exception e){
             e.printStackTrace();
         }

@@ -104,3 +104,7 @@ password:
   default-enable: true
   student: 111111
   teacher: 111111
+
+font:
+  path: D:\work\iecube_community\service\community\src\main\resources\fonts\simfang.ttf
+#  path: /community/service/fonts/simfang.ttf

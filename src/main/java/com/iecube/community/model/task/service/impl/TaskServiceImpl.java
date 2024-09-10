@@ -55,6 +55,7 @@ import com.iecube.community.model.task_requirement.entity.Requirement;
 import com.iecube.community.model.task_requirement.entity.TaskRequirement;
 import com.iecube.community.model.task_requirement.mapper.RequirementMapper;
 import com.iecube.community.util.pdf.MdArticleStudentReportGen;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -68,6 +69,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 @Service
+@Slf4j
 public class TaskServiceImpl implements TaskService {
     @Autowired
     private TaskMapper taskMapper;
@@ -130,6 +132,14 @@ public class TaskServiceImpl implements TaskService {
 
     @Value("${generated-report}")
     private String genStudentReportDir;
+
+    @Value("${resource-location}/image/")
+    private String IMAGEPath;
+    @Value("${font.path}")
+    private String fontPath;
+
+    @Value("${generated-report}")
+    private String genFileDir;
 
     /**
      * 任务状态
@@ -764,7 +774,7 @@ public class TaskServiceImpl implements TaskService {
     @Async
     public void genMdArticleReport(Integer pstId , PSTBaseDetail pstBaseDetail, Integer teacherId){
         PSTArticle pstArticle = pstArticleService.getByPstId(pstId);
-        MdArticleStudentReportGen mdArticleStudentReportGen = new MdArticleStudentReportGen(genStudentReportDir);
+        MdArticleStudentReportGen mdArticleStudentReportGen = new MdArticleStudentReportGen(genFileDir, IMAGEPath, fontPath);
         MultipartFile readOverReport = null;
         try{
             readOverReport =  mdArticleStudentReportGen.startGen(pstBaseDetail, pstArticle.getComposeList());

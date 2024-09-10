@@ -25,8 +25,10 @@ import com.itextpdf.layout.font.FontProvider;
 import com.itextpdf.layout.property.HorizontalAlignment;
 import com.itextpdf.layout.property.TextAlignment;
 import com.itextpdf.layout.property.UnitValue;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.xml.bind.Element;
@@ -35,28 +37,20 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.List;
 
-
+@Slf4j
 public class MdArticleStudentReportGen {
+//    private static String genFileDir;
+    public static PdfFont TitleFont;
+    public static PdfFont TextFont;
+    private static String IMAGEPath;
+    private static String fontPath;
     private static String genFileDir;
 
-    public static PdfFont TitleFont;
-    public static PdfFont TextFont1;
-    public static PdfFont TextFont;
-    public static String fontPath = "/community/service/fonts/simfang.ttf";
-    public static String fontPathW = "D:\\work\\iecube_community\\service\\community\\src\\main\\resources\\fonts\\simfang.ttf";
-
-    private static String IMAGEPath="D:/community/service/resource/image/";
-
-    private static String IMAGEPathW="D:\\learn\\java\\resources\\image\\";
-
     private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    public MdArticleStudentReportGen(String genFilePath){
+    public MdArticleStudentReportGen(String genFilePath, String IMAGEPath, String fontPath){
         this.genFileDir = genFilePath;
-        if(isWindows()){
-            fontPath = fontPathW;
-            IMAGEPath = IMAGEPathW;
-        }
+        this.IMAGEPath = IMAGEPath;
+        this.fontPath = fontPath;
     }
 
     public static boolean isWindows() {
@@ -68,6 +62,9 @@ public class MdArticleStudentReportGen {
                 pstBaseDetail.getStudentName()+"_"+pstBaseDetail.getTaskNum()+"_"+
                 pstBaseDetail.getTaskName()+"_"+pstBaseDetail.getGrade()+"分.pdf";
         String filePath = genFileDir+"/"+FileName;
+        log.info("fontPath:"+fontPath);
+        log.info("genFileDir:"+genFileDir);
+        log.info("IMAGEPath:"+IMAGEPath);
         // 设置字体
         try{
             TitleFont = PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
@@ -142,7 +139,7 @@ public class MdArticleStudentReportGen {
     }
 
 
-    public static Paragraph studentInfo(PSTBaseDetail pstBaseDetail){
+    public Paragraph studentInfo(PSTBaseDetail pstBaseDetail){
         String studentInfo = "姓名："+pstBaseDetail.getStudentName() +"    学号：" + pstBaseDetail.getStudentId() +"    实验："+
                 pstBaseDetail.getTaskName();
 
@@ -155,7 +152,7 @@ public class MdArticleStudentReportGen {
         return paragraph;
     }
 
-    public static Paragraph studentGrade(PSTBaseDetail pstBaseDetail){
+    public Paragraph studentGrade(PSTBaseDetail pstBaseDetail){
         String Grade = "得分：" + pstBaseDetail.getGrade();
         Paragraph paragraph = new Paragraph(Grade);
         paragraph.setFont(TitleFont);
@@ -167,7 +164,7 @@ public class MdArticleStudentReportGen {
     }
 
 
-    public static Paragraph composeGen(PSTArticleCompose pstArticleCompose, Document document){
+    public Paragraph composeGen(PSTArticleCompose pstArticleCompose, Document document){
 
         switch (pstArticleCompose.getQType()){
             case 0:
@@ -188,7 +185,7 @@ public class MdArticleStudentReportGen {
 
     }
 
-    private static Paragraph typeOne(PSTArticleCompose pstArticleCompose) {
+    private Paragraph typeOne(PSTArticleCompose pstArticleCompose) {
         Paragraph paragraph = new Paragraph();
         String ques = pstArticleCompose.getQuestion()+"("+pstArticleCompose.getScore()+"分) ";
         // 题目
@@ -218,7 +215,7 @@ public class MdArticleStudentReportGen {
         return paragraph;
     }
 
-    private static Paragraph typeTwo(PSTArticleCompose pstArticleCompose){
+    private Paragraph typeTwo(PSTArticleCompose pstArticleCompose){
         Paragraph paragraph= new Paragraph();
         String ques = pstArticleCompose.getQuestion()+"("+pstArticleCompose.getScore()+"分) ";
         // 题目
@@ -248,7 +245,7 @@ public class MdArticleStudentReportGen {
         return paragraph;
     }
 
-    private static Paragraph typeThree(PSTArticleCompose pstArticleCompose, Document document){
+    private Paragraph typeThree(PSTArticleCompose pstArticleCompose, Document document){
         Paragraph paragraph = new Paragraph();
         String ques = pstArticleCompose.getQuestion()+"("+pstArticleCompose.getScore()+"分) ";
         // 题目
@@ -279,7 +276,7 @@ public class MdArticleStudentReportGen {
         return paragraph;
     }
 
-    private static Paragraph typeFour(PSTArticleCompose pstArticleCompose){
+    private Paragraph typeFour(PSTArticleCompose pstArticleCompose){
         Paragraph paragraph = new Paragraph();
         String ques = pstArticleCompose.getQuestion()+"("+pstArticleCompose.getScore()+"分) ";
         // 题目
@@ -328,7 +325,7 @@ public class MdArticleStudentReportGen {
         return paragraph;
     }
 
-    private static Paragraph typeFive(PSTArticleCompose pstArticleCompose){
+    private Paragraph typeFive(PSTArticleCompose pstArticleCompose){
         Paragraph paragraph = new Paragraph();
         String ques = pstArticleCompose.getQuestion()+"("+pstArticleCompose.getScore()+"分) ";
         // 题目
@@ -375,7 +372,7 @@ public class MdArticleStudentReportGen {
         return paragraph;
     }
 
-    private static Paragraph genPic(JsonNode picList, Document document){
+    private Paragraph genPic(JsonNode picList, Document document){
         PageSize pageSize = document.getPdfDocument().getDefaultPageSize();
         float pageWidth = pageSize.getWidth();
         Paragraph paragraph = new Paragraph();
@@ -402,7 +399,7 @@ public class MdArticleStudentReportGen {
         return paragraph;
     }
 
-    private static Table genTable(JsonNode val){
+    private Table genTable(JsonNode val){
         JsonNode tableData = val.get("tableData");
         int col = val.get("col").asInt();
         int row = val.get("row").asInt();
@@ -432,7 +429,7 @@ public class MdArticleStudentReportGen {
         return table;
     }
 
-    private static <T> List<T> arrayJsonNodeToList(JsonNode jsonNodeArray, Class<T> elementType){
+    private <T> List<T> arrayJsonNodeToList(JsonNode jsonNodeArray, Class<T> elementType){
         List<T> list = new ArrayList<>();
         if (jsonNodeArray != null && jsonNodeArray.isArray()) {
             ArrayNode arrayNode = (ArrayNode) jsonNodeArray;
@@ -448,7 +445,7 @@ public class MdArticleStudentReportGen {
         return list;
     }
 
-    private static <T> T convertJsonNode(JsonNode node, Class<T> clazz) {
+    private <T> T convertJsonNode(JsonNode node, Class<T> clazz) {
         try {
             return objectMapper.treeToValue(node, clazz);
         } catch (Exception e) {
@@ -457,7 +454,7 @@ public class MdArticleStudentReportGen {
         }
     }
 
-    private static JsonNode genJsonNode(String jsonString){
+    private JsonNode genJsonNode(String jsonString){
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = null;
         try{
@@ -468,7 +465,7 @@ public class MdArticleStudentReportGen {
         return jsonNode;
     }
 
-    private static Paragraph genHtmlQues(String ques){
+    private Paragraph genHtmlQues(String ques){
         Paragraph paragraph = new Paragraph();
         if(ques.contains("katex")){
             try{
@@ -489,7 +486,7 @@ public class MdArticleStudentReportGen {
     }
 
 
-    public static String genHtmlString(String text){
+    public String genHtmlString(String text){
         String htmlWithCss = "<!DOCTYPE html>" +
                 "<html>" +
                 "<head>" +
@@ -511,7 +508,7 @@ public class MdArticleStudentReportGen {
         return htmlWithCss;
     }
 
-    public static List<IElement> convertHtmlToDocument(String html) throws IOException{
+    public List<IElement> convertHtmlToDocument(String html) throws IOException{
         InputStream htmlStream=null;
         try{
              htmlStream = new ByteArrayInputStream(html.getBytes("UTF-8"));
@@ -528,7 +525,7 @@ public class MdArticleStudentReportGen {
         }
     }
 
-    private static ConverterProperties creatBaseFont(String fontPath){
+    private ConverterProperties creatBaseFont(String fontPath){
         try{
             ConverterProperties properties = new ConverterProperties();
             FontProvider fontProvider = new DefaultFontProvider();
