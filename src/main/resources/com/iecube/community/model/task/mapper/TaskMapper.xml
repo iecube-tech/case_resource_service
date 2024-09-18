@@ -70,6 +70,7 @@
     <resultMap id="PSTBaseDetail" type="com.iecube.community.model.task.entity.PSTBaseDetail">
         <result column="project_id" property="projectId"></result>
         <result column="project_name" property="projectName"></result>
+        <result column="device_id" property="deviceId"></result>
         <result column="pst_id" property="pstId"></result>
         <result column="task_num" property="taskNum"></result>
         <result column="task_name" property="taskName"></result>
@@ -218,7 +219,7 @@
     </select>
 
     <select id="getPSTBaseDetailByProject" resultMap="PSTBaseDetail">
-        SELECT pst.project_id, project.project_name, pst.id as pst_id, pst.grade, pst.status, task.task_name, task.num  as task_num, Student.student_name, Student.student_id
+        SELECT pst.project_id, project.project_name, project.device_id, pst.id as pst_id, pst.grade, pst.status, task.task_name, task.num  as task_num, Student.student_name, Student.student_id
         FROM project_task_student pst
                  INNER JOIN project ON pst.project_id=project.id
                  INNER JOIN task ON pst.task_id=task.id
@@ -227,7 +228,7 @@
     </select>
 
     <select id="getPstBaseDetail" resultMap="PSTBaseDetail">
-        SELECT pst.project_id, project.project_name, pst.id as pst_id, pst.grade, pst.status, task.task_name, task.num  as task_num, Student.student_name, Student.student_id
+        SELECT pst.project_id, project.project_name,  project.device_id, pst.id as pst_id, pst.grade, pst.status, task.task_name, task.num  as task_num, Student.student_name, Student.student_id
         FROM project_task_student pst
                  INNER JOIN project ON pst.project_id=project.id
                  INNER JOIN task ON pst.task_id=task.id

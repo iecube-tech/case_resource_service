@@ -74,7 +74,7 @@ public class WebSocketService {
     @OnMessage
     public void onMessage(String message){
         Message3835 msg = JSON.parseObject(message, Message3835.class);
-        log.info(msg.toString());
+//        log.info(msg.toString());
         if (msg.getFrom().equals(PING)){
             try{
                 Session webSession = onlineUser.get(this.userId);

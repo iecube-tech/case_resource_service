@@ -6,6 +6,7 @@ import lombok.Data;
 public class PSTBaseDetail {
     Integer projectId;
     String projectName;
+    Integer deviceId;
     Integer pstId;
     Double grade;
     Integer status;

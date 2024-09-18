@@ -179,6 +179,8 @@ public class MdArticleStudentReportGen {
                 return typeFour(pstArticleCompose);
             case 5:
                 return typeFive(pstArticleCompose);
+            case 6:
+                return typeTwo(pstArticleCompose);
             default:
                 return new Paragraph(pstArticleCompose.getName()).setFont(TitleFont).setFontSize(12);
         }
@@ -292,11 +294,22 @@ public class MdArticleStudentReportGen {
         List<String> argList = arrayJsonNodeToList(args,String.class);
         List<String> optionList = new ArrayList<>(argList.subList(2, argList.size()));
         // 作答内容
-        JsonNode val = genJsonNode(pstArticleCompose.getVal());
-        Integer valValue= val.get("val").asInt(); //学生选项
+        Integer valValue = null; //学生选项
+        if(pstArticleCompose.getVal()!=null){
+            JsonNode val = genJsonNode(pstArticleCompose.getVal());
+            if(val!=null){
+                valValue= val.get("val").asInt(); //学生选项
+            }
+        }
         // 参考答案
-        JsonNode answer = genJsonNode(pstArticleCompose.getAnswer());
-        Integer answerValue = answer.get("val").asInt(); // 参考答案选项
+        Integer answerValue = null; // 参考答案选项
+        if(pstArticleCompose.getAnswer()!=null){
+            JsonNode answer = genJsonNode(pstArticleCompose.getAnswer());
+            if(answer!=null){
+                answerValue = answer.get("val").asInt(); // 参考答案选项
+            }
+        }
+
 
         Paragraph submitParagraph = new Paragraph();
         Paragraph answerParagraph = new Paragraph();
@@ -306,15 +319,19 @@ public class MdArticleStudentReportGen {
             Paragraph optionParagraph = genHtmlQues(option);
             Paragraph answerOptionParagraph = new Paragraph();
             answerOptionParagraph = optionParagraph;
-            if(valValue.equals(i)){
-                submitParagraph.add(new Paragraph("-->").setFontColor(new DeviceCmyk(0.88f,0.0f,0.58f,0.28f)));
+            if(valValue!=null){
+                if(valValue.equals(i)){
+                    submitParagraph.add(new Paragraph("-->").setFontColor(new DeviceCmyk(0.88f,0.0f,0.58f,0.28f)));
+                }
             }
             submitParagraph.add(optionParagraph);
             submitParagraph.add("\n");
 //            optionParagraph.setFontColor(new DeviceCmyk(0f,0f,0f,1f));
 
-            if(answerValue.equals(i)){
-                answerParagraph.add(new Paragraph("-->").setFontColor(new DeviceCmyk(0.88f,0.0f,0.58f,0.28f)));
+            if(answerValue!=null){
+                if(answerValue.equals(i)){
+                    answerParagraph.add(new Paragraph("-->").setFontColor(new DeviceCmyk(0.88f,0.0f,0.58f,0.28f)));
+                }
             }
             answerParagraph.add(answerOptionParagraph);
             answerParagraph.add("\n");
@@ -337,19 +354,34 @@ public class MdArticleStudentReportGen {
         paragraph.add(gradePar);
         // 多选
         paragraph.add("\n");
+
+        Paragraph submitParagraph = new Paragraph();
+        Paragraph answerParagraph = new Paragraph();
+        answerParagraph.add("参考答案：\n");
+
+
         JsonNode args = genJsonNode(pstArticleCompose.getArgs());
         List<String> argList = arrayJsonNodeToList(args,String.class);
         List<String> optionList = new ArrayList<>(argList.subList(2, argList.size()));
 
         // 作答
-        JsonNode val = genJsonNode(pstArticleCompose.getVal()).get("val");
-        List submitList = arrayJsonNodeToList(val, Integer.class); //学生选项
+        List submitList = new ArrayList<>();
+        if(pstArticleCompose.getVal()!=null){
+            JsonNode val = genJsonNode(pstArticleCompose.getVal()).get("val");
+            if(val!=null){
+                submitList = arrayJsonNodeToList(val, Integer.class); //学生选项
+            }
+        }
+
         // 答案
-        JsonNode answer = genJsonNode(pstArticleCompose.getAnswer()).get("val");
-        List<Integer> answerList = arrayJsonNodeToList(answer, Integer.class);
-        Paragraph submitParagraph = new Paragraph();
-        Paragraph answerParagraph = new Paragraph();
-        answerParagraph.add("参考答案：\n");
+        List<Integer> answerList = new ArrayList<>();
+        if(pstArticleCompose.getAnswer()!=null){
+            JsonNode answer = genJsonNode(pstArticleCompose.getAnswer()).get("val");
+            if(answer!=null){
+                answerList = arrayJsonNodeToList(answer, Integer.class);
+            }
+        }
+
         for(Integer i= 0; i<optionList.size();i++){
             Paragraph optionParagraph = genHtmlQues(optionList.get(i));
             Paragraph answerOptionParagraph = new Paragraph();

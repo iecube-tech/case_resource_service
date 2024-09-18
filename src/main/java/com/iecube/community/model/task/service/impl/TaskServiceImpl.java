@@ -767,6 +767,7 @@ public class TaskServiceImpl implements TaskService {
         // 报告
 
         PSTBaseDetail pstBaseDetail = taskMapper.getPstBaseDetail(pstId);
+        this.autoComputeProjectGrade(pstId);
         return pstBaseDetail;
     }
 

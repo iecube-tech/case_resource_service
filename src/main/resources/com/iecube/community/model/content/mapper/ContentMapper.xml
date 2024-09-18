@@ -223,7 +223,8 @@
 
     <select id="getMdCourseCreated" resultMap="ContentEntity">
         SELECT * FROM solution_or_case
-                 WHERE solution_or_case.creator=6
+                 WHERE solution_or_case.creator=#{user}
+                   AND creator_type='teacher'
                    AND solution_or_case.third=1
                    AND solution_or_case.is_delete=0
                    AND solution_or_case.md_course
