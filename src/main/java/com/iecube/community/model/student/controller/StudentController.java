@@ -1,6 +1,7 @@
 package com.iecube.community.model.student.controller;
 
 import com.iecube.community.basecontroller.student.StudentBaseController;
+import com.iecube.community.model.auth.dto.LoginDto;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.qo.AddStudentQo;
 import com.iecube.community.model.student.qo.DeleteQo;
@@ -9,15 +10,17 @@ import com.iecube.community.model.teacher.qo.ChangePassword;
 import com.iecube.community.util.DownloadUtil;
 import com.iecube.community.util.JsonResult;
 import com.iecube.community.util.ex.SystemException;
+import com.iecube.community.util.jwt.AuthUtils;
+import com.iecube.community.util.jwt.CurrentUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
@@ -33,47 +36,52 @@ public class StudentController extends StudentBaseController {
     @Autowired
     private StudentService studentService;
 
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
     @GetMapping("/list")
-    public JsonResult<List> findStudentsLimitByTeacherId(Integer page, Integer pageSize , HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<List> findStudentsLimitByTeacherId(Integer page, Integer pageSize){
+        Integer teacherId = currentUserId();
         List<StudentDto> students = studentService.findStudentsLimitByTeacherId(teacherId, page, pageSize);
         return new JsonResult<>(OK, students);
     }
 
     @GetMapping("/num")
-    public JsonResult<Integer> StudentNum(HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<Integer> StudentNum(){
+        Integer teacherId = currentUserId();
         Integer studentsNum = studentService.studentsNum(teacherId);
         return new JsonResult<>(OK, studentsNum);
     }
 
     @GetMapping("/all")
-    public JsonResult<List> findAllInStatusByTeacher(HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<List> findAllInStatusByTeacher(){
+        Integer teacherId = currentUserId();
         List<StudentDto> students = studentService.findAllInStatusByTeacher(teacherId);
         return new JsonResult<>(OK,students);
     }
 
     @PostMapping("/login")
-    public  JsonResult<StudentDto> login(HttpSession session, String email, String password){
-        StudentDto student = studentService.login(email, password);
-        session.setAttribute("userid", student.getId());
-        session.setAttribute("username", student.getStudentName());
-        session.setAttribute("type", "student");
-        log.info("login:{},{},{}", getUserTypeFromSession(session),getUserIdFromSession(session),getUsernameFromSession(session));
-        return new JsonResult<>(OK, student);
+    public  JsonResult<LoginDto> login(String email, String password){
+        LoginDto loginDto = studentService.jwtLogin(email, password);
+        CurrentUser currentUser = new CurrentUser();
+        currentUser.setUserType("student");
+        currentUser.setId(loginDto.getStudentDto().getId());
+        currentUser.setEmail(loginDto.getStudentDto().getEmail());
+        AuthUtils.cache(currentUser, loginDto.getToken(), stringRedisTemplate);
+        log.info("login:{},{},{}",currentUser.getUserType(),currentUser.getId(), currentUser.getEmail());
+        return new JsonResult<>(OK,loginDto);
     }
 
     @GetMapping("/logout")
-    public JsonResult<Void> logout(HttpSession session){
-        log.info("logout:{},{},{}",getUserTypeFromSession(session),getUserIdFromSession(session),getUsernameFromSession(session));
-        session.invalidate();
+    public JsonResult<Void> logout(){
+        AuthUtils.rm(stringRedisTemplate);
+        log.info("logout:{},{},{}",currentUserType(),currentUserId(),currentUserEmail());
         return new JsonResult<>(OK);
     }
 
     @PostMapping("/add")
-    public JsonResult<Void> addStudent(@RequestBody AddStudentQo addStudentQo, HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<Void> addStudent(@RequestBody AddStudentQo addStudentQo){
+        Integer teacherId = currentUserId();
         studentService.addStudent(addStudentQo, teacherId);
         return new JsonResult<>(OK);
     }
@@ -89,9 +97,9 @@ public class StudentController extends StudentBaseController {
     }
 
     @PostMapping(value = "/batch/excel")
-    public JsonResult<Void> importByExcel(MultipartFile file, HttpSession session) {
+    public JsonResult<Void> importByExcel(MultipartFile file) {
         try {
-            studentService.importByExcel(file.getInputStream(), getUserIdFromSession(session));
+            studentService.importByExcel(file.getInputStream(), currentUserId());
             return new JsonResult<>(OK);
         } catch (IOException e) {
             log.error("IO异常", e);
@@ -100,8 +108,8 @@ public class StudentController extends StudentBaseController {
     }
 
     @GetMapping("/my")
-    public JsonResult<StudentDto> getMyStudentDto(HttpSession session){
-        Integer studentId=getUserIdFromSession(session);
+    public JsonResult<StudentDto> getMyStudentDto(){
+        Integer studentId=currentUserId();
         StudentDto studentDto = studentService.my(studentId);
         return new JsonResult<>(OK, studentDto);
     }
@@ -113,20 +121,18 @@ public class StudentController extends StudentBaseController {
     }
 
     @PostMapping("/change_password")
-    public JsonResult<Void> changePassword(@RequestBody ChangePassword changePassword, HttpSession session){
-        Integer studentId= getUserIdFromSession(session);
+    public JsonResult<Void> changePassword(@RequestBody ChangePassword changePassword){
+        Integer studentId= currentUserId();
         studentService.changePassword(studentId, changePassword.getOldPassword(), changePassword.getNewPassword());
         log.info("{} changePassword",studentId);
         return new JsonResult<>(OK);
     }
 
     @PostMapping("/delete")
-    public JsonResult<List> deleteStudent(@RequestBody DeleteQo deleteQo, HttpSession session){
+    public JsonResult<List> deleteStudent(@RequestBody DeleteQo deleteQo){
         studentService.deleteStudentById(deleteQo.getStudentIds());
-        Integer teacherId = getUserIdFromSession(session);
+        Integer teacherId = currentUserId();
         List<StudentDto> students = studentService.findAllInStatusByTeacher(teacherId);
         return new JsonResult<>(OK, students);
     }
-
-
 }

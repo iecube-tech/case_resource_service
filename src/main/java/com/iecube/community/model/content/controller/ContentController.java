@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
@@ -36,13 +35,14 @@ public class ContentController extends ContentBaseController {
     /**
      * 创建案例第一步  新建
      * @param content
-     * @param session
+
      * @return
      */
     @PostMapping("/add")
-    public JsonResult<Integer> addContent(@RequestBody Content content, HttpSession session){
-        Integer lastModifiedUser = getUserIdFromSession(session);
-        String userType = getUserTypeFromSession(session);
+    public JsonResult<Integer> addContent(@RequestBody Content content){
+        Integer lastModifiedUser = currentUserId();
+        //todo 替换下面一行
+        String userType = currentUserType();
         Integer id = contentService.addContent(content,userType, lastModifiedUser);
         return new JsonResult<>(OK, id);
     }
@@ -50,20 +50,22 @@ public class ContentController extends ContentBaseController {
     /**
      * 创建案例第一步  修改案例信息
      * @param content
-     * @param session
+
      * @return
      */
     @PostMapping("/update")
-    public JsonResult<Content> updateContent(@RequestBody Content content, HttpSession session){
+    public JsonResult<Content> updateContent(@RequestBody Content content){
 //        System.out.println(content);
         if(content.getId()==null){
-            Integer lastModifiedUser = getUserIdFromSession(session);
-            String userType = getUserTypeFromSession(session);
+            Integer lastModifiedUser = currentUserId();
+            //todo 替换下面一行
+            String userType = currentUserType();
             Integer id = contentService.addContent(content,userType, lastModifiedUser);
             content.setId(id);
         }
-        Integer modifiedUser = getUserIdFromSession(session);
-        String modifyType = getUserTypeFromSession(session);
+        Integer modifiedUser = currentUserId();
+        //todo 替换下面一行
+        String modifyType = currentUserType();
         content.setCreatorType(modifyType);
         contentService.updateContent(content, modifiedUser);
         contentService.contentCompletionUpdate(0,content.getId(),modifiedUser);
@@ -75,13 +77,13 @@ public class ContentController extends ContentBaseController {
      * 用于封面图片上传 替换  需要前置校验 案例是否存在
      * @param file
      * @param contentId 案例是不存在 则为错误的请求
-     * @param session
+
      * @return
      * @throws IOException
      */
     @PostMapping("/add_cover/{contentId}")
-    public JsonResult<Resource> contentAddCover(MultipartFile file, @PathVariable Integer contentId, HttpSession session) throws IOException {
-        Integer modifiedUser = getUserIdFromSession(session);
+    public JsonResult<Resource> contentAddCover(MultipartFile file, @PathVariable Integer contentId ) throws IOException {
+        Integer modifiedUser = currentUserId();
         Resource resource = resourceService.UploadImage(file,modifiedUser);
         contentService.contentUpdateCover(contentId,resource,modifiedUser);
         return new JsonResult<>(OK, resource);
@@ -91,12 +93,12 @@ public class ContentController extends ContentBaseController {
      * 用于 点击 下一步 前端主动设置任务完成状态
      * @param contentId
      * @param completion 当前进行的步骤
-     * @param session
+
      * @return
      */
     @PostMapping("/update_completion/{contentId}")
-    public JsonResult<Content> contentCompletionUpdate(@PathVariable Integer contentId, Integer completion, HttpSession session){
-        Integer modifiedUser = getUserIdFromSession(session);
+    public JsonResult<Content> contentCompletionUpdate(@PathVariable Integer contentId, Integer completion){
+        Integer modifiedUser = currentUserId();
         contentService.contentCompletionUpdate(completion,contentId,modifiedUser);
         Content content = contentService.findById(contentId);
         return new JsonResult<>(OK,content);
@@ -105,12 +107,12 @@ public class ContentController extends ContentBaseController {
     /**
      * 第三步
      * @param contentId
-     * @param session
+
      * @return
      */
     @PostMapping("/update_points/{contentId}")
-    public JsonResult<Content> contentAddPoints(@PathVariable Integer contentId, HttpSession session){
-        Integer modifiedUser = getUserIdFromSession(session);
+    public JsonResult<Content> contentAddPoints(@PathVariable Integer contentId){
+        Integer modifiedUser = currentUserId();
         // 完成了知识点的设计
         contentService.contentCompletionUpdate(2,contentId,modifiedUser);
         Content content = contentService.findById(contentId);
@@ -121,8 +123,8 @@ public class ContentController extends ContentBaseController {
      * 课程知识点的更新
      */
     @PostMapping("/add_fourth/{contentId}")
-    public JsonResult<Resource> contentUpdateFourth(@PathVariable Integer contentId,MultipartFile file,HttpSession session)throws IOException{
-        Integer modifiedUser = getUserIdFromSession(session);
+    public JsonResult<Resource> contentUpdateFourth(@PathVariable Integer contentId,MultipartFile file)throws IOException{
+        Integer modifiedUser = currentUserId();
         Resource resource = resourceService.UploadImage(file,modifiedUser);
         contentService.contentUpdateFourth(contentId,resource,modifiedUser);
         return new JsonResult<>(OK,resource);
@@ -131,12 +133,12 @@ public class ContentController extends ContentBaseController {
     /**
      * 第四步
      * @param contentId
-     * @param session
+
      * @return
      */
     @PostMapping("/update_design/{contentId}")
-    public JsonResult<Content> contentAddedDesign(@PathVariable Integer contentId,HttpSession session){
-        Integer modifiedUser = getUserIdFromSession(session);
+    public JsonResult<Content> contentAddedDesign(@PathVariable Integer contentId){
+        Integer modifiedUser = currentUserId();
         contentService.contentCompletionUpdate(3,contentId,modifiedUser);
         Content content = contentService.findById(contentId);
         return new JsonResult<>(OK,content);
@@ -145,13 +147,13 @@ public class ContentController extends ContentBaseController {
     /**
      * 第五步
      * @param contentId
-     * @param session
+
      * @return
      */
     // 任务模版在taskTemplate
     @PostMapping("/update_task_template/{contentId}")
-    public JsonResult<Content> contentAddedTaskTemplate(@PathVariable Integer contentId,HttpSession session){
-        Integer modifiedUser = getUserIdFromSession(session);
+    public JsonResult<Content> contentAddedTaskTemplate(@PathVariable Integer contentId){
+        Integer modifiedUser = currentUserId();
         contentService.contentCompletionUpdate(4,contentId,modifiedUser);
         Content content = contentService.findById(contentId);
         return new JsonResult<>(OK,content);
@@ -161,14 +163,14 @@ public class ContentController extends ContentBaseController {
      * 第六步
      * @param data
      * @param contentId
-     * @param session
+
      * @return
      */
     @PostMapping("/update_guidance/{contentId}")
-    public JsonResult<Content> updateGuidance(@RequestBody Content data, @PathVariable Integer contentId, HttpSession session){
+    public JsonResult<Content> updateGuidance(@RequestBody Content data, @PathVariable Integer contentId){
         String guidance = data.getGuidance();
         System.out.println(guidance);
-        Integer user = getUserIdFromSession(session);
+        Integer user = currentUserId();
         contentService.updateGuidanceById(contentId, guidance, user);
         contentService.contentCompletionUpdate(5,contentId,user);
         Content content = contentService.findById(contentId);
@@ -181,8 +183,8 @@ public class ContentController extends ContentBaseController {
      * @return
      */
     @PostMapping("/upload_pkg/{contentId}")
-    public JsonResult<List> uploadContentPkg(MultipartFile file, @PathVariable Integer contentId, HttpSession session)throws IOException{
-        Integer creator = getUserIdFromSession(session);
+    public JsonResult<List> uploadContentPkg(MultipartFile file, @PathVariable Integer contentId)throws IOException{
+        Integer creator = currentUserId();
         Resource resource = resourceService.UploadFile(file,creator);
         contentService.contentAddPkg(contentId,resource);
         List<ResourceVo> resources = contentService.findResourcesById(contentId);
@@ -205,52 +207,51 @@ public class ContentController extends ContentBaseController {
     /**
      * 项目内容填充完成
      * @param contentId
-     * @param session
+
      * @return
      */
     @GetMapping("/done/{contentId}")
-    public JsonResult<Content> setContentDone(@PathVariable Integer contentId, HttpSession session){
-        Integer modifiedUser = getUserIdFromSession(session);
+    public JsonResult<Content> setContentDone(@PathVariable Integer contentId){
+        Integer modifiedUser = currentUserId();
         contentService.contentCompletionUpdate(6,contentId,modifiedUser);
         Content content = contentService.findById(contentId);
         return new JsonResult<>(OK, content);
     }
 
     @DeleteMapping("/delete")
-    public JsonResult<Void> deleteContent(Integer id, HttpSession session){
-        Integer lastModifiedUser = getUserIdFromSession(session);
+    public JsonResult<Void> deleteContent(Integer id){
+        Integer lastModifiedUser = currentUserId();
         contentService.deleteContent(id, lastModifiedUser);
         return  new JsonResult<>(OK);
     }
 
     /**
      * 教师查询自己创建的项目
-     * @param session
      * @return
      */
     @GetMapping("/teacher_creat")
-    public JsonResult<List> getTeacherCreate(HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<List> getTeacherCreate(){
+        Integer teacherId = currentUserId();
         List<Content> contents = contentService.getTeacherCreate(teacherId);
         return new JsonResult<>(OK, contents);
     }
 
     @GetMapping("/admin_create")
-    public JsonResult<List> getAdminCreate(HttpSession session){
-        Integer adminId = getUserIdFromSession(session);
+    public JsonResult<List> getAdminCreate(){
+        Integer adminId = currentUserId();
         List<Content> contents = contentService.getAdminCreate(adminId);
         return new JsonResult<>(OK, contents);
     }
 
     @GetMapping("/need_check")
-    public JsonResult<List> needCheck(HttpSession session){
+    public JsonResult<List> needCheck(){
         List<Content> contents = contentService.needCheck();
         return new JsonResult<>(OK, contents);
     }
 
     @GetMapping("/check")
-    public JsonResult<Void> check(Integer contentId, HttpSession session){
-        Integer adminId = getUserIdFromSession(session);
+    public JsonResult<Void> check(Integer contentId){
+        Integer adminId = currentUserId();
         contentService.check(contentId,adminId);
         return new JsonResult<>(OK);
     }
@@ -290,12 +291,12 @@ public class ContentController extends ContentBaseController {
     /**
      * 案例删除后恢复
      * @param id
-     * @param session
+
      * @return
      */
     @GetMapping("/restore")
-    public JsonResult<Void> restore(Integer id, HttpSession session){
-        Integer lastModifiedUser = getUserIdFromSession(session);
+    public JsonResult<Void> restore(Integer id){
+        Integer lastModifiedUser = currentUserId();
         contentService.restore(id, lastModifiedUser);
         return new JsonResult<>(OK);
     }
@@ -312,15 +313,14 @@ public class ContentController extends ContentBaseController {
 
     /**
      * 精选案例
-     * @param session
      * @param id
      * @return
      */
     // 待补充
 
     @GetMapping("/get_by_t_id")
-    public JsonResult<List> findByTeacherId(HttpSession session, Integer id){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<List> findByTeacherId(Integer id){
+        Integer teacherId = currentUserId();
         if(id != null){
             teacherId = id;
         }
@@ -355,22 +355,22 @@ public class ContentController extends ContentBaseController {
     }
 
     @GetMapping("/teacher_course")
-    public JsonResult<List> teacherCourses(HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<List> teacherCourses(){
+        Integer teacherId = currentUserId();
         List<Content> teacherCourses = contentService.teacherCourse(teacherId);
         return new JsonResult<>(OK, teacherCourses);
     }
 
     @GetMapping("/teacher_create_course")
-    public JsonResult<List> teacherCreateCourse(HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<List> teacherCreateCourse(){
+        Integer teacherId = currentUserId();
         List<Content> teacherCreateCourseList = contentService.teacherCreateCourseList(teacherId);
         return new JsonResult<>(OK,teacherCreateCourseList);
     }
 
     @GetMapping("update_private/{contentId}")
-    public JsonResult<Integer> updateIsPrivate(HttpSession session, @PathVariable Integer contentId){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<Integer> updateIsPrivate(@PathVariable Integer contentId){
+        Integer teacherId = currentUserId();
         Integer result = contentService.updateIsPrivate(contentId, teacherId);
         return new JsonResult<>(OK, result);
     }

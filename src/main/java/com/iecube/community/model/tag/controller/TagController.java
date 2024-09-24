@@ -8,8 +8,6 @@ import com.iecube.community.model.tag.vo.TeacherProjectTagVo;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @RestController
@@ -20,8 +18,8 @@ public class TagController extends TagBaseController {
     private TagService tagService;
 
     @GetMapping("/tp")
-    public JsonResult<List> getTeacherProjectTag(Integer projectId, HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<List> getTeacherProjectTag(Integer projectId){
+        Integer teacherId = currentUserId();
         List<Tag> tags = tagService.getTagsByTeacherProject(projectId,teacherId);
         return new JsonResult<>(OK,tags);
     }
@@ -50,23 +48,23 @@ public class TagController extends TagBaseController {
     }
 
     @GetMapping("teacher_project_tags")
-    public JsonResult<List> getTeacherProjectTags(Integer projectId, HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<List> getTeacherProjectTags(Integer projectId){
+        Integer teacherId = currentUserId();
         List<TeacherProjectTagVo> teacherProjectTags = tagService.getTeacherProjectTags(teacherId, projectId);
         return new JsonResult<>(OK, teacherProjectTags);
     }
 
     @PostMapping("/add_tag")
-    public JsonResult<Void> addTag(@RequestBody Tag tag, HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<Void> addTag(@RequestBody Tag tag){
+        Integer teacherId = currentUserId();
         tag.setTeacherId(teacherId);
         tagService.addTag(tag);
         return new JsonResult<>(OK);
     }
 
     @PostMapping("/modify_tag")
-    public JsonResult<Void> modifyTag(@RequestBody Tag tag, HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<Void> modifyTag(@RequestBody Tag tag){
+        Integer teacherId = currentUserId();
         tag.setTeacherId(teacherId);
         tagService.modifyTag(tag);
         return new JsonResult<>(OK);

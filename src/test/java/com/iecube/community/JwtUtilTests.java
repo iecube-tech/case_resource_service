@@ -1,15 +1,17 @@
 package com.iecube.community;
 
-import com.iecube.community.util.JwtUtil;
+import com.iecube.community.util.jwt.JwtUtil;
+import io.jsonwebtoken.Claims;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.Map;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RunWith(SpringRunner.class)
 public class JwtUtilTests {
     @Resource
@@ -17,17 +19,28 @@ public class JwtUtilTests {
 
     @Test
     public void createTest(){
-        System.out.println(jwtUtil.createToken("kongzi@iecube.com.cn", null));
+        Map<String, Object> claims =new HashMap<>();
+        claims.put("id",1);
+        claims.put("name", "kongzi");
+        claims.put("user_type", "teacher");
+        System.out.println(jwtUtil.createToken(claims));
     }
 
     @Test
     public void getUserId(){
-        System.out.println(jwtUtil.getUserId("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrb25nemlAaWVjdWJlLmNvbS5jbiIsImlhdCI6MTY5MTQ5MjQwNCwiZXhwIjoxNjkxNDk2MDA0fQ.1GOELG9kk3yYAGogFQRMZ6mvbJOD-N7KHNPeoURjMNI"));
+        String token= "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJpZWN1YmUub25saW5lIiwidXNlcl90eXBlIjoidGVhY2hlciIsIm5hbWUiOiJrb25nemkiLCJpZCI6MSwiZXhwIjoxNzI3MTAyNDEzLCJpYXQiOjE3MjcwOTE2MTN9.zU7Ehf1c0R33y9DG_53L9a1XGo1GlYOgFHcaC_hJtqM";
+        Claims claims = jwtUtil.getClaims(token);
+        Integer userId = (Integer) claims.get("id");
+        String userType = (String) claims.get("user_type");
+        System.out.println(userId);
+        System.out.println(userType);
     }
 
     @Test
     public void validToken(){
-        System.out.println(jwtUtil.validateToken("dfaaa"));
-        System.out.println(jwtUtil.validateToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrb25nemlAaWVjdWJlLmNvbS5jbiIsImlhdCI6MTY5MTQ5MjQwNCwiZXhwIjoxNjkxNDk2MDA0fQ.1GOELG9kk3yYAGogFQRMZ6mvbJOD-N7KHNPeoURjMNI"));
+        String token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJpZWN1YmUub25saW5lIiwidXNlcl90eXBlIjoidGVhY2hlciIsIm5hbWUiOiJrb25nemkiLCJpZCI6MSwiZXhwIjoxNzI3MTAyNDEzLCJpYXQiOjE3MjcwOTE2MTN9.zU7Ehf1c0R33y9DG_53L9a1XGo1GlYOgFHcaC_hJtqM";
+        System.out.println(jwtUtil.validateToken(token));
+        System.out.println(jwtUtil.validateToken(token));
+
     }
 }

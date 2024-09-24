@@ -1,6 +1,7 @@
 package com.iecube.community.model.teacher.service.impl;
 
 import com.iecube.community.email.EmailSender;
+import com.iecube.community.model.auth.dto.LoginDto;
 import com.iecube.community.model.auth.entity.User;
 import com.iecube.community.model.auth.mapper.UserMapper;
 import com.iecube.community.model.auth.service.ex.*;
@@ -12,6 +13,8 @@ import com.iecube.community.model.teacher.entity.Teacher;
 import com.iecube.community.model.teacher.mapper.TeacherMapper;
 import com.iecube.community.model.teacher.service.TeacherService;
 import com.iecube.community.model.teacher.vo.TeacherVo;
+import com.iecube.community.util.SHA256;
+import com.iecube.community.util.jwt.AuthUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,7 +63,7 @@ public class TeacherServiceImpl implements TeacherService {
     private static final String EMAIL_SUBJECT = "IECUBE产业案例资教学资源库和过程评价系统-新用户通知";
 
     @Override
-    public Teacher login(String email, String password) {
+    public LoginDto login(String email, String password) {
         Teacher result = teacherMapper.findByEmail(email);
         if(result == null){
             throw new UserNotFoundException("用户未找到");
@@ -73,12 +76,16 @@ public class TeacherServiceImpl implements TeacherService {
         String salt = result.getSalt();
         String oldMd5Password = result.getPassword();
         String newMd5Password = getMD5Password(password, salt);
+        System.out.println(newMd5Password);
         if (!newMd5Password.equals(oldMd5Password)){
             throw new PasswordNotMatchException("用户密码错误");
         }
         result.setPassword(null);
         result.setSalt(null);
-        return result;
+        LoginDto loginDto = new LoginDto();
+        loginDto.setTeacher(result);
+        loginDto.setToken(new AuthUtils().createToken(result.getId(), result.getEmail(), "teacher"));
+        return loginDto;
     }
 
     @Override
@@ -97,22 +104,22 @@ public class TeacherServiceImpl implements TeacherService {
         // （串 + password + 串）  全部交给md5加密 连续加载3次
         // 盐值 + password + 盐值 盐值就是一个随机的字符串
         Integer number = this.getRandomNumberInRange(8,16);
-        String oldPassword = this.getRandomString(number);
+        String password = this.getRandomString(number);
+        String sha256Password = SHA256.encryptStringWithSHA256(password);
         // 获取盐值（随机生成一个盐值）
         String salt = UUID.randomUUID().toString().toUpperCase();
         //将密码和盐值作为一个整体进行加密处理
-        String md5Password = getMD5Password(oldPassword, salt);
+        String md5Password = getMD5Password(sha256Password, salt);
         // 将加密后的密码重新补全到user中去
         user.setPassword(md5Password);
         user.setSalt(salt);
         // 执行注册业务逻辑
-        System.out.println(user);
         Integer rows = teacherMapper.insert(user);
         if (rows != 1){
             throw new InsertException("在用户注册过程中产生未知异常");
         }
         if(!passwordDefaultEnable){
-            this.sendActiveEmail(user.getUsername(), user.getEmail(),oldPassword);
+            this.sendActiveEmail(user.getUsername(), user.getEmail(),password);
         }
 
     }

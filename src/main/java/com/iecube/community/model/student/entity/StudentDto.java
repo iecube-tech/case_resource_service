@@ -2,8 +2,6 @@ package com.iecube.community.model.student.entity;
 
 import lombok.Data;
 
-import javax.servlet.http.HttpSession;
-
 @Data
 public class StudentDto {
     Integer id;
@@ -14,5 +12,4 @@ public class StudentDto {
     String studentClass;
     String major;
     String collage;
-    HttpSession session;
 }

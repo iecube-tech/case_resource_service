@@ -1,8 +1,8 @@
 package com.iecube.community.config;
 
-import com.iecube.community.interceptor.LoginInterceptor;
+import com.iecube.community.interceptor.AuthInterceptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -14,8 +14,13 @@ import java.util.List;
  */
 @Configuration //加载当前的拦截器并注册
 public class LoginInterceptorConfigurer implements WebMvcConfigurer {
-    //创建自定义拦截器对象
-    HandlerInterceptor interceptor = new LoginInterceptor();
+    private AuthInterceptor authInterceptor;
+
+    @Autowired
+    public void InterceptorConfig(AuthInterceptor authInterceptor) {
+        this.authInterceptor = authInterceptor;
+    }
+
 
     /**
      * 配置拦截器
@@ -25,17 +30,17 @@ public class LoginInterceptorConfigurer implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         //拦截器注册
         //配置白名单： List集合
+        // addPathPatterns("表示要拦截的url是什么").excludePathPatterns("list集合 表示白名单")
         List<String> patterns = new ArrayList<>();
         patterns.add("/users/login");
         patterns.add("/teacher/login");
         patterns.add("/student/login");
+        patterns.add("/student/jlogin");
         patterns.add("/files/e/image");
         patterns.add("/files/image/{fileName}");
         patterns.add("/md/**");
         patterns.add("/t/article/compose/**/**");
-//        patterns.add("/direction/get_all");
-//        patterns.add("/file/**");
-        // addPathPatterns("表示要拦截的url是什么").excludePathPatterns("list集合 表示白名单")
-        registry.addInterceptor(interceptor).addPathPatterns("/**").excludePathPatterns(patterns);
+
+        registry.addInterceptor(authInterceptor).addPathPatterns("/**").excludePathPatterns(patterns);
     }
 }

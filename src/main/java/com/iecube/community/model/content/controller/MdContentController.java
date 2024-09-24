@@ -9,8 +9,6 @@ import com.iecube.community.util.JsonResult;
 import org.apache.tools.ant.taskdefs.condition.Http;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @RestController
@@ -39,8 +37,8 @@ public class MdContentController extends ContentBaseController {
     }
 
     @PostMapping("/up_completion")
-    public JsonResult<Content> updateMdCourseCompletion(Integer id, Integer completion, HttpSession session ){
-        Integer user = getUserIdFromSession(session);
+    public JsonResult<Content> updateMdCourseCompletion(Integer id, Integer completion ){
+        Integer user = currentUserId();
         contentService.contentCompletionUpdate(completion, id, user);
         Content content = contentService.findById(id);
         return new JsonResult<>(OK, content);
@@ -49,16 +47,15 @@ public class MdContentController extends ContentBaseController {
     /**
      * 新建md课程
      * @param content
-     * @param session
      * @return
      */
     @PostMapping ("/create")
-    public JsonResult<Content> addNewContent(@RequestBody Content content, HttpSession session){
+    public JsonResult<Content> addNewContent(@RequestBody Content content){
         if(content==null || content.getMdCourse() == null || content.getDeviceId()==null){
             throw new InsertException("表单提交错误");
         }
-        Integer lastModifiedUser = getUserIdFromSession(session);
-        String userType = getUserTypeFromSession(session);
+        Integer lastModifiedUser = currentUserId();
+        String userType = currentUserType();
         Integer id = contentService.addContent(content,userType, lastModifiedUser);
         Content newContent = contentService.findById(id);
         return new JsonResult<>(OK, newContent);
@@ -67,12 +64,11 @@ public class MdContentController extends ContentBaseController {
 
     /**
      * 获取用户创建的MD课程
-     * @param session
      * @return
      */
     @GetMapping ("/md_created")
-     public JsonResult<List> getMdCourseCreated(HttpSession session){
-        Integer user = getUserIdFromSession(session);
+     public JsonResult<List> getMdCourseCreated(){
+        Integer user = currentUserId();
         List<Content> contentList = contentService.getMdCourseCreated(user);
         return new JsonResult<>(OK, contentList);
      }

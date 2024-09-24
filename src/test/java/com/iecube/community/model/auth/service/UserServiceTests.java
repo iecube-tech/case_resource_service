@@ -1,5 +1,6 @@
 package com.iecube.community.model.auth.service;
 
+import com.iecube.community.model.auth.dto.LoginDto;
 import com.iecube.community.model.auth.entity.User;
 import com.iecube.community.baseservice.ex.ServiceException;
 import org.junit.Test;
@@ -35,8 +36,8 @@ public class UserServiceTests {
 
     @Test
     public void login(){
-        User user = userService.login("13759969121", "1111111");
-        System.out.println(user);
+        LoginDto loginDto = userService.login("13759969121", "1111111");
+        System.out.println(loginDto);
     }
 
     @Test

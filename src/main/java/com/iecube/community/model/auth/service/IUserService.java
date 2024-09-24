@@ -1,5 +1,6 @@
 package com.iecube.community.model.auth.service;
 
+import com.iecube.community.model.auth.dto.LoginDto;
 import com.iecube.community.model.auth.entity.User;
 
 /**用户模块业务层接口**/
@@ -16,7 +17,7 @@ public interface IUserService {
      * @param password 密码
      * @return 当前匹配的用户数据  如果没有则返回null
      */
-    User login(String phoneNum, String password);
+    LoginDto login(String phoneNum, String password);
 
     /**
      * 用户修改密码

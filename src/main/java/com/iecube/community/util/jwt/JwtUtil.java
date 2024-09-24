@@ -1,4 +1,4 @@
-package com.iecube.community.util;
+package com.iecube.community.util.jwt;
 
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
@@ -15,16 +15,14 @@ import java.util.Map;
 @Slf4j
 public class JwtUtil {
     private String secretKey="asdfghjkl";
-    private Duration expTime = Duration.ofHours(1);
+    private Duration expTime = Duration.ofHours(3);
 
-    public String createToken(String subject, Map<String, Object> claims){
+    public String createToken(Map<String, Object> claims){
         JwtBuilder jwtBuilder = Jwts.builder();
         if(claims!=null){
             jwtBuilder.setClaims(claims);
         }
-        if(StringUtils.isNotEmpty(subject)){
-            jwtBuilder.setSubject(subject);
-        }
+            jwtBuilder.setSubject("iecube.online");
         long currentMillis = System.currentTimeMillis();
         jwtBuilder.setIssuedAt(new Date(currentMillis));
         long millis = expTime.toMillis();
@@ -68,10 +66,10 @@ public class JwtUtil {
      * @param token
      * @return
      */
-    public String getUserId(String token){
+    public Claims getClaims(String token){
         Claims claims = pareToken(token);
         if (claims!=null){
-            return claims.getSubject();
+            return claims;
         }
         return null;
     }

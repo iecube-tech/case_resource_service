@@ -2,6 +2,7 @@ package com.iecube.community.model.student.service.impl;
 
 import com.iecube.community.email.EmailParams;
 import com.iecube.community.email.EmailSender;
+import com.iecube.community.model.auth.dto.LoginDto;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.PasswordNotMatchException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
@@ -25,6 +26,7 @@ import com.iecube.community.model.student.service.ex.StudentNotFoundException;
 import com.iecube.community.model.student.service.ex.UnprocessableException;
 import com.iecube.community.model.teacher.mapper.TeacherMapper;
 import com.iecube.community.util.ex.SystemException;
+import com.iecube.community.util.jwt.AuthUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -101,28 +103,6 @@ public class StudentServiceImpl implements StudentService {
             throw new StudentNotFoundException("没有学生数据");
         }
         return students;
-    }
-
-    @Override
-    public StudentDto login(String email, String Password) {
-        List<Student> students = studentMapper.getByEmail(email);
-        if(students==null || students.size()<1){
-            throw new StudentNotFoundException("用户不存在");
-        }
-        Student student = students.get(0);
-        if (student.getStatus()==0){
-            throw new StudentNotFoundException("用户不存在");
-        }
-        // 检测密码
-        // 先获取数据库加密后的密码 盐值  和用户传递过来的密码(相同的方法进行加密)进行比较
-        String salt = student.getSalt();
-        String oldMd5Password = student.getPassword();
-        String newMd5Password = getMD5Password(Password, salt);
-        if (!newMd5Password.equals(oldMd5Password)){
-            throw new PasswordNotMatchException("用户密码错误");
-        }
-        StudentDto result = studentMapper.getById(student.getId());
-        return result;
     }
 
     @Override
@@ -342,6 +322,32 @@ public class StudentServiceImpl implements StudentService {
         for(Integer id : studentIds){
             studentMapper.deleteStudent(id);
         }
+    }
+
+    @Override
+    public LoginDto jwtLogin(String email, String password) {
+        List<Student> students = studentMapper.getByEmail(email);
+        if(students==null || students.size()<1){
+            throw new StudentNotFoundException("用户不存在");
+        }
+        Student student = students.get(0);
+        if (student.getStatus()==0){
+            throw new StudentNotFoundException("用户不存在");
+        }
+        // 检测密码
+        // 先获取数据库加密后的密码 盐值  和用户传递过来的密码(相同的方法进行加密)进行比较
+        String salt = student.getSalt();
+        String oldMd5Password = student.getPassword();
+        String newMd5Password = getMD5Password(password, salt);
+        System.out.println(newMd5Password);
+        if (!newMd5Password.equals(oldMd5Password)){
+            throw new PasswordNotMatchException("用户密码错误");
+        }
+        StudentDto studentDto = studentMapper.getById(student.getId());
+        LoginDto loginDto = new LoginDto();
+        loginDto.setStudentDto(studentDto);
+        loginDto.setToken(new AuthUtils().createToken(studentDto.getId(), studentDto.getEmail(), "student"));
+        return loginDto;
     }
 
     @Async

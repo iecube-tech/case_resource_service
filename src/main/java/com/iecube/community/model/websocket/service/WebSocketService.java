@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import static javax.websocket.CloseReason.CloseCodes.*;
 
 @Slf4j
-//@ServerEndpoint(value = "/hello", configurator = GetHttpSessionConfig.class)
 @ServerEndpoint(value = "/{type}/{id}")
 @Component
 public class WebSocketService {

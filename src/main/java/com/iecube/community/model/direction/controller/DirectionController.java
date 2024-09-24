@@ -6,8 +6,6 @@ import com.iecube.community.model.direction.service.DirectionService;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @RestController
@@ -18,22 +16,22 @@ public class DirectionController extends DirectionBaseController {
     private DirectionService directionService;
 
     @PostMapping("/add")
-    public JsonResult<Void> addDirection(Direction direction, HttpSession session){
-        Integer lastModifiedUser = getUserIdFromSession(session);
+    public JsonResult<Void> addDirection(Direction direction){
+        Integer lastModifiedUser = currentUserId();
         directionService.addDirection(direction, lastModifiedUser);
         return new JsonResult<>(OK);
     }
 
     @PostMapping("/update")
-    public  JsonResult<Void> updateDirection(Direction direction, HttpSession session){
-        Integer lastModifiedUser = getUserIdFromSession(session);
+    public  JsonResult<Void> updateDirection(Direction direction){
+        Integer lastModifiedUser = currentUserId();
         directionService.updateDirection(direction, lastModifiedUser);
         return new JsonResult<>(OK);
     }
 
     @DeleteMapping("/delete")
-    public JsonResult<Void> deleteDirection(Integer id, HttpSession session){
-        Integer lastModifiedUser = getUserIdFromSession(session);
+    public JsonResult<Void> deleteDirection(Integer id){
+        Integer lastModifiedUser = currentUserId();
         directionService.deleteDirection(id, lastModifiedUser);
         return new JsonResult<>(OK);
     }

@@ -9,6 +9,8 @@ import java.util.List;
 public interface MdArticleComposeMapper {
     Integer batchAdd(List<MdArticleCompose> list);
 
+    Integer batchDelete(List<Long> list);
+
     Integer deleteByArticle(Integer articleId);
 
     Integer updateValById(Integer id, String val);

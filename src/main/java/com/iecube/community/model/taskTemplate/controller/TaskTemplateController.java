@@ -9,8 +9,6 @@ import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
@@ -31,39 +29,39 @@ public class TaskTemplateController extends taskTemplateBaseController {
     }
 
     @PostMapping("/add")
-    public JsonResult<List> addTaskTemplateToContent(@RequestBody TaskTemplateDto taskTemplateDto, HttpSession session){
-        Integer user = getUserIdFromSession(session);
+    public JsonResult<List> addTaskTemplateToContent(@RequestBody TaskTemplateDto taskTemplateDto){
+        Integer user = currentUserId();
         taskTemplateService.addTaskTemplateToContent(taskTemplateDto, user);
         List<TaskTemplateDto> taskTemplateDtos = taskTemplateService.findTaskTemplateByContent(taskTemplateDto.getContentId());
         return new JsonResult<>(OK,taskTemplateDtos);
     }
 
     @PostMapping("/update")
-    public JsonResult<List> updateTaskTemplate(@RequestBody TaskTemplateDto taskTemplateDto, HttpSession session){
-        Integer user = getUserIdFromSession(session);
+    public JsonResult<List> updateTaskTemplate(@RequestBody TaskTemplateDto taskTemplateDto){
+        Integer user = currentUserId();
         taskTemplateService.updateTaskTemplate(taskTemplateDto, user);
         List<TaskTemplateDto> taskTemplateDtos = taskTemplateService.findTaskTemplateByContent(taskTemplateDto.getContentId());
         return new JsonResult<>(OK,taskTemplateDtos);
     }
 
     @GetMapping("/delete")
-    public JsonResult<Void> deleteTaskTemplateById(Integer taskTemplateId, HttpSession session){
-        Integer user = getUserIdFromSession(session);
+    public JsonResult<Void> deleteTaskTemplateById(Integer taskTemplateId){
+        Integer user = currentUserId();
         taskTemplateService.deleteTaskTemplateByID(taskTemplateId, user);
         return new JsonResult<>(OK);
     }
 
     @GetMapping("/delete/{caseId}")
-    public JsonResult<List> deleteTaskTemplateById(@PathVariable Integer caseId,Integer taskTemplateId, HttpSession session){
-        Integer user = getUserIdFromSession(session);
+    public JsonResult<List> deleteTaskTemplateById(@PathVariable Integer caseId,Integer taskTemplateId){
+        Integer user = currentUserId();
         taskTemplateService.deleteTaskTemplateByID(taskTemplateId, user);
         List<TaskTemplateDto> taskTemplateDtos = taskTemplateService.findTaskTemplateByContent(caseId);
         return new JsonResult<>(OK,taskTemplateDtos);
     }
 
     @PostMapping("/task_template_add_resource/{caseId}/{taskTemplateId}")
-    public JsonResult<List> taskTemplateAddResource(MultipartFile file,@PathVariable Integer caseId,@PathVariable Integer taskTemplateId, HttpSession session) throws IOException {
-        Integer creator = getUserIdFromSession(session);
+    public JsonResult<List> taskTemplateAddResource(MultipartFile file,@PathVariable Integer caseId,@PathVariable Integer taskTemplateId) throws IOException {
+        Integer creator = currentUserId();
         Resource resource = resourceService.UploadFile(file, creator);
         taskTemplateService.addResourceToTaskTemplate(taskTemplateId,resource);
         List<TaskTemplateDto> taskTemplateDtos = taskTemplateService.findTaskTemplateByContent(caseId);

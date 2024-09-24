@@ -8,6 +8,7 @@ import com.iecube.community.model.markdown_compose.service.ex.UpdateComposeExcep
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -17,15 +18,36 @@ public class MdArticleComposeServiceImpl implements MdArticleComposeService {
 
     //更新mdArticle触发
     public List<MdArticleCompose> MdArticleUpdate(Integer articleId, List<MdArticleCompose> newMdArticleComposeList){
-        mdArticleComposeMapper.deleteByArticle(articleId);
-        newMdArticleComposeList.forEach(mdArticleCompose -> {
-            mdArticleCompose.setArticleId(articleId);
-            System.out.println(mdArticleCompose);
-        });
-        Integer res = mdArticleComposeMapper.batchAdd(newMdArticleComposeList);
-        if(res != newMdArticleComposeList.size()){
-            throw new UpdateComposeException("更新组件数据错误");
+        //todo
+        List<MdArticleCompose> oldMdArticleComposeList = mdArticleComposeMapper.getByArticle(articleId);
+        List<Long> willDelete = new ArrayList<>();
+        List<MdArticleCompose> willAdd = new ArrayList<>();
+
+        if(oldMdArticleComposeList.size() == newMdArticleComposeList.size()){
+            for(int i=0; i<oldMdArticleComposeList.size(); i++){
+                if(!oldMdArticleComposeList.get(i).getName().equals(newMdArticleComposeList.get(i).getName())){
+                    willDelete.add(oldMdArticleComposeList.get(i).getId());
+                    willAdd.add(newMdArticleComposeList.get(i));
+                }
+            }
+            if(!willDelete.isEmpty()){
+                mdArticleComposeMapper.batchDelete(willDelete);
+            }
+            if(!willAdd.isEmpty()){
+                mdArticleComposeMapper.batchAdd(willAdd);
+            }
+        }else {
+            mdArticleComposeMapper.deleteByArticle(articleId);
+            newMdArticleComposeList.forEach(mdArticleCompose -> {
+                mdArticleCompose.setArticleId(articleId);
+//                System.out.println(mdArticleCompose);
+            });
+            Integer res = mdArticleComposeMapper.batchAdd(newMdArticleComposeList);
+            if(res != newMdArticleComposeList.size()){
+                throw new UpdateComposeException("更新组件数据错误");
+            }
         }
+
         List<MdArticleCompose> mdArticleComposeList = mdArticleComposeMapper.getByArticle(articleId);
         return mdArticleComposeList;
     }

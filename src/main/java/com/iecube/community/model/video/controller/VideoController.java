@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,9 +27,9 @@ public class VideoController extends VideoBaseController {
     private VideoService videoService;
 
     @PostMapping("/upload/{caseId}")
-    public JsonResult<Video> uploadVideo(MultipartFile file, HttpSession session,@PathVariable Integer caseId,
+    public JsonResult<Video> uploadVideo(MultipartFile file,@PathVariable Integer caseId,
                                          Integer cover) throws IOException {
-        Integer creator = getUserIdFromSession(session);
+        Integer creator = currentUserId();
         Video video = videoService.uploadVideo(file,creator, cover, caseId);
         return new JsonResult<>(OK, video);
     }

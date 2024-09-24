@@ -7,8 +7,6 @@ import com.iecube.community.model.usergroup.service.ex.UserGroupNotFoundExceptio
 import com.iecube.community.util.JsonResult;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import javax.servlet.http.HttpSession;
-
 
 /**控制层类的基类
  * 做异常的捕获处理

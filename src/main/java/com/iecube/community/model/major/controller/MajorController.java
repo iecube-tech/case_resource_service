@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @RestController
@@ -22,27 +21,27 @@ public class MajorController extends MajorBaseController {
     private MajorService majorService;
 
     @GetMapping("/classes")
-    public JsonResult<List> teacherMajorClasses(HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<List> teacherMajorClasses(){
+        Integer teacherId = currentUserId();
         List<MajorClass> majorClasses = majorService.teacherMajorClasses(teacherId);
         return new JsonResult<>(OK, majorClasses);
     }
 
     @GetMapping("/account")
-    public JsonResult<SchoolCollage> accountCollage(HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<SchoolCollage> accountCollage(){
+        Integer teacherId = currentUserId();
         SchoolCollage schoolCollage = majorService.teacherCollage(teacherId);
         return new JsonResult<>(OK, schoolCollage);
     }
 
     @GetMapping("/school_list")
-    public JsonResult<List> schoolList(HttpSession session){
+    public JsonResult<List> schoolList(){
         List<School> schoolList = majorService.schoolList();
         return new JsonResult<>(OK, schoolList);
     }
 
     @GetMapping("/school_collage")
-    public JsonResult<List> schoolCollageList(HttpSession session){
+    public JsonResult<List> schoolCollageList(){
         List<CollageListOfSchool> collageListOfSchools = majorService.collageListOfSchoolList();
         return new JsonResult<>(OK, collageListOfSchools);
     }

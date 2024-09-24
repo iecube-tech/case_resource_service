@@ -19,6 +19,13 @@
         </foreach>
     </insert>
 
+    <delete id="batchDelete" parameterType="list">
+        DELETE FROM md_article_compose WHERE id IN
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+            #{item}
+       </foreach>
+    </delete>
+
     <delete id="deleteByArticle">
         DELETE FROM md_article_compose WHERE article_id=#{articleId}
     </delete>

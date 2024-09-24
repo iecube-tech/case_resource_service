@@ -9,7 +9,6 @@ import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpSession;
 import java.util.Date;
 
 @RestController
@@ -19,8 +18,8 @@ public class ProjectStudentGroupController extends ProjectStudentGroupBaseContro
     private ProjectStudentGroupService projectStudentGroupService;
 
     @PostMapping("/n")
-    public JsonResult<GroupVo> addNewGroup(@RequestBody Group group, HttpSession session){
-        Integer studentId = getUserIdFromSession(session);
+    public JsonResult<GroupVo> addNewGroup(@RequestBody Group group){
+        Integer studentId = currentUserId();
         group.setCreator(studentId);
         group.setLastModifiedUser(studentId);
         group.setCreateTime(new Date());
@@ -31,8 +30,8 @@ public class ProjectStudentGroupController extends ProjectStudentGroupBaseContro
     }
 
     @PostMapping("/join/{projectId}")
-    public JsonResult<GroupVo> joinGroup(String code, @PathVariable Integer projectId, HttpSession session ){
-        Integer studentId = getUserIdFromSession(session);
+    public JsonResult<GroupVo> joinGroup(String code, @PathVariable Integer projectId ){
+        Integer studentId = currentUserId();
         GroupVo groupVo = projectStudentGroupService.studentJoinGroup(code, projectId, studentId);
         return new JsonResult<>(OK, groupVo);
     }

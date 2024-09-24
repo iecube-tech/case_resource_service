@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.util.List;
 
@@ -29,27 +28,27 @@ public class ProjectController extends ProjectBaseController {
     private ResourceService resourceService;
 
     @PostMapping("/add")
-    public JsonResult<Integer> addProject(@RequestBody ProjectDto projectDto, HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<Integer> addProject(@RequestBody ProjectDto projectDto){
+        Integer teacherId = currentUserId();
         Integer projectId =  projectService.addProject(projectDto, teacherId);
         return new JsonResult<>(OK,projectId);
     }
 
     /**
      * 教师端查询自己的项目
-     * @param session
+     *
      * @return
      */
     @GetMapping("/my")
-    public JsonResult<List> myProject(HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<List> myProject(){
+        Integer teacherId = currentUserId();
         List<Project> myProjects = projectService.myProject(teacherId);
         return new JsonResult<>(OK, myProjects);
     }
 
     @GetMapping("/my_all")
-    public JsonResult<List> myProjectAll(HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<List> myProjectAll(){
+        Integer teacherId = currentUserId();
         List<Project> myProjects = projectService.myProjectNotDel(teacherId);
         return new JsonResult<>(OK, myProjects);
     }
@@ -70,19 +69,19 @@ public class ProjectController extends ProjectBaseController {
 
     /**
      * 学生查询自己的项目
-     * @param session
+     *
      * @return
      */
     @GetMapping("/myproject")
-    public JsonResult<List> studentProject(HttpSession session){
-        Integer studentId = getUserIdFromSession(session);
+    public JsonResult<List> studentProject(){
+        Integer studentId = currentUserId();
         List<Project> projects = projectService.findProjectByStudentId(studentId);
         return new JsonResult<>(OK,projects);
     }
 
     @GetMapping("/mycourse")
-    public JsonResult<List> studentCourse(HttpSession session){
-        Integer studentId = getUserIdFromSession(session);
+    public JsonResult<List> studentCourse(){
+        Integer studentId = currentUserId();
         List<Project> courses = projectService.findCourseByStudentId(studentId);
         return new JsonResult<>(OK, courses);
     }
@@ -135,8 +134,8 @@ public class ProjectController extends ProjectBaseController {
      * 需要projectId studnetId
      */
     @PostMapping("/join_project/{projectId}")
-    public JsonResult<Integer> studentJoinProject(@PathVariable Integer projectId, HttpSession session){
-        Integer studentId = getUserIdFromSession(session);
+    public JsonResult<Integer> studentJoinProject(@PathVariable Integer projectId){
+        Integer studentId = currentUserId();
         Integer project = projectService.studentJoinProject(projectId,studentId);
         return new JsonResult<>(OK,project);
     }

@@ -1,14 +1,17 @@
 package com.iecube.community.model.auth.service.impl;
 
+import com.iecube.community.model.auth.dto.LoginDto;
 import com.iecube.community.model.auth.entity.User;
 import com.iecube.community.model.auth.mapper.UserMapper;
 import com.iecube.community.model.auth.service.IUserService;
 import com.iecube.community.model.auth.service.ex.*;
+import com.iecube.community.util.jwt.AuthUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.UUID;
 
 /**
@@ -70,7 +73,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public User login(String phoneNum, String password) {
+    public LoginDto login(String phoneNum, String password) {
         // 根据用户名称来查询用户的数据是否存在 如果不存在则抛异常
         User result = userMapper.findByPhoneNum(phoneNum);
         if (result == null){
@@ -89,10 +92,12 @@ public class UserServiceImpl implements IUserService {
         if(result.getIsDelete() == 1){
             throw new UserNotFoundException("用户数据不存在");
         }
-        User user = new User();
-        user.setId(result.getId());
-        user.setUsername((result.getUsername()));
-        return user;
+        result.setPassword(null);
+        result.setSalt(null);
+        LoginDto loginDto = new LoginDto();
+        loginDto.setUser(result);
+        loginDto.setToken(new AuthUtils().createToken(result.getId(), result.getPhoneNum(), "admin"));
+        return loginDto;
     }
 
     /**定义一个md5算法加密**/

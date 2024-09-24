@@ -4,31 +4,21 @@ import com.iecube.community.baseservice.ex.ServiceException;
 import com.iecube.community.util.JsonResult;
 
 import com.iecube.community.util.ex.SystemException;
+import com.iecube.community.util.jwt.AuthUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import javax.servlet.http.HttpSession;
 
 public class BaseController {
-    /**
-     * 获取session对象的id
-     * @param session session对象
-     * @return 当前登录用户的userid
-     */
-    public final Integer getUserIdFromSession(HttpSession session){
-        return Integer.valueOf(session.getAttribute("userid").toString());
+    public final Integer currentUserId(){
+        return AuthUtils.getCurrentUserId();
     }
 
-    /**
-     * 获取session对象的username
-     * @param session session 对象
-     * @return 当前登录用户的username
-     */
-    public final String getUsernameFromSession(HttpSession session){
-        return session.getAttribute("username").toString();
+    public final String currentUserType(){
+        return AuthUtils.getCurrentUserType();
     }
 
-    public final String getUserTypeFromSession(HttpSession session){
-        return session.getAttribute("type").toString();
+    public final String currentUserEmail(){
+        return AuthUtils.getCurrentUserEmail();
     }
 
     @ExceptionHandler(ServiceException.class)

@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -37,8 +36,8 @@ public class PSTDeviceLogController extends PSTDeviceLogBaseController {
     private PSTDeviceLogService pstDeviceLogService;
 
     @PostMapping("/upload/{pstId}")
-    public JsonResult<PSTDeviceLog> uploadPSTDeviceLog(HttpSession session, MultipartFile file, @PathVariable Integer pstId) throws IOException {
-        Integer creator = getUserIdFromSession(session);
+    public JsonResult<PSTDeviceLog> uploadPSTDeviceLog( MultipartFile file, @PathVariable Integer pstId) throws IOException {
+        Integer creator = currentUserId();
         Resource resource = resourceService.UploadFile(file, creator);
         PSTDeviceLog pstDeviceLog = pstDeviceLogService.uploadGroupDeviceLog(pstId, resource);
         return new JsonResult<>(OK, pstDeviceLog);

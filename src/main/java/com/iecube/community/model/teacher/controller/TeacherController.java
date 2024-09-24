@@ -1,20 +1,20 @@
 package com.iecube.community.model.teacher.controller;
 import com.iecube.community.basecontroller.auth.AuthBaseController;
+import com.iecube.community.model.auth.dto.LoginDto;
 import com.iecube.community.model.teacher.entity.Tags;
 import com.iecube.community.model.teacher.entity.Teacher;
 import com.iecube.community.model.teacher.qo.ChangePassword;
 import com.iecube.community.model.teacher.service.TeacherService;
 import com.iecube.community.model.teacher.vo.TeacherVo;
 import com.iecube.community.util.JsonResult;
+import com.iecube.community.util.jwt.AuthUtils;
+import com.iecube.community.util.jwt.CurrentUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpSession;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -23,36 +23,39 @@ public class TeacherController extends AuthBaseController {
     @Autowired
     private TeacherService teacherService;
 
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
     @PostMapping("/login")
-    public JsonResult<Teacher> login(HttpSession session, String email, String password){
-        Teacher user = teacherService.login(email,password);
-        //向session对象中完成数据的绑定
-        session.setAttribute("userid", user.getId());
-        session.setAttribute("username", user.getUsername());
-        session.setAttribute("type", "teacher");
-        // 获取session对象的数据
-        log.info("login:{},{},{}", getUserTypeFromSession(session),getUserIdFromSession(session),getUsernameFromSession(session));
-        return new JsonResult<>(OK, user);
+    public JsonResult<LoginDto> login(String email, String password){
+        LoginDto loginDto = teacherService.login(email,password);
+        CurrentUser currentUser = new CurrentUser();
+        currentUser.setUserType("teacher");
+        currentUser.setId(loginDto.getTeacher().getId());
+        currentUser.setEmail(loginDto.getTeacher().getEmail());
+        AuthUtils.cache(currentUser, loginDto.getToken(), stringRedisTemplate);
+        log.info("login:{},{},{}",currentUser.getUserType(),currentUser.getId(), currentUser.getEmail());
+        return new JsonResult<>(OK, loginDto);
     }
 
     @GetMapping("/logout")
-    public JsonResult<Void> logout(HttpSession session){
-        log.info("logout:{},{},{}",getUserTypeFromSession(session),getUserIdFromSession(session),getUsernameFromSession(session));
-        session.invalidate();
+    public JsonResult<Void> logout(){
+        log.info("logout:{},{},{}",currentUserType(),currentUserId(),currentUserEmail());
+        AuthUtils.rm(stringRedisTemplate);
         return new JsonResult<>(OK);
     }
 
     @PostMapping("/change_password")
-    public JsonResult<Void> changePassword(@RequestBody ChangePassword changePassword, HttpSession session){
-        Integer teacherId= getUserIdFromSession(session);
+    public JsonResult<Void> changePassword(@RequestBody ChangePassword changePassword){
+        Integer teacherId= currentUserId();
         teacherService.changePassword(teacherId, changePassword.getOldPassword(), changePassword.getNewPassword());
         log.info("{} changePassword",teacherId);
         return new JsonResult<>(OK);
     }
 
     @PostMapping("/add_teacher")
-    public JsonResult<Void> addTeacher(@RequestBody Teacher newTeacher, HttpSession session){
-        Integer adminId = getUserIdFromSession(session);
+    public JsonResult<Void> addTeacher(@RequestBody Teacher newTeacher){
+        Integer adminId = currentUserId();
         newTeacher.setCreator(adminId);
         newTeacher.setLastModifiedUser(adminId);
         newTeacher.setCreateTime(new Date());
@@ -63,14 +66,14 @@ public class TeacherController extends AuthBaseController {
 
 
     @GetMapping("/account")
-    public JsonResult<Teacher> teacherAccount(HttpSession session){
-        Integer teacherId = getUserIdFromSession(session);
+    public JsonResult<Teacher> teacherAccount(){
+        Integer teacherId = currentUserId();
         Teacher teacher = teacherService.teacherAccount(teacherId);
         return new JsonResult<>(OK, teacher);
     }
 
     @GetMapping("/teacher_list")
-    public JsonResult<List> teacherList(HttpSession session){
+    public JsonResult<List> teacherList(){
         List<TeacherVo> teacherVoList = teacherService.getTeacherVoList();
         return new JsonResult<>(OK,teacherVoList);
     }
@@ -94,8 +97,8 @@ public class TeacherController extends AuthBaseController {
     }
 
     @GetMapping("/collage_teachers")
-    public JsonResult<List> collageTeachers(HttpSession session){
-        Integer teacher = getUserIdFromSession(session);
+    public JsonResult<List> collageTeachers(){
+        Integer teacher = currentUserId();
         List<Teacher> teacherList = teacherService.collageTeachers(teacher);
         return new JsonResult<>(OK, teacherList);
     }

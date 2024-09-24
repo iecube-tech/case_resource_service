@@ -6,8 +6,6 @@ import com.iecube.community.model.classification.service.ClassificationService;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @RestController
@@ -18,22 +16,22 @@ public class ClassificationController extends ClassificationBaseController {
     private ClassificationService classificationService;
 
     @PostMapping("/add")
-    JsonResult<Void> add(Classification classification, HttpSession session){
-        Integer lastModifiedUser = getUserIdFromSession(session);
+    JsonResult<Void> add(Classification classification){
+        Integer lastModifiedUser = currentUserId();
         classificationService.insert(classification,lastModifiedUser);
         return new JsonResult<>(OK);
     }
 
     @PostMapping("/update")
-    JsonResult<Void> update(Classification classification, HttpSession session){
-        Integer lastModifiedUser = getUserIdFromSession(session);
+    JsonResult<Void> update(Classification classification){
+        Integer lastModifiedUser = currentUserId();
         classificationService.update(classification, lastModifiedUser);
         return new JsonResult<>(OK);
     }
 
     @DeleteMapping("/delete")
-    JsonResult<Void> delete(Integer id, HttpSession session){
-        Integer lastModifiedUser = getUserIdFromSession(session);
+    JsonResult<Void> delete(Integer id){
+        Integer lastModifiedUser = currentUserId();
         classificationService.delete(id, lastModifiedUser);
         return new JsonResult<>(OK);
     }

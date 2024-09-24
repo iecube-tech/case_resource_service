@@ -18,6 +18,9 @@ public class JsonResult<E> implements Serializable {
     //对应的数据  不确定的数据类型用泛型  方法中用到泛型类的声明中也要声明为泛型
     private E data;
 
+    private String token;
+
+
     public JsonResult() {
     }
 

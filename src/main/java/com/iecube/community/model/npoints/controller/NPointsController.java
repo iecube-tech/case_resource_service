@@ -7,9 +7,6 @@ import com.iecube.community.model.npoints.vo.*;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpSession;
-import javax.swing.plaf.PanelUI;
 import java.util.List;
 
 @RestController
@@ -95,16 +92,16 @@ public class NPointsController extends BaseController {
     }
 
     @PostMapping("/add_module_tem")
-    public JsonResult<List> addModule(@RequestBody ModuleConceptVo moduleConceptVo, HttpSession session){
-        Integer user = getUserIdFromSession(session);
+    public JsonResult<List> addModule(@RequestBody ModuleConceptVo moduleConceptVo){
+        Integer user = currentUserId();
         nPointsService.addModuleConceptTemps(moduleConceptVo, user);
         List<ModuleConceptVo> moduleConceptVos = nPointsService.getAllModuleConceptTemps();
         return new JsonResult<>(OK, moduleConceptVos);
     }
 
     @DeleteMapping("/del_module_tem")
-    public JsonResult<List> delModuleTemp(Integer id, HttpSession session){
-        Integer user  = getUserIdFromSession(session);
+    public JsonResult<List> delModuleTemp(Integer id){
+        Integer user  = currentUserId();
         nPointsService.delModuleTemps(id,user);
         List<ModuleConceptVo> moduleConceptVos = nPointsService.getAllModuleConceptTemps();
         return new JsonResult<>(OK, moduleConceptVos);

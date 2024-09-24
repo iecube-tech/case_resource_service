@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @RestController
@@ -22,38 +21,38 @@ public class UserGroupController extends UserGroupBaseController {
     private UserGroupService userGroupService;
 
     @PostMapping("/add_staff_group")
-    public JsonResult<Void> addStaffGroup(UserGroup userGroup, HttpSession session){
-        Integer modifiedUserId = getUserIdFromSession(session);
+    public JsonResult<Void> addStaffGroup(UserGroup userGroup){
+        Integer modifiedUserId = currentUserId();
         userGroupService.addStaffGroup(userGroup, modifiedUserId);
 
         return new JsonResult<>(OK);
     }
 
     @PostMapping("/add_customer_group")
-    public JsonResult<Void> addCustomerGroup(UserGroup userGroup, HttpSession session){
-        Integer modifiedUserId = getUserIdFromSession(session);
+    public JsonResult<Void> addCustomerGroup(UserGroup userGroup){
+        Integer modifiedUserId = currentUserId();
         userGroupService.addCustomerGroup(userGroup, modifiedUserId);
         return new JsonResult<>(OK);
     }
 
     @PostMapping("/delete")
-    public JsonResult<Void> deleteUserGroup(Integer id, HttpSession session){
-        Integer modifiedUserId = getUserIdFromSession(session);
+    public JsonResult<Void> deleteUserGroup(Integer id){
+        Integer modifiedUserId = currentUserId();
         userGroupService.deleteGroup(id, modifiedUserId);
 
         return new JsonResult<>(OK);
     }
 
     @PostMapping("/update")
-    public JsonResult<Void> updateUserGroup(UserGroup userGroup, HttpSession session){
-        Integer modifiedUserId = getUserIdFromSession(session);
+    public JsonResult<Void> updateUserGroup(UserGroup userGroup){
+        Integer modifiedUserId = currentUserId();
         userGroupService.updateGroup(userGroup, modifiedUserId);
         return new JsonResult<>(OK);
     }
 
     @GetMapping("/groups")
-    public JsonResult<List> findByCreator(HttpSession session){
-        List<UserGroup> userGroups = userGroupService.findByCreator(getUserIdFromSession(session));
+    public JsonResult<List> findByCreator(){
+        List<UserGroup> userGroups = userGroupService.findByCreator(currentUserId());
         return new JsonResult<List>(OK, userGroups);
     }
 

@@ -1,5 +1,6 @@
 package com.iecube.community.model.student.service;
 
+import com.iecube.community.model.auth.dto.LoginDto;
 import com.iecube.community.model.student.entity.Student;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.qo.AddStudentQo;
@@ -14,7 +15,7 @@ public interface StudentService {
 
     List<StudentDto> findAllInStatusByTeacher(Integer teacherId);
 
-    StudentDto login(String StudentId, String Password);
+    LoginDto jwtLogin(String studentId, String password);
 
     StudentDto my(Integer studentId);
 
@@ -25,4 +26,5 @@ public interface StudentService {
     void importByExcel(InputStream in, Integer teacherId);
 
     void deleteStudentById(List<Integer> studentIds);
+
 }

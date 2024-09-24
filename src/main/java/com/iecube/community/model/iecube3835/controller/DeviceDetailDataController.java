@@ -8,8 +8,6 @@ import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpSession;
-
 @RestController
 @RequestMapping("/pst_ddd")
 public class DeviceDetailDataController extends DeviceDetailDataControllerBaseController {
@@ -38,15 +36,15 @@ public class DeviceDetailDataController extends DeviceDetailDataControllerBaseCo
     }
 
     @GetMapping("/submit")
-     public JsonResult<PSTDetailDevice> submit(Integer pstId, HttpSession session){
-        Integer studentId =  getUserIdFromSession(session);
+     public JsonResult<PSTDetailDevice> submit(Integer pstId){
+        Integer studentId =  currentUserId();
         PSTDetailDevice pstDetailDevice = deviceDetailDataService.submit(pstId, studentId);
         return new JsonResult<>(OK, pstDetailDevice);
     }
 
     @GetMapping("/group/submit")
-    public JsonResult<PSTDetailDevice> groupSubmit(Integer groupId, Integer pstId, HttpSession session){
-        Integer studentId = getUserIdFromSession(session);
+    public JsonResult<PSTDetailDevice> groupSubmit(Integer groupId, Integer pstId){
+        Integer studentId = currentUserId();
         PSTDetailDevice pstDetailDevice = deviceDetailDataService.groupSubmit(groupId,pstId,studentId);
         return new JsonResult<>(OK, pstDetailDevice);
     }

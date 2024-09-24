@@ -13,7 +13,7 @@ public class PSTArticleCompose {
     String answer;
     Integer score;
     Double result;
-    Integer status;
+    Integer status;  // 提交状态 0未提交 1 已提交
     Boolean subjective;
     Integer qType;
     String question;

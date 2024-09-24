@@ -11,8 +11,6 @@ import com.iecube.community.model.remote_project.vo.RemoteProjectVo;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @RestController
@@ -33,8 +31,8 @@ public class RemoteProjectController extends RemoteProjectBaseController {
     }
 
     @GetMapping("/{projectId}/my_appointment")
-    public JsonResult<List> getStudentAppointment(@PathVariable Integer projectId, HttpSession session){
-        Integer user = getUserIdFromSession(session);
+    public JsonResult<List> getStudentAppointment(@PathVariable Integer projectId){
+        Integer user = currentUserId();
         List<RemoteAppointmentVo> remoteAppointmentVoList = remoteAppointmentService.studentAppointmentList(projectId, user);
         return new JsonResult<>(OK, remoteAppointmentVoList);
     }
@@ -46,22 +44,22 @@ public class RemoteProjectController extends RemoteProjectBaseController {
     }
 
     @PostMapping("/appointment")
-    public JsonResult<Void> studentAppointment(Integer appointmentId, HttpSession session){
-        Integer user = getUserIdFromSession(session);
+    public JsonResult<Void> studentAppointment(Integer appointmentId){
+        Integer user = currentUserId();
         remoteAppointmentService.studentAppointment(appointmentId, user);
         return new JsonResult<>(OK);
     }
 
     @PostMapping("/appointment/cancel")
-    public JsonResult<Void> studentCancelAppointment(Integer appointmentId, HttpSession session){
-        Integer user = getUserIdFromSession(session);
+    public JsonResult<Void> studentCancelAppointment(Integer appointmentId){
+        Integer user = currentUserId();
         remoteAppointmentService.studentCancelAppointment(appointmentId, user);
         return new JsonResult<>(OK);
     }
 
     @PostMapping("/operation/{appointmentId}")
-    public JsonResult<RemoteOperationVo> remoteOperation(@PathVariable Integer appointmentId, HttpSession session){
-        Integer user = getUserIdFromSession(session);
+    public JsonResult<RemoteOperationVo> remoteOperation(@PathVariable Integer appointmentId){
+        Integer user = currentUserId();
         RemoteOperationVo remoteOperationVo = remoteProjectService.remoteOperation(appointmentId, user);
         return new JsonResult<>(OK, remoteOperationVo);
     }

@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
 
@@ -33,13 +32,12 @@ public class ResourceController extends ResourceBaseController {
     /**
      * 上传图片
      * @param file
-     * @param session
      * @return
      * @throws IOException
      */
     @PostMapping("/upimage")
-    public JsonResult<Resource> UploadImage(MultipartFile file, HttpSession session) throws IOException{
-        Integer creator = getUserIdFromSession(session);
+    public JsonResult<Resource> UploadImage(MultipartFile file) throws IOException{
+        Integer creator = currentUserId();
         Resource resource = resourceService.UploadImage(file,creator);
         return new JsonResult<>(OK, resource);
     }
@@ -68,8 +66,8 @@ public class ResourceController extends ResourceBaseController {
     }
 
     @PostMapping("/upfile")
-    public JsonResult<Resource> UploadFile(MultipartFile file, HttpSession session) throws IOException{
-        Integer creator = getUserIdFromSession(session);
+    public JsonResult<Resource> UploadFile(MultipartFile file) throws IOException{
+        Integer creator = currentUserId();
         Resource resource = resourceService.UploadFile(file,creator);
         return new JsonResult<>(OK, resource);
     }
@@ -80,8 +78,8 @@ public class ResourceController extends ResourceBaseController {
 //     * @param filename  filename
 //     */
 //    @PostMapping("/upblob")
-//    public JsonResult<Void> UploadBlob(@RequestBody MultipartFile file, String filename, HttpSession session)throws IOException{
-//        Integer lastModifiedUser = getUserIdFromSession(session);
+//    public JsonResult<Void> UploadBlob(@RequestBody MultipartFile file, String filename)throws IOException{
+//        Integer lastModifiedUser = currentUserId();
 //        String fileName = this.SaveBlobFile(file,"file");
 //        System.out.println(fileName);
 //        return new JsonResult<>(OK);
