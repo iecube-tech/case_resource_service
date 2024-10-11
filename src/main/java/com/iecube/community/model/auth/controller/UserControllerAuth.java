@@ -35,11 +35,13 @@ public class UserControllerAuth extends AuthBaseController {
 
     @PostMapping("/login")
     public JsonResult<LoginDto> login(String phoneNum, String password){
+        String agent="Browser";
         LoginDto loginDto = userService.login(phoneNum,password);
         CurrentUser currentUser = new CurrentUser();
         currentUser.setUserType("admin");
         currentUser.setId(loginDto.getUser().getId());
         currentUser.setEmail(loginDto.getUser().getPhoneNum());
+        currentUser.setAgent(agent);
         AuthUtils.cache(currentUser, loginDto.getToken(), stringRedisTemplate);
         log.info("login:{},{},{}",currentUser.getUserType(),currentUser.getId(), currentUser.getEmail());
         return new JsonResult<>(OK, loginDto);

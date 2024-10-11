@@ -28,11 +28,13 @@ public class TeacherController extends AuthBaseController {
 
     @PostMapping("/login")
     public JsonResult<LoginDto> login(String email, String password){
+        String agent = "Browser";
         LoginDto loginDto = teacherService.login(email,password);
         CurrentUser currentUser = new CurrentUser();
         currentUser.setUserType("teacher");
         currentUser.setId(loginDto.getTeacher().getId());
         currentUser.setEmail(loginDto.getTeacher().getEmail());
+        currentUser.setAgent(agent);
         AuthUtils.cache(currentUser, loginDto.getToken(), stringRedisTemplate);
         log.info("login:{},{},{}",currentUser.getUserType(),currentUser.getId(), currentUser.getEmail());
         return new JsonResult<>(OK, loginDto);

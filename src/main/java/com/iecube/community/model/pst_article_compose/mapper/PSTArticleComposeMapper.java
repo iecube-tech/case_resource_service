@@ -19,5 +19,9 @@ public interface PSTArticleComposeMapper {
 
     Integer composeUpdateResult(Integer id, Double result);
 
+    Integer composeUpdateResultStatus(Integer id, Double result);
+
     List<PSTArticleCompose> composeListByPstId(Integer pstId);
+
+    Integer composeUpdateByPstIdIndex(PSTArticleCompose pstArticleCompose);
 }

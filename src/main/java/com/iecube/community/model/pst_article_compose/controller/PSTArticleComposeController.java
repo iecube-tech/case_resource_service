@@ -25,7 +25,7 @@ public class PSTArticleComposeController extends PSTArticleComposeBaseController
     @PostMapping("/update/{composeId}")
     public JsonResult<PSTArticleCompose> pstArticleComposeValUpdate(@PathVariable Integer composeId, @RequestBody ComposeQo composeQo){
         pstArticleComposeService.composeUpdateVal(composeId, composeQo.getVal());
-        PSTArticleCompose pstArticleCompose = pstArticleComposeService.composeUpdateResult(composeId, composeQo.getResult());
+        PSTArticleCompose pstArticleCompose = pstArticleComposeService.composeUpdateResultStatus(composeId, composeQo.getResult());
         return new JsonResult<>(OK, pstArticleCompose);
     }
 

@@ -1,6 +1,9 @@
-package com.iecube.community.model.markdown_compose.controller;
+package com.iecube.community.model.task.controller;
 
 import com.iecube.community.basecontroller.task.TaskBaseController;
+import com.iecube.community.model.project.entity.Project;
+import com.iecube.community.model.project.mapper.ProjectMapper;
+import com.iecube.community.model.project_student_group.entity.Group;
 import com.iecube.community.model.pst_resource.entity.PSTResourceVo;
 import com.iecube.community.model.task.entity.*;
 import com.iecube.community.model.task.service.TaskService;
@@ -17,6 +20,9 @@ import java.util.List;
 public class TaskController extends TaskBaseController {
     @Autowired
     private TaskService taskService;
+
+    @Autowired
+    private ProjectMapper projectMapper;
 
     @GetMapping
     public JsonResult<List> Tasks(Integer projectId, Integer studentId){
@@ -134,9 +140,16 @@ public class TaskController extends TaskBaseController {
     @PostMapping("/md/readover/{pstId}")
     public JsonResult<PSTBaseDetail> teacherReadOverMdTask(@PathVariable Integer pstId){
         Integer teacherId = currentUserId();
-        PSTBaseDetail pstBaseDetail = taskService.readOverPSTArticle(pstId, teacherId);
-        taskService.genMdArticleReport(pstId, pstBaseDetail, teacherId);
+        PSTBaseDetail pstBaseDetail =null;
+        Project project = projectMapper.findByPstId(pstId);
+        if(project.getUseGroup() == 1 && project.getMdCourse() != null){
+            pstBaseDetail = taskService.mdGroupReadOverPSTArticle(project.getId(), pstId, teacherId);
+            taskService.genMdArticleReportGroup(project.getId(), pstId, teacherId);
+        }
+        else {
+            pstBaseDetail = taskService.noGroupReadOverPSTArticle(pstId,teacherId);
+            taskService.genMdArticleReport(pstId,pstBaseDetail, teacherId);
+        }
         return new JsonResult<>(OK, pstBaseDetail);
     }
-
 }

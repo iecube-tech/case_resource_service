@@ -47,7 +47,10 @@ public interface TaskService {
 
     List<PSTBaseDetail> getPSTBaseDetailByProject(Integer projectId);
 
-    PSTBaseDetail readOverPSTArticle(Integer pstId, Integer teacherId);
+    PSTBaseDetail noGroupReadOverPSTArticle(Integer pstId, Integer teacherId);
 
+    PSTBaseDetail mdGroupReadOverPSTArticle(Integer projectId, Integer pstId, Integer teacherId);
+
+    void genMdArticleReportGroup(Integer projectId, Integer pstId, Integer teacherId);
     void genMdArticleReport(Integer pstId, PSTBaseDetail pstBaseDetail, Integer teacherId);
 }

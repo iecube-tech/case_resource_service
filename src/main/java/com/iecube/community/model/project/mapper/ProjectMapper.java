@@ -3,6 +3,7 @@ package com.iecube.community.model.project.mapper;
 import com.iecube.community.model.project.entity.Project;
 import com.iecube.community.model.project.entity.ProjectStudent;
 import com.iecube.community.model.project.entity.ProjectStudentVo;
+import com.iecube.community.model.student.entity.StudentDto;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -11,6 +12,8 @@ import java.util.List;
 public interface ProjectMapper {
     Integer insert(Project project);
     Project findById(Integer id);
+
+    Project findByPstId(Integer pstId);
 
     Integer findCaseTypeByCaseId(Integer caseId);
 
@@ -38,4 +41,6 @@ public interface ProjectMapper {
     ProjectStudentVo findProjectStudent(Integer projectId, Integer studentId);
 
     Integer updateProjectStudentGrade(Integer id, Double grade);
+
+    List<StudentDto> getProjectStudents(Integer projectId);
 }

@@ -7,4 +7,5 @@ public class CurrentUser {
     Integer id;
     String email;
     String userType;
+    String agent;
 }

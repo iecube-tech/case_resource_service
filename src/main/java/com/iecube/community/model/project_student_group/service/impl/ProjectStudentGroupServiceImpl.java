@@ -3,9 +3,11 @@ package com.iecube.community.model.project_student_group.service.impl;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
+import com.iecube.community.model.project.service.ProjectService;
 import com.iecube.community.model.project_student_group.entity.Group;
 import com.iecube.community.model.project_student_group.entity.GroupCode;
 import com.iecube.community.model.project_student_group.entity.GroupStudent;
+import com.iecube.community.model.project_student_group.entity.ProjectStudentsWithGroup;
 import com.iecube.community.model.project_student_group.mapper.ProjectStudentGroupMapper;
 import com.iecube.community.model.project_student_group.service.ProjectStudentGroupService;
 import com.iecube.community.model.project_student_group.service.ex.GroupCodeException;
@@ -13,10 +15,12 @@ import com.iecube.community.model.project_student_group.service.ex.GroupGenCodeE
 import com.iecube.community.model.project_student_group.service.ex.GroupLimitException;
 import com.iecube.community.model.project_student_group.vo.GroupVo;
 import com.iecube.community.model.student.entity.Student;
+import com.iecube.community.model.student.entity.StudentDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -27,6 +31,9 @@ public class ProjectStudentGroupServiceImpl implements ProjectStudentGroupServic
 
     @Autowired
     private ProjectStudentGroupMapper projectStudentGroupMapper;
+
+    @Autowired
+    private ProjectService projectService;
 
     @Override
     public int addGroup(Group group) {
@@ -216,11 +223,47 @@ public class ProjectStudentGroupServiceImpl implements ProjectStudentGroupServic
     public GroupVo removeStudentFromGroup(Integer groupId, Integer studentId) {
         Group group = projectStudentGroupMapper.getGroupById(groupId);
         if(group.getSubmitted().equals(1)){
-            throw new GroupLimitException("小组已提交实验报告，不可移除成员");
+            throw new GroupLimitException("小组已提交实验报告，不可更改成员");
         }
         projectStudentGroupMapper.GroupRemoveStudent(groupId, studentId);
         GroupVo groupVo = this.getGroupVoByGroupId(groupId);
         return groupVo;
+    }
+
+    @Override
+    public GroupVo addStudentsToGroup(List<ProjectStudentsWithGroup> studentList, Integer groupId){
+        Group group = projectStudentGroupMapper.getGroupById(groupId);
+        GroupVo groupVo = this.getGroupVoByGroupId(groupId);
+        if(group.getSubmitted().equals(1)){
+            throw new GroupLimitException("小组已提交实验报告，不可更改成员");
+        }
+        Integer groupStudentNum = groupVo.getGroupStudents().size();
+        Integer willAddNum = studentList.size();
+        if(groupStudentNum+willAddNum > group.getLimitNum()){
+            throw new GroupLimitException("小组限制人数为:"+group.getLimitNum());
+        }
+
+        if(groupVo.getGroupStudents().size()>0){
+            for(int i=0; i<groupVo.getGroupStudents().size(); i++){
+                for (int j=0; j<studentList.size(); j++){
+                    if(groupVo.getGroupStudents().get(i).getId().equals(studentList.get(j).getId())){
+                        throw new GroupLimitException(groupVo.getGroupStudents().get(i).getStudentName()+"已在小组中");
+                    }
+                }
+            }
+        }
+
+        for(ProjectStudentsWithGroup student: studentList){
+            GroupStudent groupStudent = new GroupStudent();
+            groupStudent.setStudentId(student.getId());
+            groupStudent.setGroupId(group.getId());
+            Integer row = projectStudentGroupMapper.GroupAddStudent(groupStudent);
+            if(row != 1){
+                throw new InsertException(student.getStudentName()+"加入小组失败");
+            }
+        }
+        GroupVo res = this.getGroupVoByGroupId(groupId);
+        return res;
     }
 
     @Override
@@ -233,6 +276,29 @@ public class ProjectStudentGroupServiceImpl implements ProjectStudentGroupServic
         }
         GroupVo groupVo = this.getGroupVoByGroupId(groupId);
         return groupVo;
+    }
+
+    @Override
+    public List<ProjectStudentsWithGroup> projectStudentsWithGroup(Integer projectId) {
+        List<StudentDto> studentDtoList = projectService.getProjectStudents(projectId);
+        List<ProjectStudentsWithGroup> studentsJoinedGroupList = projectStudentGroupMapper.getProjectStudentsWithGroup(projectId);
+        List<Integer> JoinedStudentId = new ArrayList<>();
+        for(ProjectStudentsWithGroup P_swg:  studentsJoinedGroupList){
+            JoinedStudentId.add(P_swg.getId());
+        }
+        List<ProjectStudentsWithGroup> res = new ArrayList<>();
+        for(StudentDto student: studentDtoList){
+            if(JoinedStudentId.contains(student.getId())){
+                continue;
+            }
+            ProjectStudentsWithGroup studentNotJoin = new ProjectStudentsWithGroup();
+            studentNotJoin.setId(student.getId());
+            studentNotJoin.setStudentName(student.getStudentName());
+            studentNotJoin.setStudentId(student.getStudentId());
+            res.add(studentNotJoin);
+        }
+        res.addAll(studentsJoinedGroupList);
+        return res;
     }
 
     public GroupCode getGroupCodeByCode(String code){

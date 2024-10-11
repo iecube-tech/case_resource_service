@@ -36,11 +36,19 @@
         UPDATE pst_article_compose SET val=#{val} WHERE id=#{id}
     </update>
 
-    <update id="composeUpdateResult">
+    <update id="composeUpdateResultStatus">
         UPDATE pst_article_compose SET `result`=#{result}, `status`=1 WHERE id=#{id}
     </update>
 
+    <update id="composeUpdateResult">
+        UPDATE pst_article_compose SET `result`=#{result} WHERE id=#{id}
+    </update>
+
     <select id="composeListByPstId" resultMap="PSTArticleCompose">
-        SELECT * FROM pst_article_compose WHERE pst_id=#{pstId}
+        SELECT * FROM pst_article_compose WHERE pst_id=#{pstId} ORDER BY `index`
     </select>
+
+    <update id="composeUpdateByPstIdIndex">
+        UPDATE pst_article_compose SET `val`=#{val},`result`=#{result}, `status`=#{status} WHERE `pst_id`=#{pstId} and `index`=#{index}
+    </update>
 </mapper>

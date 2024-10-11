@@ -58,10 +58,10 @@ public class LogParser {
             String line;
             while ((line = br.readLine()) != null) {
                 String res = line.replaceAll("([Ii])(-)([Vv])", "IV");
-//                System.out.println(res);
-                if(!res.contains("程序启动")){
-                    dataList.add(res);
-                }
+//                if(!res.contains("程序启动")){
+//                    dataList.add(res);
+//                }
+                dataList.add(res);
             }
         } catch (IOException e) {
             e.printStackTrace();

@@ -21,7 +21,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -30,6 +32,8 @@ import java.util.List;
 public class StudentController extends StudentBaseController {
 
     private static final String TEMPLATE_NAME = "学生导入模板.xls";
+
+    private final List<String> clientAgents= Arrays.asList("iecube3835");
     @Value("${business.user.template.path}")
     private Resource userImportTemplate;
 
@@ -61,14 +65,30 @@ public class StudentController extends StudentBaseController {
     }
 
     @PostMapping("/login")
-    public  JsonResult<LoginDto> login(String email, String password){
+    public  JsonResult<LoginDto> login(String email, String password, @RequestHeader("User-Agent") String userAgent, HttpSession session){
+
+        String agent="Browser"; // 区分浏览器还是 设备， 允许一个账号登录在 一个浏览器 一个软件端
         LoginDto loginDto = studentService.jwtLogin(email, password);
         CurrentUser currentUser = new CurrentUser();
         currentUser.setUserType("student");
         currentUser.setId(loginDto.getStudentDto().getId());
         currentUser.setEmail(loginDto.getStudentDto().getEmail());
+        currentUser.setAgent(agent);
+        session.setAttribute("userid", loginDto.getStudentDto().getId());
+        session.setAttribute("username", loginDto.getStudentDto().getStudentName());
+        session.setAttribute("type", "student");
         AuthUtils.cache(currentUser, loginDto.getToken(), stringRedisTemplate);
-        log.info("login:{},{},{}",currentUser.getUserType(),currentUser.getId(), currentUser.getEmail());
+        log.info("login:{},{},{},{}",currentUser.getUserType(),currentUser.getId(), currentUser.getEmail(), currentUser.getAgent());
+        if(clientAgents.contains(userAgent)){
+            // 设备登录
+            CurrentUser deviceUser = new CurrentUser();
+            deviceUser.setAgent(userAgent);
+            deviceUser.setUserType("student");
+            deviceUser.setId(loginDto.getStudentDto().getId());
+            deviceUser.setEmail(loginDto.getStudentDto().getEmail());
+            AuthUtils.cache(deviceUser, loginDto.getToken(), stringRedisTemplate);
+            log.info("login:{},{},{},{}",deviceUser.getUserType(),deviceUser.getId(), deviceUser.getEmail(),deviceUser.getAgent());
+        }
         return new JsonResult<>(OK,loginDto);
     }
 

@@ -3,6 +3,7 @@ package com.iecube.community.model.project_student_group.mapper;
 import com.iecube.community.model.project_student_group.entity.Group;
 import com.iecube.community.model.project_student_group.entity.GroupCode;
 import com.iecube.community.model.project_student_group.entity.GroupStudent;
+import com.iecube.community.model.project_student_group.entity.ProjectStudentsWithGroup;
 import com.iecube.community.model.student.entity.Student;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -32,4 +33,8 @@ public interface ProjectStudentGroupMapper {
     List<GroupStudent> getGroupStudentByStudentId(Integer studentId, Integer projectId);
 
     List<Student> getStudentByGroup(Integer groupId);
+
+    List<Integer> getPstListByGroupAndTaskId(Integer groupId, Integer taskNum);
+
+    List<ProjectStudentsWithGroup> getProjectStudentsWithGroup(Integer projectId);
 }

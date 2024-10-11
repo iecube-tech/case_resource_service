@@ -4,6 +4,7 @@ import com.iecube.community.model.project.entity.Project;
 import com.iecube.community.model.project.entity.ProjectDto;
 import com.iecube.community.model.project.entity.ProjectStudentVo;
 import com.iecube.community.model.project.entity.StudentProjectVo;
+import com.iecube.community.model.student.entity.StudentDto;
 
 import java.io.File;
 import java.util.List;
@@ -39,4 +40,6 @@ public interface ProjectService {
 
     //学生自己加入project
     Integer studentJoinProject(Integer projectId, Integer studentId);
+
+    List<StudentDto> getProjectStudents(Integer projectId);
 }

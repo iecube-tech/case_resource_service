@@ -299,6 +299,12 @@ public class ProjectServiceImpl implements ProjectService {
         return projectId;
     }
 
+    @Override
+    public List<StudentDto> getProjectStudents(Integer projectId) {
+        List<StudentDto> studentDtoList = projectMapper.getProjectStudents(projectId);
+        return studentDtoList;
+    }
+
     /**
      * 新增需求， 如果创建project过程中 教师更改了案例的任务列表，那么在后期数据统计分析的过程中该project的数据为无效数据，
      * 影响整体数据的有效性。为避免该问题，每当有更改原案例的任务的project创建，就从该案例衍生出一个新的案例，为该教师所有

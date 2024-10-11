@@ -8,6 +8,7 @@ import com.iecube.community.model.project.entity.StudentProjectVo;
 import com.iecube.community.model.project.service.ProjectService;
 import com.iecube.community.model.resource.entity.Resource;
 import com.iecube.community.model.resource.service.ResourceService;
+import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.util.DownloadUtil;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,5 +139,11 @@ public class ProjectController extends ProjectBaseController {
         Integer studentId = currentUserId();
         Integer project = projectService.studentJoinProject(projectId,studentId);
         return new JsonResult<>(OK,project);
+    }
+
+    @GetMapping("/students/{projectId}")
+    public JsonResult<List> getProjectStudent(@PathVariable Integer projectId){
+        List<StudentDto> studentDtoList = projectService.getProjectStudents(projectId);
+        return new JsonResult<>(OK,studentDtoList);
     }
 }

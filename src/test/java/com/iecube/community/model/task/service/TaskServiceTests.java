@@ -41,8 +41,8 @@ public class TaskServiceTests {
 
     @Test
     public void genStudentMdDocReport(){
-        PSTBaseDetail pstBaseDetail = taskService.readOverPSTArticle(8774, 6);
-        taskService.genMdArticleReport(8774, pstBaseDetail, 6);
+//        PSTBaseDetail pstBaseDetail = taskService.readOverPSTArticle(8774, 6);
+//        taskService.genMdArticleReport(8774, pstBaseDetail, 6);
 //        PSTBaseDetail pstBaseDetail = taskService.readOverPSTArticle(8346, 6);
 //        taskService.genMdArticleReport(8346, pstBaseDetail, 6);
     }

@@ -26,6 +26,13 @@
         <result column="student_name" property="studentName"></result>
     </resultMap>
 
+    <resultMap id="ProjectStudentsWithGroup" type="com.iecube.community.model.project_student_group.entity.ProjectStudentsWithGroup">
+        <result column="student_id" property="studentId"></result>
+        <result column="student_name" property="studentName"></result>
+        <result column="group_id" property="groupId"></result>
+        <result column="group_name" property="groupName"></result>
+    </resultMap>
+
     <insert id="addGroup" keyProperty="id" useGeneratedKeys="true">
         INSERT INTO proejct_student_group (id, name, limit_num, project_id, submitted, creator, create_time, last_modified_user, last_modified_time)
         VALUES (NULL, #{name}, #{limitNum}, #{projectId}, 0,#{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
@@ -104,6 +111,19 @@
         SELECT Student.id, Student.student_id, Student.student_name
         FROM Student INNER JOIN project_group_student ON Student.id=project_group_student.student_id
         WHERE project_group_student.group_id=#{groupId};
+    </select>
+
+    <select id="getPstListByGroupAndTaskId" resultType="java.lang.Integer">
+        SELECT pst.id FROM ((project_group_student gs INNER JOIN proejct_student_group pg ON gs.group_id=pg.id)
+            INNER JOIN project_task_student pst ON pst.project_id=pg.project_id and pst.student_id=gs.student_id)
+            INNER JOIN task ON pst.task_id=task.id WHERE pg.id=#{groupId} and task.num=#{taskNum};
+    </select>
+
+
+    <select id="getProjectStudentsWithGroup" resultMap="ProjectStudentsWithGroup">
+        SELECT Student.id, Student.student_id, Student.student_name, proejct_student_group.`name` as `group_name`, project_group_student.group_id
+        FROM (proejct_student_group INNER JOIN project_group_student ON proejct_student_group.id=project_group_student.group_id) INNER JOIN Student ON project_group_student.student_id=Student.id
+        WHERE proejct_student_group.project_id=#{projectId};
     </select>
 
 </mapper>

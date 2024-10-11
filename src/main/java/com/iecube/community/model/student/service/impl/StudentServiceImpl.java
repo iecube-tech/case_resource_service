@@ -339,7 +339,6 @@ public class StudentServiceImpl implements StudentService {
         String salt = student.getSalt();
         String oldMd5Password = student.getPassword();
         String newMd5Password = getMD5Password(password, salt);
-        System.out.println(newMd5Password);
         if (!newMd5Password.equals(oldMd5Password)){
             throw new PasswordNotMatchException("用户密码错误");
         }

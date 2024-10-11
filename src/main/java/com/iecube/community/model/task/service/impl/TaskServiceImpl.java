@@ -5,12 +5,16 @@ import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
 import com.iecube.community.model.markdown.entity.MDChapter;
 import com.iecube.community.model.markdown.service.MarkdownService;
+import com.iecube.community.model.project.entity.Project;
 import com.iecube.community.model.project.entity.ProjectStudentVo;
 import com.iecube.community.model.project.mapper.ProjectMapper;
+import com.iecube.community.model.project_student_group.entity.Group;
 import com.iecube.community.model.project_student_group.entity.GroupStudent;
 import com.iecube.community.model.project_student_group.mapper.ProjectStudentGroupMapper;
 import com.iecube.community.model.pst_article.entity.PSTArticle;
 import com.iecube.community.model.pst_article.service.PSTArticleService;
+import com.iecube.community.model.pst_article_compose.entity.PSTArticleCompose;
+import com.iecube.community.model.pst_article_compose.mapper.PSTArticleComposeMapper;
 import com.iecube.community.model.question_bank.mapper.QuestionBankMapper;
 import com.iecube.community.model.question_bank.service.QuestionBankService;
 import com.iecube.community.model.question_bank.service.ex.NoQuestionException;
@@ -28,6 +32,7 @@ import com.iecube.community.model.resource.mapper.ResourceMapper;
 import com.iecube.community.model.resource.service.ResourceService;
 import com.iecube.community.model.task.mapper.TaskMapper;
 import com.iecube.community.model.task.service.TaskService;
+import com.iecube.community.model.task.service.ex.SQLBatchProcessingException;
 import com.iecube.community.model.task.vo.TaskBriefVo;
 import com.iecube.community.model.task_attention.entity.Attention;
 import com.iecube.community.model.task_attention.entity.TaskAttention;
@@ -65,6 +70,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -130,6 +139,9 @@ public class TaskServiceImpl implements TaskService {
     @Autowired
     private PSTArticleService pstArticleService;
 
+    @Autowired
+    private PSTArticleComposeMapper pstArticleComposeMapper;
+
     @Value("${generated-report}")
     private String genStudentReportDir;
 
@@ -140,6 +152,15 @@ public class TaskServiceImpl implements TaskService {
 
     @Value("${generated-report}")
     private String genFileDir;
+
+    @Value("${spring.datasource.url}")
+    private String DBUrl;
+
+    @Value("${spring.datasource.username}")
+    private String DBUsername;
+
+    @Value("${spring.datasource.password}")
+    private String DBPassword;
 
     /**
      * 任务状态
@@ -340,7 +361,7 @@ public class TaskServiceImpl implements TaskService {
             }catch (NoQuestionException e ){
                 task.setQuestionListSize(0);
             }
-            // todo null异常 处理  --- 清华版本中不执行 没有数据库表
+            //  null异常 处理  --- 清华版本中不执行 没有数据库表
             PSTArticle pstArticle = pstArticleService.getByPstId(task.getPSTId());
             if(pstArticle != null){
                 task.setPstArticle(pstArticle);
@@ -587,7 +608,7 @@ public class TaskServiceImpl implements TaskService {
             if(details!=null){
                 task.setTaskDetails(details.getName());
             }
-            // todo null异常 处理
+            // null异常 处理
             TaskMdDoc taskMdDoc = taskMdDocMapper.getTaskMdDocByTask(task.getId());
             if(taskMdDoc!=null){
                 task.setTaskMdDoc(taskMdDoc.getMdDocId());
@@ -700,9 +721,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public StudentTaskDetailVo studentSubmit(Integer pstId, Integer studentId) {
-        StudentTaskDetailVo oldTaskDetail = this.findStudentTaskByPSTId(pstId);
-        //通过pstId查询task
+        StudentTaskDetailVo thisStudentTaskDetail = this.findStudentTaskByPSTId(pstId);
         Task task = taskMapper.findTaskByPSTId(pstId);
+        Project project = projectMapper.findByPstId(pstId);
         //判断是否在时间内 如果不在时间内 是否为resubmit
 //        Date CurrDate = new Date();
 
@@ -711,12 +732,77 @@ public class TaskServiceImpl implements TaskService {
 //                throw new PermissionDeniedException("不在任务时间内");
 //            }
 //        }
+        if (project.getUseGroup() == 1 && project.getMdCourse() != null){
+            Group group = projectStudentGroupMapper.getGroupByProjectStudent(project.getId(), studentId);
+            return this.mdGroupSubmit(thisStudentTaskDetail, group);
+        }else{
+            return this.noGroupSubmit(pstId);
+        }
+    }
+
+    public StudentTaskDetailVo noGroupSubmit(Integer pstId){
         Integer row1 = taskMapper.updatePSTStatus(pstId, SUBMIT_CONTENT_STATUS);
         if (row1 !=1){
             throw new UpdateException("更改任务状态失败");
         }
         taskMapper.updatePSTResubmit(pstId,0);
         StudentTaskDetailVo taskDetail = this.findStudentTaskByPSTId(pstId);
+        return taskDetail;
+    }
+
+    public StudentTaskDetailVo mdGroupSubmit(StudentTaskDetailVo thisStudentTaskDetail,Group group){
+        List<PSTArticleCompose> groupPstArticleComposeList = pstArticleComposeMapper.composeListByPstId(thisStudentTaskDetail.getPSTId());
+        List<Integer> pstIdList = projectStudentGroupMapper.getPstListByGroupAndTaskId(group.getId(), thisStudentTaskDetail.getTaskNum()); // 组内的pstId
+        for(Integer pstId: pstIdList){
+            taskMapper.updatePSTStatus(pstId, SUBMIT_CONTENT_STATUS);
+            taskMapper.updatePSTResubmit(pstId,0);
+        }
+        pstIdList.remove(thisStudentTaskDetail.getPSTId());
+        // 根据 pstId 更改对应的pstArticle 的 pstArticleCompose
+        List<PSTArticleCompose> willUpdatePstArticleComposeList = new ArrayList<>();
+        for(Integer pstId : pstIdList){
+            List<PSTArticleCompose> thisStudentPstArticleComposeList = pstArticleComposeMapper.composeListByPstId(pstId);
+            for(int i=0; i<groupPstArticleComposeList.size(); i++){
+                PSTArticleCompose willUpdate = thisStudentPstArticleComposeList.get(i);
+                willUpdate.setVal(groupPstArticleComposeList.get(i).getVal());
+                willUpdate.setStatus(groupPstArticleComposeList.get(i).getStatus());
+                willUpdate.setResult(groupPstArticleComposeList.get(i).getResult());
+//                pstArticleComposeMapper.composeUpdateByPstIdIndex(willUpdate);
+                willUpdatePstArticleComposeList.add(willUpdate);
+            }
+
+        }
+        String updateSql = "UPDATE pst_article_compose SET `val`=?,`result`=?, `status`=? WHERE `pst_id`=? and `index`=?";
+        try (Connection connection = DriverManager.getConnection(DBUrl, DBUsername, DBPassword);
+             PreparedStatement preparedStatement = connection.prepareStatement(updateSql)) {
+            connection.setAutoCommit(false); // 关闭自动提交
+            // 假设要更新的数据
+            for (int i = 1; i < willUpdatePstArticleComposeList.size(); i++) {
+                preparedStatement.setString(1, willUpdatePstArticleComposeList.get(i).getVal());
+                if(willUpdatePstArticleComposeList.get(i).getResult() != null){
+                    preparedStatement.setDouble(2, willUpdatePstArticleComposeList.get(i).getResult());
+                }else{
+                    preparedStatement.setNull(2, java.sql.Types.DOUBLE);
+                }
+                preparedStatement.setInt(3, willUpdatePstArticleComposeList.get(i).getStatus());
+                preparedStatement.setInt(4, willUpdatePstArticleComposeList.get(i).getPstId());
+                preparedStatement.setInt(5, willUpdatePstArticleComposeList.get(i).getIndex());
+                preparedStatement.addBatch(); // 将更新操作添加到批处理中
+
+                if (i % 100 == 0) { // 每100条执行一次批处理
+                    preparedStatement.executeBatch();
+                }
+            }
+            preparedStatement.executeBatch(); // 执行剩余的批处理
+            connection.commit(); // 提交事务
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLBatchProcessingException(e.getMessage());
+        }
+        log.info("学生"+thisStudentTaskDetail.getStudentId()+"提交了小组实验报告: projectId: "+thisStudentTaskDetail.getProjectId()+ " PSTid: "+thisStudentTaskDetail.getPSTId());
+
+        StudentTaskDetailVo taskDetail = this.findStudentTaskByPSTId(thisStudentTaskDetail.getPSTId());
+        projectStudentGroupMapper.updateGroupSubmitted(group.getId());
         return taskDetail;
     }
 
@@ -759,16 +845,84 @@ public class TaskServiceImpl implements TaskService {
         return pstBaseDetailList;
     }
 
-    @Override
-    public PSTBaseDetail readOverPSTArticle(Integer pstId, Integer teacherId){
+    public PSTBaseDetail noGroupReadOverPSTArticle(Integer pstId, Integer teacherId){
         Double grade = pstArticleService.computeGrade(pstId);
         taskMapper.updatePSTGrade(pstId, grade,grade);
         taskMapper.updatePSTStatus(pstId, TEACHER_READ_OVER);
         // 报告
-
         PSTBaseDetail pstBaseDetail = taskMapper.getPstBaseDetail(pstId);
         this.autoComputeProjectGrade(pstId);
+        genMdArticleReport(pstId, pstBaseDetail, teacherId);
         return pstBaseDetail;
+    }
+
+    @Override
+    public PSTBaseDetail mdGroupReadOverPSTArticle(Integer projectId, Integer pstId, Integer teacherId){
+        //1. 同步每个compose的成绩
+        //2. 同步最终成绩，同步批阅状态
+        //3. 生成报告
+        ProjectStudentTask PST = taskMapper.getProjectStudentTaskById(pstId);
+        Integer studentId = PST.getStudentId();
+        Group group = projectStudentGroupMapper.getGroupByProjectStudent(projectId, studentId);
+        StudentTaskDetailVo thisStudentTaskDetail = this.findStudentTaskByPSTId(pstId);
+        Double grade = pstArticleService.computeGrade(pstId);
+        List<PSTArticleCompose> groupPstArticleComposeList = pstArticleComposeMapper.composeListByPstId(pstId); // 组内最终成绩的来源
+        List<Integer> pstIdList = projectStudentGroupMapper.getPstListByGroupAndTaskId(group.getId(), thisStudentTaskDetail.getTaskNum()); // 组内的pstId
+        List<PSTArticleCompose> willUpdatePstArticleComposeList = new ArrayList<>();
+        for(Integer p: pstIdList){
+            taskMapper.updatePSTGrade(p, grade, grade);
+            taskMapper.updatePSTStatus(p, TEACHER_READ_OVER);
+            this.autoComputeProjectGrade(pstId);
+            if(!p.equals(pstId)) {
+                List<PSTArticleCompose> thisStudentPstArticleComposeList = pstArticleComposeMapper.composeListByPstId(pstId);
+                for (int i = 0; i < thisStudentPstArticleComposeList.size(); i++) {
+                    PSTArticleCompose willUpdate = thisStudentPstArticleComposeList.get(i);
+                    willUpdate.setResult(groupPstArticleComposeList.get(i).getResult());
+                    willUpdatePstArticleComposeList.add(willUpdate);
+                }
+            }
+        }
+        String updateSql = "UPDATE pst_article_compose SET `result`=? WHERE `pst_id`=? and `index`=?";
+        try (Connection connection = DriverManager.getConnection(DBUrl, DBUsername, DBPassword);
+             PreparedStatement preparedStatement = connection.prepareStatement(updateSql)) {
+            connection.setAutoCommit(false); // 关闭自动提交
+            // 假设要更新的数据
+            for (int i = 1; i < willUpdatePstArticleComposeList.size(); i++) {
+                if(willUpdatePstArticleComposeList.get(i).getResult() != null){
+                    preparedStatement.setDouble(1, willUpdatePstArticleComposeList.get(i).getResult());
+                }else{
+                    preparedStatement.setNull(1, java.sql.Types.DOUBLE);
+                }
+                preparedStatement.setInt(2, willUpdatePstArticleComposeList.get(i).getPstId());
+                preparedStatement.setInt(3, willUpdatePstArticleComposeList.get(i).getIndex());
+                preparedStatement.addBatch(); // 将更新操作添加到批处理中
+
+                if (i % 100 == 0) { // 每100条执行一次批处理
+                    preparedStatement.executeBatch();
+                }
+            }
+            preparedStatement.executeBatch(); // 执行剩余的批处理
+            connection.commit(); // 提交事务
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLBatchProcessingException(e.getMessage());
+        }
+        PSTBaseDetail result = taskMapper.getPstBaseDetail(pstId);
+        return result;
+    }
+
+    @Override
+    @Async
+    public void genMdArticleReportGroup(Integer projectId, Integer pstId, Integer teacherId){
+        ProjectStudentTask PST = taskMapper.getProjectStudentTaskById(pstId);
+        Integer studentId = PST.getStudentId();
+        Group group = projectStudentGroupMapper.getGroupByProjectStudent(projectId, studentId);
+        StudentTaskDetailVo thisStudentTaskDetail = this.findStudentTaskByPSTId(pstId);
+        List<Integer> pstIdList = projectStudentGroupMapper.getPstListByGroupAndTaskId(group.getId(), thisStudentTaskDetail.getTaskNum()); // 组内的pstId
+        for(Integer p:pstIdList){
+            PSTBaseDetail pstBaseDetail = taskMapper.getPstBaseDetail(p);
+            genMdArticleReport(pstId, pstBaseDetail, teacherId);
+        }
     }
 
     @Override

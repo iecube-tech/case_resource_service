@@ -11,5 +11,7 @@ public interface PSTArticleComposeService {
 
     PSTArticleCompose composeUpdateResult(Integer composeId, Double result);
 
+    PSTArticleCompose composeUpdateResultStatus(Integer composeId, Double result);
+
     List<PSTArticleCompose> composeListByPstId(Integer pstId);
 }

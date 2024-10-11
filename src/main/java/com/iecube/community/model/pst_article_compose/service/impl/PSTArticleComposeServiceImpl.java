@@ -41,6 +41,16 @@ public class PSTArticleComposeServiceImpl implements PSTArticleComposeService {
     }
 
     @Override
+    public PSTArticleCompose composeUpdateResultStatus(Integer composeId, Double result) {
+        Integer res  = pstArticleComposeMapper.composeUpdateResultStatus(composeId, result);
+        if(res!=1){
+            throw new UpdateException("更新数据异常");
+        }
+        PSTArticleCompose pstArticleCompose = pstArticleComposeMapper.getById(composeId);
+        return pstArticleCompose;
+    }
+
+    @Override
     public List<PSTArticleCompose> composeListByPstId(Integer pstId) {
         List<PSTArticleCompose> composeList = pstArticleComposeMapper.composeListByPstId(pstId);
         return composeList;

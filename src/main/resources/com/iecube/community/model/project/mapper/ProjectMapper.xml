@@ -24,6 +24,13 @@
         <result column="ps_id" property="psId"></result>
     </resultMap>
 
+    <resultMap id="StudentDto" type="com.iecube.community.model.student.entity.StudentDto">
+        <result column="student_id" property="studentId"></result>
+        <result column="student_name" property="studentName"></result>
+        <result column="student_grade" property="studentGrade"></result>
+        <result column="student_class" property="studentClass"></result>
+    </resultMap>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO project (id, case_id,device_id, project_name, introduction, introduce, cover, target,
                              start_time, end_time, creator, create_time, last_modified_user, last_modified_time,
@@ -47,6 +54,13 @@
 
     <select id="findById" resultMap="ProjectEntity">
         SELECT * FROM project WHERE id=#{id}
+    </select>
+
+    <select id="findByPstId" resultMap="ProjectEntity">
+        SELECT p.id, p.case_id,device_id, p.project_name, p.introduction, p.introduce, p.cover, p.target,
+               p.start_time, p.end_time, p.creator, p.create_time, p.last_modified_user, p.last_modified_time,
+               p.use_group, p.group_limit, p.md_course, p.use_remote
+        FROM project p INNER JOIN project_task_student pst ON p.id=pst.project_id WHERE pst.id=#{pstId};
     </select>
 
     <select id="findCaseTypeByCaseId" resultType="java.lang.Integer">
@@ -119,5 +133,11 @@
     <update id="updateProjectStudentGrade">
         UPDATE project_student SET grade=#{grade} WHERE id=#{id}
     </update>
+
+    <select id="getProjectStudents" resultMap="StudentDto">
+        SELECT Student.id, Student.email, Student.student_id, Student.student_name
+        FROM Student INNER JOIN project_student ON Student.id=project_student.student_id
+        WHERE project_student.project_id=#{projectId};
+    </select>
 
 </mapper>

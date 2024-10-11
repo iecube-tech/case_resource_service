@@ -10,6 +10,7 @@ import com.iecube.community.model.resource.service.ex.ResourceNotFoundException;
 import com.iecube.community.model.student.service.ex.StudentNotFoundException;
 import com.iecube.community.model.task.service.ex.PSTResourceNotFoundException;
 import com.iecube.community.model.task.service.ex.PermissionDeniedException;
+import com.iecube.community.model.task.service.ex.SQLBatchProcessingException;
 import com.iecube.community.util.JsonResult;
 import org.apache.tomcat.util.http.fileupload.impl.SizeLimitExceededException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -33,6 +34,8 @@ public class TaskBaseController extends BaseController {
             result.setState(8001);
         } else if (e instanceof DeleteException) {
             result.setState(8002);
+        } else if (e instanceof SQLBatchProcessingException) {
+            result.setState(8003);
         }
         return result;
     }
