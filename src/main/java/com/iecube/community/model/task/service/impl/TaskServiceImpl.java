@@ -11,6 +11,7 @@ import com.iecube.community.model.project.mapper.ProjectMapper;
 import com.iecube.community.model.project_student_group.entity.Group;
 import com.iecube.community.model.project_student_group.entity.GroupStudent;
 import com.iecube.community.model.project_student_group.mapper.ProjectStudentGroupMapper;
+import com.iecube.community.model.project_student_group.service.ex.GroupLimitException;
 import com.iecube.community.model.pst_article.entity.PSTArticle;
 import com.iecube.community.model.pst_article.service.PSTArticleService;
 import com.iecube.community.model.pst_article_compose.entity.PSTArticleCompose;
@@ -734,6 +735,9 @@ public class TaskServiceImpl implements TaskService {
 //        }
         if (project.getUseGroup() == 1 && project.getMdCourse() != null){
             Group group = projectStudentGroupMapper.getGroupByProjectStudent(project.getId(), studentId);
+            if(group == null){
+                throw new GroupLimitException("本课程为分组实验进行， 请先创建小组或加入小组");
+            }
             return this.mdGroupSubmit(thisStudentTaskDetail, group);
         }else{
             return this.noGroupSubmit(pstId);

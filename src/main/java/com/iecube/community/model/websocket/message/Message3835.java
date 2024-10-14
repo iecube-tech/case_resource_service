@@ -12,4 +12,5 @@ public class Message3835 {
     Integer pstId;
     String snId;
     Boolean lock;
+    Boolean logup;
 }

@@ -94,6 +94,19 @@ public class WebSocketService {
                 onlineTask.put(this.userId,msg);
                 log.info("onlineTask:"+onlineTask);
             }
+            if(msg.getLogup()== true){
+                // 触发提交事件消息  仅做转发
+                if(onlineDeviceSn.get(msg.getUserId())!=null){
+                    try{
+                        Session deviceSession = onlineDevice.get(this.userId);
+                        deviceSession.getBasicRemote().sendText(sentTo3835Message(msg));
+                    }catch (Exception e){
+                        log.error("转发提交消息失败"+e.getMessage());
+                    }
+
+                }
+                return;
+            }
             if(msg.getLock()==false){
                 if(onlineDeviceSn.get(msg.getUserId())!=null){
                     // 鉴定为浏览器重连情况
@@ -129,6 +142,18 @@ public class WebSocketService {
 
         //2. 收到3835的消息
         if(msg.getFrom().equals(DEVICE)){
+            if(msg.getLogup()!=null && msg.getLogup()==false && msg.getUserId()!=null){
+                if(onlineTask.get(msg.getUserId())!=null){
+                    try{
+                        Session webSession = onlineUser.get(this.userId);
+                        webSession.getBasicRemote().sendText(sendToOnlineMessage(msg));
+                        log.info("3835已处理提交事件，同步浏览器");
+                    }catch (Exception e){
+                        log.error("转发提交消息失败"+e.getMessage());
+                    }
+                    return;
+                }
+            }
             // 确定3835的消息是请求连接还是完成实验断开连接
             if(msg.getPstId()==null && msg.getLock()==true){
                 // 请求连接消息
@@ -149,6 +174,8 @@ public class WebSocketService {
                 if(msg.getSnId()!=null && msg.getLock()==true){
                     onlineDeviceSn.put(this.userId, msg);
                     log.info(onlineDeviceSn.toString());
+                    log.info("onlineDevice:"+onlineDevice);
+                    log.info("onlineDevice:"+onlineDeviceSn);
                     Session webSession = onlineUser.get(this.userId);
                     try {
                         webSession.getBasicRemote().sendText(sendToOnlineMessage(msg));

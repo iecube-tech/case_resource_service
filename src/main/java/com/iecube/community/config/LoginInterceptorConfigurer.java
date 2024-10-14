@@ -38,7 +38,6 @@ public class LoginInterceptorConfigurer implements WebMvcConfigurer {
         patterns.add("/student/jlogin");
         patterns.add("/files/e/image");
         patterns.add("/files/image/{fileName}");
-        patterns.add("/md/**");
         patterns.add("/t/article/compose/**/**");
 
         registry.addInterceptor(authInterceptor).addPathPatterns("/**").excludePathPatterns(patterns);
