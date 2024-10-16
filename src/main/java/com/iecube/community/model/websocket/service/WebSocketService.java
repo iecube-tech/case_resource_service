@@ -44,14 +44,16 @@ public class WebSocketService {
         log.info("onlineDevice:"+onlineDeviceSn);
         log.info(type+"-"+userId);
         if(type.equals(USER)){
+            onlineUser.remove(userId);
             onlineUser.put(userId, session); // 把用户和建立socket连接的session关联起来
-            log.info("学生"+userId+"：使用online建立了socket连接");
+            log.info("学生"+userId+"：使用浏览器建立了socket连接");
             this.type=type;
             this.userId=userId;
             log.info("onlineUser:"+onlineUser);
             log.info("onlineTask:"+onlineTask);
         }
         else if(type.equals(DEVICE)){
+            onlineDevice.remove(userId);
             onlineDevice.put(userId,session);
             log.info("学生"+userId+"：使用3835建立了socket连接");
             this.type=type;
@@ -91,6 +93,7 @@ public class WebSocketService {
             // 第一步 浏览器上线 同步信息
             log.info("this.userId:"+this.userId+" msg.getUserId():"+msg.getUserId());
             if(this.userId.toString().equals(msg.getUserId().toString())){
+                onlineTask.remove(this.userId);
                 onlineTask.put(this.userId,msg);
                 log.info("onlineTask:"+onlineTask);
             }
@@ -115,6 +118,7 @@ public class WebSocketService {
                     try{
                         Message3835 reConnectMessage = onlineDeviceSn.get(this.userId);
                         reConnectMessage.setFrom("server");
+                        reConnectMessage.setLock(false);
                         webSession.getBasicRemote().sendText(sendToOnlineMessage(reConnectMessage));
                         deviceSession.getBasicRemote().sendText(sentTo3835Message(reConnectMessage));
                         log.info("浏览器重连，已发送重连信息"+reConnectMessage);
@@ -254,8 +258,10 @@ public class WebSocketService {
                     e.printStackTrace();
                 }
             }
-            onlineUser.remove(this.userId);
-            onlineTask.remove(this.userId);
+            if (session.equals(onlineUser.get(this.userId))){
+                onlineUser.remove(this.userId);
+                onlineTask.remove(this.userId);
+            }
             log.info("学生"+userId+"的浏览器断开了socket连接");
             log.info("onlineUser:"+onlineUser);
             log.info("onlineTask:"+onlineTask);
@@ -280,6 +286,7 @@ public class WebSocketService {
                     e.printStackTrace();
                 }
             }
+            log.info("学生"+this.userId+"的3835设备掉线");
             onlineDevice.remove(this.userId);
             onlineDeviceSn.remove(this.userId);
             log.info("onlineDeviceSn:"+onlineDeviceSn);
