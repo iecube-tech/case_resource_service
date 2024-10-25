@@ -1,5 +1,6 @@
 package com.iecube.community.model.pst_article.service.impl;
 
+import com.iecube.community.baseservice.ex.ServiceException;
 import com.iecube.community.model.pst_article.entity.PSTArticle;
 import com.iecube.community.model.pst_article.mapper.PSTArticleMapper;
 import com.iecube.community.model.pst_article.service.PSTArticleService;
@@ -27,16 +28,30 @@ public class PSTArticleServiceImpl implements PSTArticleService {
     public void addedProject(List<PSTArticle> pstArticleList) {
         //取到的 pstArticle id值为null  compose的id， articleId 为null
         List<PSTArticleCompose> pstArticleComposeList = new ArrayList<>();
+        if(pstArticleList.isEmpty()){
+            return;
+        }
         pstArticleList.forEach(pstArticle -> {
             pstArticleMapper.insert(pstArticle);
             Integer articleId = pstArticle.getId();
             pstArticle.getComposeList().forEach(pstArticleCompose -> {
                 pstArticleCompose.setPstArticleId(articleId);
                 pstArticleCompose.setStatus(0);
-                pstArticleComposeList.add(pstArticleCompose);
+                if(!pstArticleCompose.getName().isEmpty() && !pstArticleCompose.getArgs().isEmpty() && !pstArticleCompose.getVal().isEmpty()){
+                    pstArticleComposeList.add(pstArticleCompose);
+                }
             });
         });
-        pstArticleComposeMapper.batchAdd(pstArticleComposeList);
+        if(pstArticleComposeList.isEmpty()){
+            return;
+        }
+        try{
+            pstArticleComposeMapper.batchAdd(pstArticleComposeList);
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new ServiceException("批量添加数据异常");
+        }
+
     }
 
     @Override

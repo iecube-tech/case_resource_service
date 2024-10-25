@@ -56,7 +56,8 @@ public class AuthUtils {
             log.error("转JSON失败", e);
             throw new SystemException();
         }
-        redisTemplate.opsForValue().set(getUserTokenRedisKey(currentUser.getId(), currentUser.getUserType(), currentUser.getAgent()), token, 360, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(getUserTokenRedisKey(currentUser.getId(), currentUser.getUserType(),
+                currentUser.getAgent()), token, 360, TimeUnit.MINUTES);
     }
 
     public static void setCurrentUser(Integer id, String type, String agent, StringRedisTemplate redisTemplate) {
