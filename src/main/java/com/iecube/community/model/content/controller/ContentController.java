@@ -187,7 +187,7 @@ public class ContentController extends ContentBaseController {
         Integer creator = currentUserId();
         Resource resource = resourceService.UploadFile(file,creator);
         contentService.contentAddPkg(contentId,resource);
-        List<ResourceVo> resources = contentService.findResourcesById(contentId);
+        List<ResourceVo> resources = contentService.findResourcesById(contentId, currentUserId());
         return new JsonResult<>(OK, resources);
     }
 
@@ -200,7 +200,7 @@ public class ContentController extends ContentBaseController {
     @GetMapping("/delete_pkg/{contentId}/{pkgId}")
     public JsonResult<List> deleteContentPkg(@PathVariable Integer contentId, @PathVariable Integer pkgId){
         contentService.contentDeletePkg(contentId,pkgId);
-        List<ResourceVo> resources = contentService.findResourcesById(contentId);
+        List<ResourceVo> resources = contentService.findResourcesById(contentId, currentUserId());
         return new JsonResult<>(OK,resources);
     }
 
@@ -272,7 +272,7 @@ public class ContentController extends ContentBaseController {
 
     @GetMapping("/packages")
     public JsonResult<List> packages(Integer id){
-        List<ResourceVo> files = contentService.findResourcesById(id);
+        List<ResourceVo> files = contentService.findResourcesById(id, currentUserId());
         return new JsonResult<>(OK, files);
     }
 

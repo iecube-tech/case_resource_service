@@ -6,11 +6,14 @@ import com.iecube.community.model.project.entity.ProjectDto;
 import com.iecube.community.model.project.entity.ProjectStudentVo;
 import com.iecube.community.model.project.entity.StudentProjectVo;
 import com.iecube.community.model.project.service.ProjectService;
+import com.iecube.community.model.project.service.ex.StudentAlreadyInProject;
 import com.iecube.community.model.resource.entity.Resource;
 import com.iecube.community.model.resource.service.ResourceService;
+import com.iecube.community.model.student.entity.Student;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.util.DownloadUtil;
 import com.iecube.community.util.JsonResult;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/project")
 public class ProjectController extends ProjectBaseController {
@@ -135,10 +139,28 @@ public class ProjectController extends ProjectBaseController {
      * 需要projectId studnetId
      */
     @PostMapping("/join_project/{projectId}")
-    public JsonResult<Integer> studentJoinProject(@PathVariable Integer projectId){
+    public JsonResult<Boolean> studentJoinProject(@PathVariable Integer projectId){
         Integer studentId = currentUserId();
-        Integer project = projectService.studentJoinProject(projectId,studentId);
-        return new JsonResult<>(OK,project);
+        projectService.studentJoinProject(projectId,studentId);
+        return new JsonResult<>(OK,Boolean.TRUE);
+    }
+
+    /**
+     *
+     * @param projectId
+     * @return
+     */
+    @PostMapping("/add_student/{projectId}")
+    public JsonResult<Boolean> projectAddStudent(@PathVariable Integer projectId, @RequestBody List<Student> students){
+        log.info("project {} 添加学生", projectId);
+        for(Student student : students){
+            try{
+                projectService.studentJoinProject(projectId,student.getId());
+            }catch (StudentAlreadyInProject e){
+                log.info("学生 {} 已在Project中", student.getId());
+            }
+        }
+        return new JsonResult<>(OK,Boolean.TRUE);
     }
 
     @GetMapping("/students/{projectId}")

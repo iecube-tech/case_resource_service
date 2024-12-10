@@ -40,13 +40,31 @@ public class VideoController extends VideoBaseController {
         return new JsonResult<>(OK, video);
     }
 
-    @GetMapping("/d/{id}")
+    @DeleteMapping("/d/{id}")
     public JsonResult<Void> deleteVideo(@PathVariable Integer id){
         videoService.deleteVideo(id);
         return new JsonResult<>(OK);
     }
 
+    @PostMapping("/n/up")
+    public JsonResult<Video> uploadVideoWithoutCase(MultipartFile file){
+        Integer creator = currentUserId();
+        Video video = videoService.uploadWithoutCaseId(file, creator);
+        return new JsonResult<>(OK, video);
+    }
 
+    @GetMapping("/n/{filename}")
+    public JsonResult<Video> getVideoByFilename(@PathVariable String filename){
+        Video video = videoService.getByFilename(filename);
+        return new JsonResult<>(OK, video);
+    }
+
+    @DeleteMapping("/del/{filename}")
+    public JsonResult<Void> deleteVideoByFilename(@PathVariable String filename){
+        Video video = videoService.getByFilename(filename);
+        videoService.deleteVideo(video.getId());
+        return new JsonResult<>(OK);
+    }
     @GetMapping("/m3u8/{filename}")
     public ResponseEntity<Object>  get3m8uFile(@PathVariable String filename){
         try{

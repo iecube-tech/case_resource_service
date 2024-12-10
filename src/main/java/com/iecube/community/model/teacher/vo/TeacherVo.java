@@ -7,15 +7,15 @@ import java.util.List;
 
 @Data
 public class TeacherVo {
-    Integer teacherId;
-    String teacherName;
-    String teacherEmail;
-    Integer isDelete;
-    Integer schoolId;
-    String schoolName;
-    Integer collageId;
-    String collageName;
-    List<Content> caseList;
-    String creatorName;
-    Integer creatorId;
+    private Integer teacherId;
+    private String teacherName;
+    private String teacherEmail;
+    private Integer isDelete;
+    private Integer schoolId;
+    private String schoolName;
+    private Integer collageId;
+    private String collageName;
+    private List<Content> caseList;
+    private String creatorName;
+    private Integer creatorId;
 }

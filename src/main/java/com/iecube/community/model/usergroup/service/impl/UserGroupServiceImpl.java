@@ -1,130 +1,111 @@
 package com.iecube.community.model.usergroup.service.impl;
 
-import com.iecube.community.model.auth.entity.User;
-import com.iecube.community.model.auth.mapper.UserMapper;
+import com.iecube.community.model.auth.entity.Authority;
 import com.iecube.community.model.auth.service.ex.InsertException;
-import com.iecube.community.model.auth.service.ex.PermissionDeniedException;
-import com.iecube.community.model.auth.service.ex.UpdateException;
-import com.iecube.community.model.usergroup.service.ex.UserGroupNotFoundException;
+import com.iecube.community.model.direction.service.ex.DeleteException;
+import com.iecube.community.model.teacher.vo.TeacherVo;
 import com.iecube.community.model.usergroup.entity.UserGroup;
 import com.iecube.community.model.usergroup.mapper.UserGroupMapper;
 import com.iecube.community.model.usergroup.service.UserGroupService;
+import com.iecube.community.model.usergroup.vo.UserGroupVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 
-/**
- * 用户组模块业务层实现
- */
 @Service
 public class UserGroupServiceImpl implements UserGroupService {
 
     @Autowired
     private UserGroupMapper userGroupMapper;
 
-    @Autowired
-    private UserMapper userMapper;
-
     @Override
-    public void addStaffGroup(UserGroup userGroup, Integer lastModifiedId) {
-        userGroup.setGroupType(1);  //员工
-        userGroup.setIsDelete(0);
-        userGroup.setCreator(lastModifiedId);
-        userGroup.setCreateTime(new Date());
-        userGroup.setLastModifiedUser(lastModifiedId);
-        userGroup.setLastModifiedTime(new Date());
-        Integer rows =  userGroupMapper.insert(userGroup);
-        if (rows != 1){
-            throw new InsertException("插入数据异常");
-        }
-
+    public List<UserGroup> getUserGroups() {
+        return userGroupMapper.getUserGroups();
     }
 
     @Override
-    public void addCustomerGroup(UserGroup userGroup, Integer lastModifiedId) {
-        userGroup.setGroupType(2);  //客户
-        userGroup.setGroupAuthority(1);
-        userGroup.setIsDelete(0);
-        userGroup.setCreator(lastModifiedId);
-        userGroup.setCreateTime(new Date());
-        userGroup.setLastModifiedUser(lastModifiedId);
-        userGroup.setLastModifiedTime(new Date());
-        Integer rows =  userGroupMapper.insert(userGroup);
-        if (rows != 1){
-            throw new InsertException("插入数据异常");
-        }
-    }
-
-    /**
-     * 更新用户组数据
-     * @param userGroup 用户组对象
-     */
-    @Override
-    public void updateGroup(UserGroup userGroup, Integer lastModifiedId) {
-        /**判断修改用户组信息的权限，只有创建者有权限修改**/
-        UserGroup oldUserGroup = userGroupMapper.findById(userGroup.getId());
-        Integer userGroupCreator = oldUserGroup.getCreator();
-        if (userGroupCreator != lastModifiedId){
-            throw new PermissionDeniedException("无权修改");
-        }
-        // 判断要修改的用户组是否存在
-        if (oldUserGroup.getIsDelete() == 1){
-            throw new UserGroupNotFoundException("用户组未找到");
-        }
-        // 判断修改的用户组是员工还是客户  客户的用户组权限只能是1 强制将用户组权限置1
-        if (oldUserGroup.getGroupType() == 2){
-            userGroup.setGroupAuthority(1);
-        }
-        userGroup.setLastModifiedUser(lastModifiedId);
-        userGroup.setLastModifiedTime(new Date());
-        Integer rows = userGroupMapper.update(userGroup);
-        if (rows != 1){
-            throw new UpdateException("更新数据异常");
-        }
+    public UserGroupVo getUserGroupVoById(Integer id) {
+        UserGroup group = userGroupMapper.getUserGroupById(id);
+        List<TeacherVo> teacherVoList = userGroupMapper.getTeachersByGroupId(id);
+        List<Authority> authorityList = userGroupMapper.getAuthoritiesByGroupId(id);
+        UserGroupVo vo = new UserGroupVo();
+        vo.setId(group.getId());
+        vo.setName(group.getName());
+        vo.setAuthorities(authorityList);
+        vo.setTeacherList(teacherVoList);
+        return vo;
     }
 
     @Override
-    public void deleteGroup(Integer id, Integer lastModifiedId){
-        /**判断修改用户组信息的权限，只有创建者有权限删除， 删除后用户的组也要删除**/
-        // 根据id查询userGroup对象
-        UserGroup userGroup = userGroupMapper.findCreatorById(id);
-        //判断是否删除
-        if (userGroup.getIsDelete()==1){
-            throw new UserGroupNotFoundException("用户组未找到");
+    public List<UserGroup> addUserGroup(UserGroup userGroup) {
+        int res = userGroupMapper.addUserGroup(userGroup);
+        if(res!=1){
+            throw new InsertException("添加数据异常");
         }
-        Integer userGroupCreator = userGroup.getCreator();
-        if (userGroupCreator != lastModifiedId){
-            throw new PermissionDeniedException("无权删除");
+        return userGroupMapper.getUserGroups();
+    }
+
+    @Override
+    public List<UserGroup> updateUserGroup(UserGroup userGroup) {
+        int res = userGroupMapper.updateUserGroup(userGroup);
+        if(res!=1){
+            throw new InsertException("更新数据异常");
         }
-        Integer rows = userGroupMapper.delete(id);
-        if (rows != 1){
-            throw new UpdateException("更新数据异常");
+        return userGroupMapper.getUserGroups();
+    }
+
+    @Override
+    public List<UserGroup> deleteUserGroup(Integer groupId) {
+        int res = userGroupMapper.deleteUserGroup(groupId);
+        if(res!=1){
+            throw new InsertException("删除数据异常");
         }
-        // 更改用户信息  用户组内受影响的用户的用户组信息置空
-        // 查询受影响的数据量
-        Integer users = userGroupMapper.countUsersByUserGroup(id);
-        if (users > 0){
-            Integer updateRows = userGroupMapper.userUpdateUserGroup(id, lastModifiedId, new Date());
-            if (users != updateRows){
-                throw new UpdateException("删除用户组后跟新用户数据异常");
+        return userGroupMapper.getUserGroups();
+    }
+
+    @Override
+    public UserGroupVo addUserToUserGroup(Integer groupId, List<Integer> teacherIdList) {
+        teacherIdList.forEach(teacherId -> {
+            int res = userGroupMapper.addTeacherToGroup(groupId, teacherId);
+            if(res!=1){
+                throw new InsertException("添加数据异常");
             }
+        });
+        return getUserGroupVoById(groupId);
+    }
+
+    @Override
+    public UserGroupVo removeUserFromGroup(Integer groupId, Integer teacherId) {
+        int res = userGroupMapper.deleteTeacherFromGroup(groupId, teacherId);
+        if(res!=1){
+            throw new DeleteException("删除数据异常");
         }
-
+        return getUserGroupVoById(groupId);
     }
 
     @Override
-    public List<UserGroup> findByCreator(Integer creator) {
-        List<UserGroup> userGroups =  userGroupMapper.findByCreator(creator);
-        return userGroups;
+    public UserGroupVo addAuthToGroup(Integer groupId, List<Integer> authorityIds) {
+        authorityIds.forEach(authorityId -> {
+            int res = userGroupMapper.addAuthorityToGroup(groupId, authorityId);
+            if(res!=1){
+                throw new InsertException("添加数据异常");
+            }
+        });
+        return getUserGroupVoById(groupId);
     }
 
     @Override
-    public List<User> findUsersByGroup(Integer groupId) {
-        List<User> users =userMapper.findByGroup(groupId);
-        return users;
+    public UserGroupVo removeAuthFromGroup(Integer groupId, Integer authorityId) {
+        int res = userGroupMapper.deleteAuthorityFromGroup(groupId, authorityId);
+        if(res!=1){
+            throw new DeleteException("删除数据异常");
+        }
+        return getUserGroupVoById(groupId);
     }
 
-
+    @Override
+    public List<String> teacherAuth(Integer teacherId) {
+        return userGroupMapper.getTeacherAuth(teacherId);
+    }
 }

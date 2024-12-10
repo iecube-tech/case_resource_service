@@ -1,7 +1,6 @@
 package com.iecube.community.model.teacher.service;
 
-import com.iecube.community.model.auth.dto.LoginDto;
-import com.iecube.community.model.teacher.entity.Tags;
+import com.iecube.community.model.teacher.dto.LoginDto;
 import com.iecube.community.model.teacher.entity.Teacher;
 import com.iecube.community.model.teacher.vo.TeacherVo;
 

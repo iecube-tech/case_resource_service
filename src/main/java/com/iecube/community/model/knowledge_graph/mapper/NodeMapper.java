@@ -21,4 +21,6 @@ public interface NodeMapper {
     List<Node> allNode();
 
     Integer batchUpdateMapNode(@Param("list")  List<Node> nodeList);
+
+    List<Node> getAllRootNode();
 }

@@ -1,11 +1,11 @@
 package com.iecube.community.model.teacher.controller;
 import com.iecube.community.basecontroller.auth.AuthBaseController;
-import com.iecube.community.model.auth.dto.LoginDto;
-import com.iecube.community.model.teacher.entity.Tags;
+import com.iecube.community.model.teacher.dto.LoginDto;
 import com.iecube.community.model.teacher.entity.Teacher;
 import com.iecube.community.model.teacher.qo.ChangePassword;
 import com.iecube.community.model.teacher.service.TeacherService;
 import com.iecube.community.model.teacher.vo.TeacherVo;
+import com.iecube.community.model.usergroup.service.UserGroupService;
 import com.iecube.community.util.JsonResult;
 import com.iecube.community.util.jwt.AuthUtils;
 import com.iecube.community.util.jwt.CurrentUser;
@@ -24,6 +24,9 @@ public class TeacherController extends AuthBaseController {
     private TeacherService teacherService;
 
     @Autowired
+    private UserGroupService userGroupService;
+
+    @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
     @PostMapping("/login")
@@ -37,6 +40,8 @@ public class TeacherController extends AuthBaseController {
         currentUser.setAgent(agent);
         AuthUtils.cache(currentUser, loginDto.getToken(), stringRedisTemplate);
         log.info("login:{},{},{}",currentUser.getUserType(),currentUser.getId(), currentUser.getEmail());
+        List<String> teacherAuths = userGroupService.teacherAuth(loginDto.getTeacher().getId());
+        loginDto.setAuthList(teacherAuths);
         return new JsonResult<>(OK, loginDto);
     }
 

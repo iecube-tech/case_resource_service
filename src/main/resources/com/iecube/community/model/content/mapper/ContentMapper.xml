@@ -8,6 +8,7 @@
     <resultMap id="ContentEntity" type="com.iecube.community.model.content.entity.Content">
         <result column="id" property="id"></result>
         <result column="parent_id" property="parentId"></result>
+        <result column="fourth_type" property="fourthType"></result>
         <result column="key_word" property="keyWord"></result>
         <result column="package_id" property="packageId"></result>
         <result column="is_delete" property="isDelete"></result>
@@ -55,9 +56,21 @@
         WHERE id=#{id}
     </update>
 
+    <update id="updateFourthType">
+        UPDATE solution_or_case SET  fourth_type=#{fourthType}  WHERE id=#{id}
+    </update>
+
     <update id="updateFourth">
         UPDATE solution_or_case SET
                                     fourth=#{fourth},
+                                    last_modified_user=#{lastModifiedUser},
+                                    last_modified_time=#{lastModifiedTime}
+        WHERE id=#{id}
+    </update>
+
+    <update id="fourthSetNull">
+        UPDATE solution_or_case SET
+                                    fourth=NULL,
                                     last_modified_user=#{lastModifiedUser},
                                     last_modified_time=#{lastModifiedTime}
         WHERE id=#{id}
@@ -207,6 +220,8 @@
         FROM solution_or_case INNER JOIN teacher_case ON solution_or_case.id=teacher_case.case_id
         WHERE teacher_case.teacher_id=#{teacherId} AND solution_or_case.third=1 AND solution_or_case.is_delete=0
     </select>
+
+
 
     <select id="teacherCreateCourseList" resultMap="ContentEntity">
         SELECT * FROM solution_or_case WHERE creator_type='teacher' AND creator=#{creator} AND is_delete=0 AND third=1 AND md_course IS NULL

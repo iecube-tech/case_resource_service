@@ -14,8 +14,24 @@
         INSERT INTO map_case_node (id, case_id, node_id) VALUES (NULL, #{caseId}, #{nodeId})
     </insert>
 
+    <select id="getCaseNode" resultMap="CaseNode">
+        SELECT * FROM map_case_node WHERE case_id=#{caseId}, node_id=#{nodeId}
+    </select>
+
+    <select id="getListByCaseId" resultMap="CaseNode">
+        SELECT * FROM map_case_node WHERE case_id=#{caseId}
+    </select>
+
     <select id="getByCaseId" resultMap="CaseNode">
         SELECT * FROM map_case_node WHERE case_id=#{caseId}
     </select>
+
+    <select id="getByNodeId" resultMap="CaseNode">
+        SELECT * FROM map_case_node WHERE node_id=#{nodeId}
+    </select>
+
+    <delete id="deleteByCaseId">
+        DELETE FROM map_case_node WHERE case_id=#{caseId}
+    </delete>
 
 </mapper>

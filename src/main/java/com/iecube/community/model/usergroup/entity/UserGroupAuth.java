@@ -3,7 +3,8 @@ package com.iecube.community.model.usergroup.entity;
 import lombok.Data;
 
 @Data
-public class UserGroup {
+public class UserGroupAuth {
     private Integer id;
-    private String name;
+    private Integer userGroupId;
+    private Integer userGroupAuth;
 }

@@ -1,5 +1,7 @@
 package com.iecube.community.model.content.service.impl;
 
+import com.iecube.community.baseservice.ex.ServiceException;
+import com.iecube.community.model.auth.service.ex.AuthException;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.content.entity.Content;
@@ -22,6 +24,8 @@ import com.iecube.community.model.taskTemplate.dto.TaskTemplateDto;
 import com.iecube.community.model.taskTemplate.mapper.TaskTemplateMapper;
 import com.iecube.community.model.taskTemplate.service.TaskTemplateService;
 import com.iecube.community.model.teacher.entity.Teacher;
+import com.iecube.community.model.teacher.mapper.TeacherMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,7 +33,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
+@Slf4j
 @Service
 public class ContentServiceImpl implements ContentService {
 
@@ -47,6 +53,8 @@ public class ContentServiceImpl implements ContentService {
 
     @Autowired
     private NPointsMapper nPointsMapper;
+    @Autowired
+    private TeacherMapper teacherMapper;
 
     @Override
     public Integer addContent(Content content, String userType, Integer lastModifiedUser) {
@@ -82,6 +90,11 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
+    public void updateFourthType(Integer contentId, String fourthType) {
+        contentMapper.updateFourthType(contentId, fourthType);
+    }
+
+    @Override
     public void contentUpdateFourth(Integer contentId, Resource resource, Integer lastModifiedUser) {
         Content content = this.findById(contentId);
         if(content.getFourth() != null && !content.getFourth().isEmpty()){
@@ -92,6 +105,34 @@ public class ContentServiceImpl implements ContentService {
         if(row!=1){
             throw new UpdateException("更新数据异常");
         }
+    }
+
+    @Override
+    public void mdContentUpdateFourth(Integer contentId, String fourth, Integer lastModifiedUser) {
+        Content content = this.findById(contentId);
+        if(content.getFourth() != null && !content.getFourth().isEmpty()){
+            // 删除原先的cover
+            try{
+                Resource resource = resourceService.getResourceByFilename(content.getFourth());
+                if(resource != null){
+                    resourceService.deleteResource(content.getFourth());
+                }
+            }catch (Exception e){
+                log.warn("删除resource异常：{}",e.getMessage());
+            }
+        }
+        if(fourth!=null){
+            Integer row = contentMapper.updateFourth(contentId, fourth,lastModifiedUser, new Date());
+            if(row!=1){
+                throw new UpdateException("更新数据异常");
+            }
+        }else {
+            int row = contentMapper.fourthSetNull(contentId, lastModifiedUser, new Date());
+            if(row!=1){
+                throw new UpdateException("更新数据异常");
+            }
+        }
+
     }
 
     @Override
@@ -219,7 +260,19 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public List<ResourceVo> findResourcesById(Integer id) {
+    public List<ResourceVo> findResourcesById(Integer id, Integer teacherId) {
+        // 鉴权
+        List<Integer> authed = new ArrayList<>();
+        Content content = contentMapper.findById(id);
+        authed.add(content.getCreator());
+        authed.add(content.getLastModifiedUser());
+        List<Teacher> teachers = teacherMapper.courseTeacher(id);
+        teachers.forEach(teacher -> {
+            authed.add(teacher.getId());
+        });
+        if(!authed.contains(teacherId)){
+            throw new AuthException("您尚未购买该案例或课程，将无法使用资源包");
+        }
         List<ResourceVo> files = contentMapper.findResourcesById(id);
         return files;
     }
@@ -228,7 +281,7 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public List<Content> findByParentId(Integer parentId) {
         List<Content> contents = contentMapper.findByParentId(parentId);
-        if (contents.size()==0){
+        if (contents.isEmpty()){
             throw new ContentNotFoundException("未找到数据");
         }
         return contents;
@@ -237,7 +290,7 @@ public class ContentServiceImpl implements ContentService {
     /**查找一个列表下未删除的**/
     public List<Content> findNotDelByParentId(Integer parentId){
         List<Content> contents = contentMapper.findNotDelByParentId(parentId);
-        if (contents.size()==0){
+        if (contents.isEmpty()){
             throw new ContentNotFoundException("未找到数据");
         }
         return contents;
@@ -251,7 +304,7 @@ public class ContentServiceImpl implements ContentService {
         if(oldContent==null){
             throw new ContentNotFoundException("未找到该数据");
         }
-        if (oldContent.getIsDelete()==0){
+        if (Objects.equals(oldContent.getIsDelete(),0)){
             throw new ContentDidNotDel("该数据未删除，无需回复");
         }
         Integer rows = contentMapper.restore(id, latModifiedUser, new Date());
@@ -280,7 +333,7 @@ public class ContentServiceImpl implements ContentService {
         }
         contents.addAll(teacherCreate);
         if (contents.size()==0){
-            throw new ContentNotFoundException("您还没有可用案例");
+            throw new ContentNotFoundException("您还没有可用资源");
         }
         return contents;
     }

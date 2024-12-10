@@ -4,6 +4,7 @@ import com.iecube.community.model.content.entity.Content;
 import com.iecube.community.model.content.entity.casePkg;
 import com.iecube.community.model.content.entity.taskTemplates;
 import com.iecube.community.model.resource.entity.ResourceVo;
+import com.iecube.community.model.teacher.entity.Teacher;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.Date;
@@ -17,7 +18,11 @@ public interface ContentMapper {
 
     Integer updateCover(Integer id, String cover, Integer lastModifiedUser, Date lastModifiedTime);
 
+    Integer updateFourthType(Integer id, String fourthType);
+
     Integer updateFourth(Integer id, String fourth, Integer lastModifiedUser, Date lastModifiedTime);
+
+    Integer fourthSetNull(Integer id, Integer lastModifiedUser, Date lastModifiedTime);
 
     Integer updateGuidance(Integer id, String guidance, Integer lastModifiedUser, Date lastModifiedTime);
 

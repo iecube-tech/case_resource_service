@@ -9,6 +9,8 @@ public interface VideoMapper {
 
     Video getVideoByCaseId(Integer CaseId);
 
+    Video getVideoByFilename(String Filename);
+
     Integer deleteVideoById(Integer id);
 
     Integer updateReadyStatus(Video video);

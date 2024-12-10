@@ -1,6 +1,5 @@
 package com.iecube.community.model.classification.service.impl;
 
-import com.iecube.community.model.auth.mapper.UserMapper;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.PermissionDeniedException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
@@ -22,16 +21,10 @@ public class ClassificationServiceImpl implements ClassificationService {
     @Autowired
     private ClassificationMapper classificationMapper;
 
-    @Autowired
-    private UserMapper userMapper;
-
     @Override
     public void insert(Classification classification, Integer lastModifiedUser) {
         /**判断是否为管理员操作 userType=1**/
-        Integer lastModifiedUserType = userMapper.findTypeIdById(lastModifiedUser);
-        if (lastModifiedUserType !=1 ){
-            throw new PermissionDeniedException("无权添加");
-        }
+        //todo
         /**更新日志字段**/
         classification.setCreator(lastModifiedUser);
         classification.setCreateTime(new Date());
@@ -51,10 +44,7 @@ public class ClassificationServiceImpl implements ClassificationService {
     @Override
     public void update(Classification classification, Integer lastModifiedUser) {
         /**判断是否为管理员操作 userType=1**/
-        Integer lastModifiedUserType = userMapper.findTypeIdById(lastModifiedUser);
-        if (lastModifiedUserType !=1 ){
-            throw new PermissionDeniedException("无权修改");
-        }
+        //todo
         classification.setLastModifiedTime(new Date());
         classification.setLastModifiedUser(lastModifiedUser);
         /**判断修改的类别是否存在 抛出 ClassificationNotFoundException 异常**/
@@ -78,10 +68,7 @@ public class ClassificationServiceImpl implements ClassificationService {
     @Override
     public void delete(Integer id, Integer lastModifiedUser) {
         /**判断是否为管理员操作 userType=1**/
-        Integer lastModifiedUserType = userMapper.findTypeIdById(lastModifiedUser);
-        if (lastModifiedUserType !=1 ){
-            throw new PermissionDeniedException("无权操作");
-        }
+        //todo
         /**判断是否存在**/
         Classification exitsClassification = classificationMapper.findById(id);
         if (exitsClassification == null){

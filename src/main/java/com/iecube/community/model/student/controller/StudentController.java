@@ -1,7 +1,7 @@
 package com.iecube.community.model.student.controller;
 
 import com.iecube.community.basecontroller.student.StudentBaseController;
-import com.iecube.community.model.auth.dto.LoginDto;
+import com.iecube.community.model.teacher.dto.LoginDto;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.qo.AddStudentQo;
 import com.iecube.community.model.student.qo.DeleteQo;

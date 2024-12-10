@@ -9,7 +9,11 @@ public interface VideoService {
 
     Video uploadVideo(MultipartFile file, Integer creator, Integer cover, Integer caseId) throws IOException;
 
+    Video uploadWithoutCaseId(MultipartFile file, Integer creator);
+
     Video getByCaseId(Integer caseId);
 
+    Video getByFilename(String filename);
+    
     void deleteVideo(Integer id);
 }

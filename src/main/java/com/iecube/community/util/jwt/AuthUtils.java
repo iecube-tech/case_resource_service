@@ -107,7 +107,7 @@ public class AuthUtils {
     public static CurrentUser getCurrentUser() {
         CurrentUser userDTO = LOCAL_USER.get();
         if (userDTO == null) {
-            throw new AuthException();
+            throw new AuthException("认证不通过");
         }
         return userDTO;
     }

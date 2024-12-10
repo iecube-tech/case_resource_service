@@ -31,6 +31,7 @@ public class SaveToM3u8 {
 
     @Async
     public void convertToM3U8( Video video){
+        log.info("开始转码：{}",video.getOriginalFileName());
         String originalFilename = video.getOriginalFileName();
         String filename = video.getFilename();
         File file = new File(originalDir, originalFilename+".m3u8");

@@ -24,4 +24,6 @@ public class Project extends BaseEntity {
     Integer hidden;
     Integer mdCourse;
     Integer useRemote;
+    String fourth;
+    String fourthType;
 }

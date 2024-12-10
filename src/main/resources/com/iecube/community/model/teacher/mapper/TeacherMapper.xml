@@ -58,4 +58,10 @@
         SELECT username, email, is_delete FROM teacher WHERE collage_id=(SELECT collage_id FROM teacher WHERE id=#{teacherId}) and id != #{teacherId};
     </select>
 
+    <select id="courseTeacher" resultMap="TeacherEntity">
+        SELECT id, username, email, is_delete, collage_id
+        FROM teacher INNER JOIN teacher_case ON teacher.id=teacher_case.teacher_id
+        WHERE teacher_case.case_id=#{caseId};
+    </select>
+
 </mapper>

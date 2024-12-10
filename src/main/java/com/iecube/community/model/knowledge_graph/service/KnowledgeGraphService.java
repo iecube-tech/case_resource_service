@@ -1,5 +1,6 @@
 package com.iecube.community.model.knowledge_graph.service;
 
+import com.iecube.community.model.knowledge_graph.entity.CaseNode;
 import com.iecube.community.model.knowledge_graph.entity.Node;
 import com.iecube.community.model.knowledge_graph.qo.NodeQo;
 import com.iecube.community.model.knowledge_graph.vo.NodeVo;
@@ -19,4 +20,16 @@ public interface KnowledgeGraphService {
     List<NodeVo> getNodeVoByCourse(Integer courseId);
 
     List<Node> getSameLevelNode(Node node);
+
+    List<Node> getAllRoteNodes();
+
+    List<Node> addRootNodeOnly(String name);
+
+    List<Node> delByRootId(Integer rootId);
+
+    List<NodeVo> getNodeVoByRootId(Integer rootId);
+
+    void connectCaseNode(Integer caseId, Integer nodeId);
+
+    CaseNode getCaseNodeByCaseId(Integer caseId);
 }

@@ -6,6 +6,7 @@ import com.iecube.community.model.content.entity.Content;
 import com.iecube.community.model.markdown.entity.MDArticle;
 import com.iecube.community.model.markdown.service.MarkdownService;
 import com.iecube.community.model.project.service.ex.GenerateFileException;
+import com.iecube.community.model.project.service.ex.StudentAlreadyInProject;
 import com.iecube.community.model.pst_article.entity.PSTArticle;
 import com.iecube.community.model.pst_article.service.PSTArticleService;
 import com.iecube.community.model.pst_article_compose.entity.PSTArticleCompose;
@@ -59,6 +60,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.zip.ZipOutputStream;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -151,10 +153,10 @@ public class ProjectServiceImpl implements ProjectService {
         }
         Integer projectId = project.getId();
         // 开启远程实验
-        if(project.getUseRemote() == 1){
+        if(Objects.equals(project.getUseRemote(), 1)){
             // 检查数据是否合理
             RemoteQo remoteQo = projectDto.getRemoteQo();
-            if(remoteQo.getRemoteDeviceIdList().size() == 0){
+            if(remoteQo.getRemoteDeviceIdList().isEmpty()){
                 projectMapper.delete(projectId);
                 throw new InsertException("没有添加远程设备");
             }
@@ -229,7 +231,7 @@ public class ProjectServiceImpl implements ProjectService {
                 if(createdTask.getTaskMdDoc()!=null){
                     // 生成pst的markdownOperate
                     MDArticle mdArticle = markdownService.getFullArticleByChapter(createdTask.getTaskMdDoc());
-                    //todo 复制原文档到每个pst
+                    // 复制原文档到每个pst
                     List<PSTArticleCompose> pstArticleComposeList = new ArrayList<>();
                     mdArticle.getComposeList().forEach(mdArticleCompose -> {
                         PSTArticleCompose pstArticleCompose = new PSTArticleCompose();
@@ -254,8 +256,8 @@ public class ProjectServiceImpl implements ProjectService {
                 }
             }
         }
-        if(willAddPSTArticle.size()>0){
-            //todo 复制的内容存储
+        if(!willAddPSTArticle.isEmpty()){
+            // 复制的内容存储
             pstArticleService.addedProject(willAddPSTArticle);
         }
         //创建项目tag
@@ -267,8 +269,8 @@ public class ProjectServiceImpl implements ProjectService {
         // 判断学生是不是已经在
         List<Project> StudentProjectList = projectMapper.findByStudentId(studentId);
         for(Project project:StudentProjectList){
-            if(projectId == project.getId()){
-                return projectId;
+            if(Objects.equals(projectId, project.getId())){
+                throw new StudentAlreadyInProject("已在其中");
             }
         }
         Student student = studentMapper.getStudentById(studentId);
@@ -281,7 +283,9 @@ public class ProjectServiceImpl implements ProjectService {
         if (row2!=1){
             throw new InsertException("插入数据异常");
         }
-        List<TaskVo> projectTasks = taskMapper.findByProjectId(projectId);
+
+        List<TaskVo> projectTasks =taskService.studentGetProjectTasks(projectId);
+        List<PSTArticle> willAddPSTArticle = new ArrayList<>();
         for(TaskVo task : projectTasks){
             ProjectStudentTask PST = new ProjectStudentTask();
             PST.setProjectId(projectId);
@@ -295,6 +299,34 @@ public class ProjectServiceImpl implements ProjectService {
             if(co!=1){
                 throw new InsertException("插入数据异常");
             }
+            if(task.getTaskMdDoc()!=null){
+                // 生成pst的markdownOperate
+                MDArticle mdArticle = markdownService.getFullArticleByChapter(task.getTaskMdDoc());
+                List<PSTArticleCompose> pstArticleComposeList = new ArrayList<>();
+                mdArticle.getComposeList().forEach(mdArticleCompose -> {
+                    PSTArticleCompose pstArticleCompose = new PSTArticleCompose();
+                    pstArticleCompose.setPstId(PST.getId());
+                    pstArticleCompose.setName(mdArticleCompose.getName());
+                    pstArticleCompose.setIndex(mdArticleCompose.getIndex());
+                    pstArticleCompose.setVal(mdArticleCompose.getVal());
+                    pstArticleCompose.setAnswer(mdArticleCompose.getAnswer());
+                    pstArticleCompose.setScore(mdArticleCompose.getScore());
+                    pstArticleCompose.setSubjective(mdArticleCompose.getSubjective());
+                    pstArticleCompose.setQType(mdArticleCompose.getQType());
+                    pstArticleCompose.setQuestion(mdArticleCompose.getQuestion());
+                    pstArticleCompose.setArgs(mdArticleCompose.getArgs());
+                    pstArticleComposeList.add(pstArticleCompose);
+                });
+                PSTArticle pstArticle = new PSTArticle();
+                pstArticle.setPstId(PST.getId());
+                pstArticle.setContent(mdArticle.getContent());
+                pstArticle.setCatalogue(mdArticle.getCatalogue());
+                pstArticle.setComposeList(pstArticleComposeList);
+                willAddPSTArticle.add(pstArticle);
+            }
+        }
+        if(!willAddPSTArticle.isEmpty()){
+            pstArticleService.addedProject(willAddPSTArticle);
         }
         return projectId;
     }
@@ -432,6 +464,9 @@ public class ProjectServiceImpl implements ProjectService {
         if(project == null){
             throw new ProjectNotFoundException("任务未找到");
         }
+        Content content = contentService.findById(project.getCaseId());
+        project.setFourth(content.getFourth());
+        project.setFourthType(content.getFourthType());
         Integer caseType = projectMapper.findCaseTypeByCaseId(project.getCaseId());
         project.setCaseType(caseType);
         return project;

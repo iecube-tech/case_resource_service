@@ -87,4 +87,9 @@
     <select id="allNode" resultMap="Node">
         SELECT * FROM map_node
     </select>
+
+    <select id="getAllRootNode" resultMap="Node">
+        SELECT id, p_id, level, name, item_color, label_color, label_position, label_font_size, symbol_size, link
+        FROM map_node WHERE level=1
+    </select>
 </mapper>

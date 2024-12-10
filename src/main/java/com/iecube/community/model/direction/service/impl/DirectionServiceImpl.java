@@ -1,6 +1,5 @@
 package com.iecube.community.model.direction.service.impl;
 
-import com.iecube.community.model.auth.mapper.UserMapper;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.PermissionDeniedException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
@@ -10,6 +9,7 @@ import com.iecube.community.model.direction.service.DirectionService;
 import com.iecube.community.model.direction.service.ex.DeleteException;
 import com.iecube.community.model.direction.service.ex.DirectionDuplicateException;
 import com.iecube.community.model.direction.service.ex.DirectionNotFoundException;
+import com.iecube.community.model.teacher.mapper.TeacherMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,15 +23,16 @@ public class DirectionServiceImpl implements DirectionService {
     private DirectionMapper directionMapper;
 
     @Autowired
-    private UserMapper userMapper;
+    private TeacherMapper teacherMapper;
 
     @Override
     public void addDirection(Direction direction, Integer lastModifiedUser) {
         /**增加权限， 管理员 判断lastModifiedUser 的 typeId 是否为 1 **/
-        Integer userType = userMapper.findTypeIdById(lastModifiedUser);
-        if (userType != 1){
-            throw new PermissionDeniedException("无权添加");
-        }
+        //todo
+//        Integer userType = teacherMapper.findTypeIdById(lastModifiedUser);
+//        if (userType != 1){
+//            throw new PermissionDeniedException("无权添加");
+//        }
 
         Direction oldDirection = directionMapper.findByName(direction.getName());
 
@@ -52,10 +53,7 @@ public class DirectionServiceImpl implements DirectionService {
     @Override
     public void updateDirection(Direction direction, Integer lastModifiedUser) {
         /**修改权限， 管理员 判断lastModifiedUser 的 typeId 是否为 1 **/
-        Integer userType = userMapper.findTypeIdById(lastModifiedUser);
-        if (userType != 1){
-            throw new PermissionDeniedException("无权修改");
-        }
+        //todo
         Direction oldDirection = directionMapper.findById(direction.getId());
         /**判断是否存在，抛出异常**/
         if (oldDirection == null){
@@ -87,10 +85,7 @@ public class DirectionServiceImpl implements DirectionService {
             throw new DirectionNotFoundException("产品方向不存在");
         }
         /**删除权限， 管理员 判断lastModifiedUser 的 typeId 是否为 1 **/
-        Integer userType = userMapper.findTypeIdById(lastModifiedUser);
-        if (userType != 1){
-            throw new PermissionDeniedException("无权删除");
-        }
+        //todo
         /**删除**/
         Integer rows =  directionMapper.delete(id);
         if(rows != 1){

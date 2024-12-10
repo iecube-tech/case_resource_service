@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -112,6 +113,61 @@ public class KnowledgeGraphServiceImpl implements KnowledgeGraphService {
             }
         }
         return sameLevelNode;
+    }
+
+    @Override
+    public List<Node> getAllRoteNodes() {
+        return nodeMapper.getAllRootNode();
+    }
+
+    @Override
+    public List<Node> addRootNodeOnly(String name) {
+        Node node = new Node();
+        node.setName(name);
+        node.setLevel(1);
+        node.setItemColor("#343838");
+        node.setLabelColor("inherit");
+        node.setLabelPosition("left");
+        node.setLabelFontSize(26);
+        node.setSymbolSize(30);
+        node.setLink("");
+        Integer res = nodeMapper.insertNode(node);
+        if(res!= 1){
+            throw new InsertException("新增map数据异常");
+        }
+        return this.getAllRoteNodes();
+    }
+
+    @Override
+    public List<Node> delByRootId(Integer rootId) {
+        CaseNode caseNodeList = caseNodeMapper.getByNodeId(rootId);
+        if(caseNodeList!=null){
+            throw new DeleteException("理实映射已关联课程，无法删除");
+        }
+        // todo 删除节点
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<NodeVo> getNodeVoByRootId(Integer rootId) {
+        return this.getTree(rootId);
+    }
+
+    @Override
+    public void connectCaseNode(Integer caseId, Integer nodeId) {
+        CaseNode caseNode = new CaseNode();
+        caseNode.setCaseId(caseId);
+        caseNode.setNodeId(nodeId);
+        caseNodeMapper.deleteByCaseId(caseId);
+        int res = caseNodeMapper.insertCaseNode(caseNode);
+        if(res!= 1){
+            throw  new InsertException("更新数据异常");
+        }
+    }
+
+    @Override
+    public CaseNode getCaseNodeByCaseId(Integer caseId) {
+        return caseNodeMapper.getByCaseId(caseId);
     }
 
     public Node getRootNode(Node childNode){

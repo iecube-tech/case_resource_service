@@ -1,21 +1,30 @@
 package com.iecube.community.model.usergroup.service;
 
-import com.iecube.community.model.auth.entity.User;
 import com.iecube.community.model.usergroup.entity.UserGroup;
+import com.iecube.community.model.usergroup.vo.UserGroupVo;
 
 import java.util.List;
 
 public interface UserGroupService {
-    void addStaffGroup(UserGroup userGroup, Integer lastModifiedId);
 
-    void addCustomerGroup(UserGroup userGroup, Integer lastModifiedId);
+    List<UserGroup> getUserGroups();
 
-    void updateGroup(UserGroup userGroup, Integer lastModifiedId);
+    List<UserGroup> addUserGroup(UserGroup userGroup);
 
-    void deleteGroup(Integer id, Integer lastModifiedId);
+    List<UserGroup> updateUserGroup(UserGroup userGroup);
 
-    List<UserGroup> findByCreator(Integer creator);
+    List<UserGroup> deleteUserGroup(Integer groupId);
 
-    List<User> findUsersByGroup(Integer groupId);
+    UserGroupVo getUserGroupVoById(Integer id);
+
+    UserGroupVo addUserToUserGroup(Integer groupId, List<Integer> teacherIdList);
+
+    UserGroupVo removeUserFromGroup(Integer groupId, Integer teacherId);
+
+    UserGroupVo addAuthToGroup(Integer groupId, List<Integer> authorityIds);
+
+    UserGroupVo removeAuthFromGroup(Integer groupId, Integer authorityId);
+
+    List<String> teacherAuth(Integer teacherId);
 
 }

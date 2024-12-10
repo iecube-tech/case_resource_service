@@ -2,7 +2,7 @@ package com.iecube.community.model.student.service.impl;
 
 import com.iecube.community.email.EmailParams;
 import com.iecube.community.email.EmailSender;
-import com.iecube.community.model.auth.dto.LoginDto;
+import com.iecube.community.model.teacher.dto.LoginDto;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.PasswordNotMatchException;
 import com.iecube.community.model.auth.service.ex.UpdateException;

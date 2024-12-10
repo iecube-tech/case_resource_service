@@ -1,7 +1,7 @@
 package com.iecube.community.model.teacher.service;
 
 import com.iecube.community.baseservice.ex.ServiceException;
-import com.iecube.community.model.auth.dto.LoginDto;
+import com.iecube.community.model.teacher.dto.LoginDto;
 import com.iecube.community.model.teacher.entity.Teacher;
 import org.junit.Test;
 import org.junit.runner.RunWith;

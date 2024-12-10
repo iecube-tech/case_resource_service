@@ -1,5 +1,7 @@
 package com.iecube.community.model.video.service.Impl;
 
+import com.iecube.community.baseservice.ex.ServiceException;
+import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.resource.service.ex.FileCreateFailedException;
 import com.iecube.community.model.resource.service.ex.FileEmptyException;
 import com.iecube.community.model.resource.service.ex.FileSizeException;
@@ -52,9 +54,14 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
+    public Video getByFilename(String filename) {
+        return videoMapper.getVideoByFilename(filename);
+    }
+
+    @Override
     public void deleteVideo(Integer id) {
         videoMapper.deleteVideoById(id);
-        // 删除文件
+        // todo 删除文件
     }
 
     @Override
@@ -90,10 +97,56 @@ public class VideoServiceImpl implements VideoService {
         video.setLastModifiedTime(new Date());
         video.setCreator(creator);
         video.setLastModifiedUser(creator);
-        videoMapper.uploadVideo(video);
+        int res = videoMapper.uploadVideo(video);
+        if(res!=1){
+            throw new InsertException("新增数据失败");
+        }
         this.convertToM3U8(video);
         return video;
     }
+
+    @Override
+    public Video uploadWithoutCaseId(MultipartFile file, Integer creator) {
+        if(file==null){
+            throw new FileEmptyException("文件为空");
+        }
+        if (file.isEmpty()){
+            throw new FileEmptyException("文件为空");
+        }
+        if (file.getSize()>VIDEO_MAX_SIZE){
+            throw new FileSizeException("文件大小超出限制");
+        }
+        String originalFileType = file.getContentType();
+        if (!VIDEO_TYPE.contains(originalFileType)){
+            throw new FileTypeException("不支持的文件格式");
+        }
+        try{
+            String name = file.getOriginalFilename();
+            String originalFilename = saveOriginalVideo(file);
+            String filename = originalFilename.substring(0, originalFilename.indexOf("."));
+            Video video = new Video();
+            video.setName(name);
+            video.setCover(null);
+            video.setFilename(filename);
+            video.setCaseId(null);
+            video.setOriginalFileName(originalFilename);
+            video.setOriginalFileType(originalFileType);
+            video.setCreateTime(new Date());
+            video.setLastModifiedTime(new Date());
+            video.setCreator(creator);
+            video.setLastModifiedUser(creator);
+            int res = videoMapper.uploadVideo(video);
+            if(res!=1){
+                throw new InsertException("新增数据失败");
+            }
+            this.convertToM3U8(video);
+            return video;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new ServiceException(e.getMessage());
+        }
+    }
+
     public String saveOriginalVideo(MultipartFile file) throws IOException{
         String originalFilename = file.getOriginalFilename();
         String suffix = originalFilename.substring(originalFilename.lastIndexOf(".")+1);

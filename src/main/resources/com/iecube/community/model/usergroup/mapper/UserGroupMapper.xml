@@ -4,67 +4,80 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
 <mapper namespace="com.iecube.community.model.usergroup.mapper.UserGroupMapper">
+    <resultMap id="userGroup" type="com.iecube.community.model.usergroup.entity.UserGroup">
 
-    <resultMap id="UserGroupEntityMap" type="com.iecube.community.model.usergroup.entity.UserGroup">
-        <result column="id" property="id"></result>
-        <result column="group_name" property="groupName"></result>
-        <result column="group_type" property="groupType"></result>
-        <result column="group_direction" property="groupDirection"></result>
-        <result column="group_classification" property="groupClassification"></result>
-        <result column="group_authority" property="groupAuthority"></result>
-        <result column="is_delete" property="isDelete"></result>
-        <result column="create_time" property="createTime"></result>
-        <result column="last_modified_user" property="lastModifiedUser"></result>
-        <result column="last_modified_time" property="lastModifiedTime"></result>
     </resultMap>
-<insert id="insert" useGeneratedKeys="true" keyProperty="id">
-    INSERT INTO user_group (id, group_name, group_type, group_direction, group_classification,
-                            group_authority, is_delete, creator, create_time, last_modified_user,
-                            last_modified_time)
-    VALUES (NULL, #{groupName}, #{groupType}, #{groupDirection}, #{groupClassification},
-            #{groupAuthority}, #{isDelete}, #{creator}, #{createTime}, #{lastModifiedUser},
-            #{lastModifiedTime} )
-</insert>
 
-    <update id="update">
-        UPDATE user_group SET
-                              group_name=#{groupName},
-                              group_direction=#{groupDirection},
-                              group_classification=#{groupClassification},
-                              last_modified_user=#{lastModifiedUser},
-                              last_modified_time=#{lastModifiedTime}
-        WHERE id=#{id}
+    <resultMap id="TeacheVo" type="com.iecube.community.model.teacher.vo.TeacherVo">
+        <result column="id" property="teacherId"></result>
+        <result column="username" property="teacherName"></result>
+        <result column="email" property="teacherEmail"></result>
+        <result column="school_name" property="schoolName"></result>
+        <result column="collage_name" property="collageName"></result>
+    </resultMap>
+
+    <resultMap id="Authority" type="com.iecube.community.model.auth.entity.Authority">
+
+    </resultMap>
+
+    <select id="getUserGroups" resultMap="userGroup">
+        SELECT id,name FROM user_group
+    </select>
+
+    <select id="getUserGroupById" resultMap="userGroup">
+        SELECT id,name FROM user_group WHERE id=#{id}
+    </select>
+
+    <insert id="addUserGroup" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO user_group (id, name) VALUES (NULL,#{name})
+    </insert>
+
+    <update id="updateUserGroup">
+        UPDATE user_group SET name=#{name} WHERE id=#{id}
     </update>
 
-    <update id="delete">
-        UPDATE user_group SET
-                              is_delete=1
-        WHERE id=#{id}
-    </update>
+    <delete id="deleteUserGroup">
+        DELETE FROM user_group WHERE id=#{id}
+    </delete>
 
-    <select id="findById" resultMap="UserGroupEntityMap">
-        SELECT * FROM user_group WHERE id=#{id}
+    <select id="getTeachersByGroupId" resultMap="TeacheVo">
+        SELECT `teacher`.id,`teacher`.username,`teacher`.email, `Collage`.`name` AS collage_name, `School`.`name` AS school_name
+        FROM `user_group_user` LEFT JOIN `user_group` ON `user_group_user`.user_group_id=`user_group`.id
+                               RIGHT JOIN `teacher` ON `user_group_user`.teacher_id=`teacher`.id
+                               RIGHT JOIN `Collage` ON `teacher`.collage_id=`Collage`.id
+                               RIGHT JOIN `School` ON `Collage`.school_id=`School`.id
+        WHERE `user_group`.id=#{groupId} AND `teacher`.is_delete=0
     </select>
 
-    <select id="findCreatorById" resultMap="UserGroupEntityMap">
-        SELECT group_type, creator, is_delete FROM user_group WHERE id=#{id}
+    <insert id="addTeacherToGroup" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO `user_group_user` (id, user_group_id, teacher_id) VALUES (NULL, #{groupId}, #{teacherId})
+    </insert>
+
+    <delete id="deleteTeacherFromGroup">
+        DELETE FROM `user_group_user` WHERE user_group_id=#{groupId} and teacher_id=#{teacherId}
+    </delete>
+
+    <select id="getAuthoritiesByGroupId" resultMap="Authority">
+        SELECT `authority`.id,  `authority`.authority, `authority`.instructions
+        FROM `user_group` LEFT JOIN `user_group_auth` ON `user_group`.id=`user_group_auth`.user_group_id
+                          RIGHT JOIN `authority` ON `user_group_auth`.user_group_auth=`authority`.id
+        WHERE `user_group`.id=#{groupId}
     </select>
 
-    <update id="userUpdateUserGroup">
-        UPDATE user SET
-                        user_group=null,
-                        last_modified_user=#{lastModifiedId},
-                        last_modified_time=#{lastModifiedTime}
-        WHERE user_group=#{id}
-    </update>
-    
-    <select id="countUsersByUserGroup" resultType="java.lang.Integer">
-        SELECT COUNT(user_group=#{id}) FROM user
-    </select>
+    <insert id="addAuthorityToGroup" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO `user_group_auth` (id, user_group_id, user_group_auth) VALUES (NULL, #{groupId}, #{authorityId})
+    </insert>
 
-    <select id="findByCreator" resultMap="UserGroupEntityMap">
-        SELECT * FROM user_group WHERE creator=#{creator}
-    </select>
+    <delete id="deleteAuthorityFromGroup">
+        DELETE FROM `user_group_auth` WHERE user_group_id=#{groupId} and user_group_auth=#{authorityId}
+    </delete>
 
+    <select id="getTeacherAuth" resultType="java.lang.String">
+        SELECT `authority`.authority
+        FROM `authority` LEFT JOIN `user_group_auth` ON `authority`.id=`user_group_auth`.user_group_auth
+                         LEFT JOIN `user_group` ON `user_group_auth`.user_group_id=`user_group`.id
+                         LEFT JOIN `user_group_user` ON `user_group_user`.user_group_id=`user_group`.id
+        WHERE `user_group_user`.teacher_id=#{teacherId}
+    </select>
 
 </mapper>

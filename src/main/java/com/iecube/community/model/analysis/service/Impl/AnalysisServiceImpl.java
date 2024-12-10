@@ -73,10 +73,10 @@ public class AnalysisServiceImpl implements AnalysisService {
                 }else{
                     grades.add(0.0);
                 }
-                if(tasksOfAllProjectStudents.get(j).get(i).getTaskStatus()==1){
+                if( Objects.equals(tasksOfAllProjectStudents.get(j).get(i).getTaskStatus(),1)){
                     num++;
                 }
-                if(tasksOfAllProjectStudents.get(j).get(i).getTaskTags().size() > 0){
+                if(!tasksOfAllProjectStudents.get(j).get(i).getTaskTags().isEmpty()){
                     for(Tag tag: tasksOfAllProjectStudents.get(j).get(i).getTaskTags()){
                         tags.add(tag.getName());
                     }

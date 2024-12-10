@@ -25,6 +25,10 @@
         SELECT * FROM video WHERE case_id=#{caseId}
     </select>
 
+    <select id="getVideoByFilename" resultMap="Video">
+        SELECT * FROM video WHERE filename=#{filename}
+    </select>
+
     <delete id="deleteVideoById">
         DELETE FROM video WHERE id=#{id}
     </delete>

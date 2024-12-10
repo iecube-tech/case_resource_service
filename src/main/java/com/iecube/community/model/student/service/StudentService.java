@@ -1,7 +1,6 @@
 package com.iecube.community.model.student.service;
 
-import com.iecube.community.model.auth.dto.LoginDto;
-import com.iecube.community.model.student.entity.Student;
+import com.iecube.community.model.teacher.dto.LoginDto;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.qo.AddStudentQo;
 

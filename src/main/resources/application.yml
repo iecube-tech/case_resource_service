@@ -9,7 +9,7 @@ spring:
 #    url: jdbc:mysql://47.108.137.115:7999/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    url: jdbc:mysql://192.168.1.93:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    西安数据库穿透
-    url: jdbc:mysql://192.168.1.4:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+    url: jdbc:mysql://192.168.1.18:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    url: jdbc:mysql://47.108.137.115:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    url: jdbc:mysql://172.24.92.225:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    url: jdbc:mysql://47.94.161.154:8001/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
@@ -27,7 +27,7 @@ spring:
       max-lifetime: 10000
       minimum-idle: 3
   redis:
-    host: 192.168.1.4
+    host: 192.168.1.18
     port: 6379
   mail:
     port: 587

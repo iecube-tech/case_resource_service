@@ -1,9 +1,7 @@
 package com.iecube.community.model.teacher.service.impl;
 
 import com.iecube.community.email.EmailSender;
-import com.iecube.community.model.auth.dto.LoginDto;
-import com.iecube.community.model.auth.entity.User;
-import com.iecube.community.model.auth.mapper.UserMapper;
+import com.iecube.community.model.teacher.dto.LoginDto;
 import com.iecube.community.model.auth.service.ex.*;
 import com.iecube.community.model.content.entity.Content;
 import com.iecube.community.model.content.mapper.ContentMapper;
@@ -38,9 +36,6 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Autowired
     private MajorMapper majorMapper;
-
-    @Autowired
-    private UserMapper userMapper;
 
     @Autowired
     private ContentMapper contentMapper;
@@ -219,7 +214,7 @@ public class TeacherServiceImpl implements TeacherService {
         teacherVo.setCollageName(schoolCollage.getCollageName());
         teacherVo.setSchoolId(schoolCollage.getSchoolId());
         teacherVo.setSchoolName(schoolCollage.getSchoolName());
-        User creator = userMapper.findByUserId(teacher.getCreator());
+        Teacher creator = teacherMapper.findById(teacher.getCreator());
         teacherVo.setCreatorName(creator.getUsername());
         List<Content> contentList = contentMapper.findByTeacherId(teacher.getId());
         teacherVo.setCaseList(contentList);

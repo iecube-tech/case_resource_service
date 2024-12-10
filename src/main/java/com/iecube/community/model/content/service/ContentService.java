@@ -14,7 +14,11 @@ public interface ContentService {
 
     void contentUpdateCover(Integer contentId, Resource resource, Integer lastModifiedUser);
 
+    void updateFourthType(Integer contentId, String fourthType);
+
     void contentUpdateFourth(Integer contentId, Resource resource, Integer lastModifiedUser);
+
+    void mdContentUpdateFourth(Integer contentId, String fourth, Integer lastModifiedUser);
 
     void updateContent(Content content, Integer lastModifiedUser);
 
@@ -40,7 +44,8 @@ public interface ContentService {
     String findGuidanceById(Integer id);
 
     void updateGuidanceById(Integer id, String guidance, Integer lastModifiedUser);
-    List<ResourceVo> findResourcesById(Integer id);
+
+    List<ResourceVo> findResourcesById(Integer id, Integer teacherId);
 
     List<Content> findByParentId(Integer parentId);
 
@@ -67,4 +72,5 @@ public interface ContentService {
     Integer updateIsPrivate(Integer contentId, Integer teacherId);
 
     List<Content> getMdCourseCreated(Integer user);
+
 }

@@ -9,6 +9,8 @@ import com.iecube.community.util.JsonResult;
 import org.apache.tools.ant.taskdefs.condition.Http;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -67,9 +69,23 @@ public class MdContentController extends ContentBaseController {
      * @return
      */
     @GetMapping ("/md_created")
-     public JsonResult<List> getMdCourseCreated(){
+    public JsonResult<List> getMdCourseCreated(){
         Integer user = currentUserId();
         List<Content> contentList = contentService.getMdCourseCreated(user);
         return new JsonResult<>(OK, contentList);
-     }
+    }
+
+    @PostMapping("/fourth/type/up")
+    public JsonResult<Void> updateMdCourseFourthType(Integer id, String type){
+        contentService.updateFourthType(id, type);
+        return new JsonResult<>(OK);
+    }
+
+    @PostMapping("/up_fourth/{contentId}")
+    public JsonResult<Void> mdContentUpdateFourth(@PathVariable Integer contentId, String fourth){
+        Integer modifiedUser = currentUserId();
+        contentService.mdContentUpdateFourth(contentId,fourth,modifiedUser);
+        return new JsonResult<>(OK);
+    }
+
 }
