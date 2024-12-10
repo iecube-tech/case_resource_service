@@ -18,7 +18,7 @@ public class MdArticleComposeServiceImpl implements MdArticleComposeService {
 
     //更新mdArticle触发
     public List<MdArticleCompose> MdArticleUpdate(Integer articleId, List<MdArticleCompose> newMdArticleComposeList){
-        //todo
+        //
         List<MdArticleCompose> oldMdArticleComposeList = mdArticleComposeMapper.getByArticle(articleId);
         List<Long> willDelete = new ArrayList<>();
         List<MdArticleCompose> willAdd = new ArrayList<>();

@@ -37,7 +37,7 @@ public class PSTArticleServiceImpl implements PSTArticleService {
             pstArticle.getComposeList().forEach(pstArticleCompose -> {
                 pstArticleCompose.setPstArticleId(articleId);
                 pstArticleCompose.setStatus(0);
-                if(!pstArticleCompose.getName().isEmpty() && !pstArticleCompose.getArgs().isEmpty() && !pstArticleCompose.getVal().isEmpty()){
+                if(!pstArticleCompose.getName().isEmpty() && !pstArticleCompose.getVal().isEmpty()){
                     pstArticleComposeList.add(pstArticleCompose);
                 }
             });
