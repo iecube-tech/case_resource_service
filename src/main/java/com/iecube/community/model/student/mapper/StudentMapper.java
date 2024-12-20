@@ -27,5 +27,11 @@ public interface StudentMapper {
 
     Integer studentsNum(Integer teacherId);
 
+    Integer allStudentNum();
+
     List<StudentDto> findAllInStatusByTeacher(Integer teacherId);
+
+    List<StudentDto> findAllStudentLimit(Integer page, Integer pageSize);
+
+    List<StudentDto> findAllStudent();
 }

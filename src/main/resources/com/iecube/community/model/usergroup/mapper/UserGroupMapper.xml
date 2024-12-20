@@ -49,7 +49,7 @@
         WHERE `user_group`.id=#{groupId} AND `teacher`.is_delete=0
     </select>
 
-    <insert id="addTeacherToGroup" keyProperty="id" useGeneratedKeys="true">
+    <insert id="addTeacherToGroup">
         INSERT INTO `user_group_user` (id, user_group_id, teacher_id) VALUES (NULL, #{groupId}, #{teacherId})
     </insert>
 
@@ -64,7 +64,7 @@
         WHERE `user_group`.id=#{groupId}
     </select>
 
-    <insert id="addAuthorityToGroup" keyProperty="id" useGeneratedKeys="true">
+    <insert id="addAuthorityToGroup">
         INSERT INTO `user_group_auth` (id, user_group_id, user_group_auth) VALUES (NULL, #{groupId}, #{authorityId})
     </insert>
 

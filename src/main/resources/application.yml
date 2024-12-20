@@ -86,7 +86,7 @@ email:
 business:
   user:
     template:
-      path: classpath:templates/user_template.xls
+      path: classpath:templates/user_template.xlsx
 
 DomainName:
   teacher: https://www.iecube.online/login

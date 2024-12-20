@@ -1,5 +1,7 @@
 package com.iecube.community.model.auth.service.impl;
 
+import com.iecube.community.model.auth.entity.Authority;
+import com.iecube.community.model.auth.mapper.AuthMapper;
 import com.iecube.community.model.auth.service.AuthService;
 import com.iecube.community.model.usergroup.service.UserGroupService;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +18,9 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private UserGroupService userGroupService;
 
+    @Autowired
+    private AuthMapper authMapper;
+
     @Override
     public List<String> userAuthList(Integer teacherId) {
         // todo 添加到redis
@@ -29,5 +34,10 @@ public class AuthServiceImpl implements AuthService {
             return false;
         }
         return teacherAuthList.contains(authName);
+    }
+
+    @Override
+    public List<Authority> allAuth() {
+        return authMapper.allAuthList();
     }
 }

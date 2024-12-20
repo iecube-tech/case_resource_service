@@ -31,23 +31,25 @@
 
     <select id="findStudentsLimitByTeacher" resultMap="StudentDto">
         SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.grade as student_grade,
-               class_and_grade.name as student_class, Major.name as major, Collage.name as collage
-        FROM ((Student INNER JOIN Major ON Student.major_id=Major.id) INNER JOIN Collage ON Major.collage_id=Collage.id)
-                 INNER JOIN class_and_grade ON class_and_grade.id=Student.student_class
-        WHERE Student.major_id in (SELECT id FROM Major WHERE collage_id=(SELECT collage_id FROM teacher WHERE id=#{teacherId}))
-          AND Student.status=1
-        ORDER BY student_class,student_id
+               class_and_grade.name as student_class, Major.name as major, Collage.name as collage, School.`name` as school
+        FROM Student RIGHT JOIN Major ON Student.major_id=Major.id RIGHT JOIN Collage ON Major.collage_id=Collage.id
+            RIGHT JOIN School ON Collage.school_id=School.id
+            RIGHT JOIN class_and_grade ON class_and_grade.id=Student.student_class
+        WHERE (Student.major_id in (SELECT id FROM Major WHERE collage_id=(SELECT collage_id FROM teacher WHERE id=#{teacherId}))
+                   OR Student.creator=#{teacherId}) AND Student.status=1
+        ORDER BY school, major, collage, student_grade, student_class, student_id
         LIMIT #{page},#{pageSize}
     </select>
 
     <select id="findAllInStatusByTeacher" resultMap="StudentDto">
         SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.grade as student_grade,
-               class_and_grade.name as student_class, Major.name as major, Collage.name as collage
-        FROM ((Student INNER JOIN Major ON Student.major_id=Major.id) INNER JOIN Collage ON Major.collage_id=Collage.id)
-            INNER JOIN class_and_grade ON class_and_grade.id=Student.student_class
-        WHERE Student.major_id in (SELECT id FROM Major WHERE collage_id=(SELECT collage_id FROM teacher WHERE id=#{teacherId}))
-            AND Student.status=1
-        ORDER BY student_class,student_id
+               class_and_grade.name as student_class, Major.name as major, Collage.name as collage, School.`name` as school
+        FROM Student RIGHT JOIN Major ON Student.major_id=Major.id RIGHT JOIN Collage ON Major.collage_id=Collage.id
+                     RIGHT JOIN School ON Collage.school_id=School.id
+                     RIGHT JOIN class_and_grade ON class_and_grade.id=Student.student_class
+        WHERE (Student.major_id in (SELECT id FROM Major WHERE collage_id=(SELECT collage_id FROM teacher WHERE id=#{teacherId}))
+            OR Student.creator=#{teacherId}) AND Student.status=1
+        ORDER BY school, major, collage, student_grade, student_class, student_id
     </select>
 
     <update id="deleteStudent">
@@ -81,7 +83,33 @@
     <select id="studentsNum" resultType="java.lang.Integer">
         SELECT COUNT(Student.id)
         FROM Student
-        WHERE major_id in (SELECT id FROM Major WHERE collage_id=(SELECT collage_id FROM teacher WHERE id=#{teacherId})) AND status=1
+        WHERE (Student.major_id in (SELECT id FROM Major WHERE collage_id=(SELECT collage_id FROM teacher WHERE id=#{teacherId}))
+                   OR Student.creator=#{teacherId}) AND Student.status=1
+    </select>
+
+    <select id="allStudentNum" resultType="java.lang.Integer">
+        SELECT COUNT(Student.id)
+        FROM Student
+        WHERE Student.status=1
+    </select>
+
+    <select id="findAllStudentLimit" resultMap="StudentDto">
+        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.grade as student_grade,
+               class_and_grade.name as student_class, Major.name as major, Collage.name as collage, School.`name` as school
+        FROM Student RIGHT JOIN Major ON Student.major_id=Major.id RIGHT JOIN Collage ON Major.collage_id=Collage.id RIGHT JOIN School ON Collage.school_id=School.id
+                     RIGHT JOIN class_and_grade ON class_and_grade.id=Student.student_class
+        WHERE Student.`status`=1
+        ORDER BY school, major, collage, student_grade, student_class, student_id
+        LIMIT #{page},#{pageSize}
+    </select>
+
+    <select id="findAllStudent " resultMap="StudentDto">
+        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.grade as student_grade,
+               class_and_grade.name as student_class, Major.name as major, Collage.name as collage, School.`name` as school
+        FROM Student RIGHT JOIN Major ON Student.major_id=Major.id RIGHT JOIN Collage ON Major.collage_id=Collage.id RIGHT JOIN School ON Collage.school_id=School.id
+                     RIGHT JOIN class_and_grade ON class_and_grade.id=Student.student_class
+        WHERE Student.`status`=1
+        ORDER BY school, major, collage, student_grade, student_class, student_id
     </select>
 
 </mapper>

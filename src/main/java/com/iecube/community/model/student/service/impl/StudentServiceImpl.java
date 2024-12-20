@@ -2,6 +2,9 @@ package com.iecube.community.model.student.service.impl;
 
 import com.iecube.community.email.EmailParams;
 import com.iecube.community.email.EmailSender;
+import com.iecube.community.model.auth.Auth;
+import com.iecube.community.model.auth.service.AuthService;
+import com.iecube.community.model.major.entity.School;
 import com.iecube.community.model.teacher.dto.LoginDto;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.PasswordNotMatchException;
@@ -12,8 +15,6 @@ import com.iecube.community.model.major.entity.Collage;
 import com.iecube.community.model.major.entity.Major;
 import com.iecube.community.model.major.mapper.MajorMapper;
 import com.iecube.community.model.major.service.MajorService;
-import com.iecube.community.model.major.vo.CollageMajors;
-import com.iecube.community.model.major.vo.SchoolCollageMajors;
 import com.iecube.community.model.student.dto.AddStudentDto;
 import com.iecube.community.model.student.entity.Student;
 import com.iecube.community.model.student.entity.StudentDto;
@@ -30,6 +31,7 @@ import com.iecube.community.util.jwt.AuthUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -81,9 +83,18 @@ public class StudentServiceImpl implements StudentService {
     @Value("${password.student}")
     private String defaultPassword;
 
+    @Autowired
+    private AuthService authService;
+
     @Override
     public List<StudentDto> findStudentsLimitByTeacherId(Integer teacherId, Integer page, Integer pageSize) {
-        List<StudentDto> students = studentMapper.findStudentsLimitByTeacher(teacherId, page, pageSize);
+        Boolean AS = authService.havaAuth(teacherId, Auth.AS.getAuth());
+        List<StudentDto> students = new ArrayList<>();
+        if(AS){
+            students = studentMapper.findAllStudentLimit(page, pageSize);
+        }else {
+            students = studentMapper.findStudentsLimitByTeacher(teacherId, page, pageSize);
+        }
         if(students == null){
             throw new StudentNotFoundException("未找到数据");
         }
@@ -92,13 +103,22 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public Integer studentsNum(Integer teacherId) {
-        Integer studentsNum = studentMapper.studentsNum(teacherId);
-        return studentsNum;
+        Boolean AS = authService.havaAuth(teacherId, Auth.AS.getAuth());
+        if(AS){
+            return studentMapper.allStudentNum();
+        }
+        return studentMapper.studentsNum(teacherId);
     }
 
     @Override
     public List<StudentDto> findAllInStatusByTeacher(Integer teacherId) {
-        List<StudentDto> students = studentMapper.findAllInStatusByTeacher(teacherId);
+        Boolean AS = authService.havaAuth(teacherId, Auth.AS.getAuth());
+        List<StudentDto> students = new ArrayList<>();
+        if(AS){
+            students = studentMapper.findAllStudent();
+        }else{
+            students = studentMapper.findAllInStatusByTeacher(teacherId);
+        }
         if (students==null){
             throw new StudentNotFoundException("没有学生数据");
         }
@@ -137,11 +157,11 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public void addStudent(AddStudentQo addStudentQo, Integer teacherId) {
         AddStudentDto addStudentDto = this.initAddStudentDto(addStudentQo,teacherId);
-        Integer number = this.getRandomNumberInRange(8,16);
+        int number = getRandomNumberInRange(8,16);
         String password = this.getRandomString(number);
         // sha256先加密 再使用md5 对sha256加密
         String sha256Password = SHA256.encryptStringWithSHA256(password);
-        String md5Password = this.getMD5Password(sha256Password, addStudentDto.getSalt());
+        String md5Password = getMD5Password(sha256Password, addStudentDto.getSalt());
         addStudentDto.setPassword(md5Password);
         //保存
         this.saveStudent(addStudentDto);
@@ -152,9 +172,6 @@ public class StudentServiceImpl implements StudentService {
 
     /**
      * 返回一个密码为空的 AddStudentDto
-     * @param addStudentQo
-     * @param modifiedUser
-     * @return
      */
     public AddStudentDto initAddStudentDto(AddStudentQo addStudentQo, Integer modifiedUser){
         AddStudentDto addStudentDto = new AddStudentDto();
@@ -192,7 +209,7 @@ public class StudentServiceImpl implements StudentService {
 //        System.out.println(addStudentDto);
         List<Student> student1 = studentMapper.getByEmail(addStudentDto.getEmail());
 //        System.out.println(studentMapper.getByEmail(addStudentDto.getEmail()));
-        if(student1.size() > 0){
+        if(!student1.isEmpty()){
             throw new StudentDuplicateException(addStudentDto.getEmail()+"邮箱已存在");
         }
         Student student = studentMapper.getByStudentId(addStudentDto.getStudentId());
@@ -224,7 +241,7 @@ public class StudentServiceImpl implements StudentService {
         }
         String str="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         Random random=new Random();
-        StringBuffer sb=new StringBuffer();
+        StringBuilder sb=new StringBuilder();
         for(int i=0;i<length;i++){
             int number=random.nextInt(62);
             sb.append(str.charAt(number));
@@ -261,10 +278,10 @@ public class StudentServiceImpl implements StudentService {
 
 
     @Override
-    public void importByExcel(InputStream in, Integer modifiedUser) {
-        Workbook workbook;
+    public List<AddStudentDto> importByExcel(InputStream in, Integer modifiedUser) {
+        XSSFWorkbook workbook;
         try {
-            workbook = WorkbookFactory.create(in);
+            workbook = new XSSFWorkbook(in);
         } catch (IOException e) {
             log.error("IO异常", e);
             throw new SystemException("IO异常");
@@ -273,39 +290,55 @@ public class StudentServiceImpl implements StudentService {
             throw new UnprocessableException("至少包含一个Sheet");
         }
         List<EmailParams> toSendEmail = new ArrayList<>();
-        for (int sheetNum = 0; sheetNum < workbook.getNumberOfSheets(); sheetNum++) {
-            Sheet sheet = workbook.getSheetAt(sheetNum);
-//            System.out.println("workbook.getNumberOfSheets()"+workbook.getNumberOfSheets());
-//            System.out.println(" sheet.getLastRowNum()"+ sheet.getLastRowNum());
-            // 解析row
-            for (int rowNum = 2; rowNum <= sheet.getLastRowNum(); rowNum++) {
-                Row row = sheet.getRow(rowNum);
-                if (row != null) {
-                    if (row.getLastCellNum() < 1) {
-                        continue;
-                    }
-                    AddStudentDto addStudentDto = new AddStudentDto();
-                    EnumMap<UserExcelHeaderEnum, String> rowData = this.getRowData(row);
-                    addStudentDto.setStudentId(rowData.get(UserExcelHeaderEnum.NUM));
-                    addStudentDto.setStudentName(rowData.get(UserExcelHeaderEnum.NAME));
-                    addStudentDto.setEmail(rowData.get(UserExcelHeaderEnum.EMAIL));
-                    Integer majorId = this.getMajorId(rowData.get(UserExcelHeaderEnum.COLLAGE),rowData.get(UserExcelHeaderEnum.MAJOR), modifiedUser);
-                    addStudentDto.setMajorId(majorId);
-                    Integer gradeClassId = this.getGradeClassId(rowData.get(UserExcelHeaderEnum.GRADE_CLASS),rowData.get(UserExcelHeaderEnum.GRADE), majorId, modifiedUser);
-                    addStudentDto.setStudentClass(gradeClassId);
-                    addStudentDto.setStatus(1);
-                    addStudentDto.setCreator(modifiedUser);
-                    addStudentDto.setCreateTime(new Date());
-                    addStudentDto.setLastModifiedUser(modifiedUser);
-                    addStudentDto.setLastModifiedTime(new Date());
-                    String salt = UUID.randomUUID().toString().toUpperCase();
-                    addStudentDto.setSalt(salt);
-                    Integer number = this.getRandomNumberInRange(8,16);
-                    String password = this.getRandomString(number);
-                    String sha256Password = SHA256.encryptStringWithSHA256(password);
-                    String md5Password = this.getMD5Password(sha256Password, addStudentDto.getSalt());
-                    addStudentDto.setPassword(md5Password);
+        List<AddStudentDto> failedList = new ArrayList<>();
+        Sheet sheet = workbook.getSheetAt(0);
+        // 解析row
+        for (int rowNum = 3; rowNum <= sheet.getLastRowNum(); rowNum++) {
+            Row row = sheet.getRow(rowNum);
+            if (row != null) {
+                if (row.getLastCellNum() < 1) {
+                    continue;
+                }
+                AddStudentDto addStudentDto = new AddStudentDto();
+                EnumMap<UserExcelHeaderEnum, String> rowData = this.getRowData(row);
+                String studentId = rowData.get(UserExcelHeaderEnum.NUM);
+                String studentName = rowData.get(UserExcelHeaderEnum.NAME);
+                String email = rowData.get(UserExcelHeaderEnum.EMAIL);
+                String school = rowData.get(UserExcelHeaderEnum.SCHOOL);
+                String collage = rowData.get(UserExcelHeaderEnum.COLLAGE);
+                String major = rowData.get(UserExcelHeaderEnum.MAJOR);
+                String grade = rowData.get(UserExcelHeaderEnum.GRADE);
+                String gradeClass = rowData.get(UserExcelHeaderEnum.GRADE_CLASS);
+                // schoolId
+                Integer schoolId = this.getSchoolId(school);
+                Integer collageId = this.getCollageId(collage, schoolId, modifiedUser);
+                Integer majorId = this.getMajorId(major, collageId, modifiedUser);
+                Integer gradeClassId = this.getGradeClassId(grade, gradeClass, majorId, modifiedUser);
+                addStudentDto.setMajorId(majorId);
+                addStudentDto.setStudentClass(gradeClassId);
+                addStudentDto.setStudentId(studentId);
+                addStudentDto.setStudentName(studentName);
+                addStudentDto.setEmail(email);
+                addStudentDto.setStatus(1);
+                addStudentDto.setCreator(modifiedUser);
+                addStudentDto.setCreateTime(new Date());
+                addStudentDto.setLastModifiedUser(modifiedUser);
+                addStudentDto.setLastModifiedTime(new Date());
+                String salt = UUID.randomUUID().toString().toUpperCase();
+                addStudentDto.setSalt(salt);
+                String password = defaultPassword;
+                if(!passwordDefaultEnable){
+                    password = this.getRandomString(getRandomNumberInRange(8,16));
+                }
+                String sha256Password = SHA256.encryptStringWithSHA256(password);
+                String md5Password = getMD5Password(sha256Password, addStudentDto.getSalt());
+                addStudentDto.setPassword(md5Password);
+                try{
                     this.saveStudent(addStudentDto);
+                }catch (StudentDuplicateException e){
+                    failedList.add(addStudentDto);
+                }
+                if(!passwordDefaultEnable) {
                     toSendEmail.add(EmailParams.build(
                             EMAIL_SUBJECT,
                             this.buildText(this.userActivateEmail, addStudentDto.getStudentName(), password),
@@ -315,6 +348,7 @@ public class StudentServiceImpl implements StudentService {
             }
         }
         this.sendEmail(toSendEmail);
+        return failedList;
     }
 
     @Override
@@ -327,7 +361,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public LoginDto jwtLogin(String email, String password) {
         List<Student> students = studentMapper.getByEmail(email);
-        if(students==null || students.size()<1){
+        if(students==null || students.isEmpty()){
             throw new StudentNotFoundException("用户不存在");
         }
         Student student = students.get(0);
@@ -354,64 +388,56 @@ public class StudentServiceImpl implements StudentService {
         emailSender.batchSend(list);
     }
 
-    private Integer getMajorId(String collageName,String majorName, Integer teacherId){
-        Integer majorId = null;
-        // 判断是否和老师的学院相同
-        SchoolCollageMajors schoolCollageMajors = majorService.getSchoolCollageMajorsByTeacher(teacherId);
-        List<CollageMajors> collagesMajors =  schoolCollageMajors.getCollageMajorsList();
-        List<CollageMajors> thisStudentCollage = new ArrayList<>();
-        for (CollageMajors collageMajors : collagesMajors){
-            if(collageMajors.getCollageName().equals(collageName)){
-                thisStudentCollage.add(collageMajors);
-                break;
-            }
+    private  Integer getSchoolId(String name){
+        School school = majorMapper.getSchoolByName(name);
+        if(Objects.isNull(school)){
+            School newSchool = new School();
+            newSchool.setName(name);
+            int res = majorMapper.addSchool(newSchool);
+            if(res==1){
+                return newSchool.getId();
+            }else throw new InsertException("服务器更新数据错误");
+        }else {
+            return school.getId();
         }
-        if(thisStudentCollage.size()==0){
-            // 学校的学院列表中没有新增的学生的学院
-            // 创建学院 创建专业
-            Integer collageId = this.createCollage(collageName, schoolCollageMajors.getSchoolId());
-            majorId = this.createMajor(majorName, collageId,teacherId);
-        }else{
-            // 学院的专业列表
-            List<Major> thisCollageMajors = thisStudentCollage.get(0).getMajorList();
-            List<Major> thisStudentMajor = new ArrayList<>();
-            for(Major major : thisCollageMajors){
-                if(major.getName().equals(majorName)){
-                    thisStudentMajor.add(major);
-                    break;
-                }
-            }
-            if(thisStudentMajor.size()==0){
-                // 专业列表中没有该学生的专业
-                // 创建专业
-                majorId = this.createMajor(majorName,thisStudentCollage.get(0).getCollageId(), teacherId);
-            }else{
-                majorId =  thisStudentMajor.get(0).getId();
-            }
-        }
-        return majorId;
     }
 
-    private Integer createMajor(String majorName, Integer collageId, Integer teacherId){
-        Major major = new Major();
-        major.setName(majorName);
-        major.setCreator(teacherId);
-        major.setCollageId(collageId);
-        major.setLastModifiedUser(teacherId);
-        major.setCreateTime(new Date());
-        major.setLastModifiedTime(new Date());
-        majorMapper.addMajor(major);
-        Integer majorId = major.getId();
-        return majorId;
+    private Integer getCollageId(String name, Integer schoolId, Integer modifiedUser){
+        List<Collage> collageList = majorMapper.getCollagesBySchool(schoolId);
+        for (Collage collage : collageList) {
+            if (collage.getName().equals(name)) {
+                return collage.getId();
+            }
+        }
+        Collage newCollage = new Collage();
+        newCollage.setName(name);
+        newCollage.setSchoolId(schoolId);
+        int res = majorMapper.addCollage(newCollage);
+        if(res!=1){
+            throw new InsertException("服务器更新数据错误");
+        }
+        return newCollage.getId();
     }
 
-    private Integer createCollage(String collageName, Integer schoolId){
-        Collage collage = new Collage();
-        collage.setName(collageName);
-        collage.setSchoolId(schoolId);
-        majorMapper.addCollage(collage);
-        Integer collageId = collage.getId();
-        return collageId;
+    private Integer getMajorId(String major,Integer collageId, Integer modifyUser){
+        List<Major> majorList = majorMapper.getMajorsByCollage(collageId);
+        for(Major major1 : majorList){
+            if(major1.getName().equals(major)){
+                return major1.getId();
+            }
+        }
+        Major newMajor = new Major();
+        newMajor.setCollageId(collageId);
+        newMajor.setName(major);
+        newMajor.setCreator(modifyUser);
+        newMajor.setLastModifiedUser(modifyUser);
+        newMajor.setCreateTime(new Date());
+        newMajor.setLastModifiedTime(new Date());
+        int res = majorMapper.addMajor(newMajor);
+        if(res!=1){
+            throw new InsertException("服务器更新数据错误");
+        }
+        return newMajor.getId();
     }
 
     private Integer createGradeClass(String classGrade, String className, Integer majorId, Integer teacherId ){
@@ -424,16 +450,17 @@ public class StudentServiceImpl implements StudentService {
         classAndGrade.setLastModifiedUser(teacherId);
         classAndGrade.setLastModifiedTime(new Date());
         majorMapper.addGradeClass(classAndGrade);
-        Integer gradeClassId = classAndGrade.getId();
-        return gradeClassId;
+        return classAndGrade.getId();
     }
 
-    private Integer getGradeClassId(String className, String classGrade, Integer majorId, Integer teacherId){
-        Integer gradeClassId = majorMapper.MajorClassId(classGrade,className,majorId);
-        if (gradeClassId==null){
-            gradeClassId = this.createGradeClass(classGrade,className,majorId, teacherId);
+    private Integer getGradeClassId(String grade, String className, Integer majorId, Integer teacherId){
+        List<ClassAndGrade> classGradeList = majorMapper.getClassesByMajorId(majorId);
+        for(ClassAndGrade classAndGrade : classGradeList){
+            if(classAndGrade.getName().equals(className) && classAndGrade.getGrade().equals(grade)){
+                return classAndGrade.getId();
+            }
         }
-        return gradeClassId;
+        return  createGradeClass(grade, className, majorId, teacherId);
     }
 
     private EnumMap<UserExcelHeaderEnum, String> getRowData(Row row) {
@@ -450,21 +477,25 @@ public class StudentServiceImpl implements StudentService {
         if (cell == null) {
             return StringUtils.EMPTY;
         }
+        if(cell.getCellType().equals(CellType.NUMERIC)){
+            return String.valueOf((int)cell.getNumericCellValue());
+        }
         return cell.getStringCellValue();
     }
 
+    @Getter
     protected enum UserExcelHeaderEnum {
         /**
          * 编号
          */
-        NUM("学号"),
-        NAME("名称"),
-        EMAIL("邮箱"),
+        SCHOOL("学校"),
         COLLAGE("学院"),
         MAJOR("专业"),
         GRADE("年级"),
-        GRADE_CLASS("班级");
-        @Getter
+        GRADE_CLASS("班级"),
+        NUM("学号"),
+        NAME("姓名"),
+        EMAIL("邮箱");
         private final String remark;
 
         UserExcelHeaderEnum(String remark) {

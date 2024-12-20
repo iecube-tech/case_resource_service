@@ -14,20 +14,32 @@ import java.util.List;
 @Mapper
 public interface MajorMapper {
     List<MajorClass> TeacherMajorClass(Integer teacherId);
+
     List<ClassAndGrade> getClassesByMajorId(Integer majorId);
+
     List<ClassAndGrade> findClassesByMajorId(Integer majorId);
+
+    Integer addGradeClass(ClassAndGrade gradeClass);
+
     Integer addMajor(Major major);
 
-    Integer addCollage(Collage collage);
-    Integer addGradeClass(ClassAndGrade gradeClass);
     Integer TeacherMajorId(String majorName, Integer teacherId);
-    Integer MajorClassId(String classGrade, String className, Integer majorId);
-    SchoolCollage SchoolCollage(Integer collageId);
-    School getSchoolByTeacher(Integer teacherId);
-
-    List<Collage> getCollagesBySchool(Integer schoolId);
 
     List<Major> getMajorsByCollage(Integer collageId);
 
+    Integer MajorClassId(String classGrade, String className, Integer majorId);
+
+    Integer addCollage(Collage collage);
+
+    SchoolCollage SchoolCollage(Integer collageId);
+
+    List<Collage> getCollagesBySchool(Integer schoolId);
+
     List<School> schoolList();
+
+    School getSchoolByTeacher(Integer teacherId);
+
+    School getSchoolByName(String schoolName);
+
+    Integer addSchool(School school);
 }

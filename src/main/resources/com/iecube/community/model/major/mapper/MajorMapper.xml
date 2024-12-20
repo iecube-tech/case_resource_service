@@ -90,7 +90,15 @@
     </select>
 
     <select id="schoolList" resultMap="School">
-        SELECT * FROM School
+        SELECT id,name FROM School
     </select>
+
+    <select id="getSchoolByName" resultMap="School">
+        SELECT id,name FROM School WHERE name=#{schoolName}
+    </select>
+
+    <insert id="addSchool" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO School (id, name) VALUES (NULL, #{name})
+    </insert>
 
 </mapper>

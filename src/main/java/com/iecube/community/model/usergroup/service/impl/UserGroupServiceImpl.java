@@ -1,5 +1,6 @@
 package com.iecube.community.model.usergroup.service.impl;
 
+import com.iecube.community.model.auth.Auth;
 import com.iecube.community.model.auth.entity.Authority;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
@@ -11,7 +12,10 @@ import com.iecube.community.model.usergroup.vo.UserGroupVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class UserGroupServiceImpl implements UserGroupService {
@@ -106,6 +110,9 @@ public class UserGroupServiceImpl implements UserGroupService {
 
     @Override
     public List<String> teacherAuth(Integer teacherId) {
-        return userGroupMapper.getTeacherAuth(teacherId);
+        List<String> res = userGroupMapper.getTeacherAuth(teacherId);
+        res.add(Auth.O.getAuth());
+        Set<String> set = new HashSet<>(res);
+        return new ArrayList<>(set);
     }
 }

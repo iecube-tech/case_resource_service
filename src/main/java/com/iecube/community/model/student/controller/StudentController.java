@@ -1,6 +1,7 @@
 package com.iecube.community.model.student.controller;
 
 import com.iecube.community.basecontroller.student.StudentBaseController;
+import com.iecube.community.model.student.dto.AddStudentDto;
 import com.iecube.community.model.teacher.dto.LoginDto;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.qo.AddStudentQo;
@@ -31,7 +32,7 @@ import java.util.List;
 @RequestMapping("/student")
 public class StudentController extends StudentBaseController {
 
-    private static final String TEMPLATE_NAME = "学生导入模板.xls";
+    private static final String TEMPLATE_NAME = "学生导入模板.xlsx";
 
     private final List<String> clientAgents= Arrays.asList("iecube3835");
     @Value("${business.user.template.path}")
@@ -117,10 +118,10 @@ public class StudentController extends StudentBaseController {
     }
 
     @PostMapping(value = "/batch/excel")
-    public JsonResult<Void> importByExcel(MultipartFile file) {
+    public JsonResult<List<AddStudentDto>> importByExcel(MultipartFile file) {
         try {
-            studentService.importByExcel(file.getInputStream(), currentUserId());
-            return new JsonResult<>(OK);
+            List<AddStudentDto> failedList = studentService.importByExcel(file.getInputStream(), currentUserId());
+            return new JsonResult<>(OK, failedList);
         } catch (IOException e) {
             log.error("IO异常", e);
             throw new SystemException("IO异常");

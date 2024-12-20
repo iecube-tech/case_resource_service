@@ -1,5 +1,6 @@
 package com.iecube.community.model.student.service;
 
+import com.iecube.community.model.student.dto.AddStudentDto;
 import com.iecube.community.model.teacher.dto.LoginDto;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.qo.AddStudentQo;
@@ -22,7 +23,7 @@ public interface StudentService {
 
     void addStudent(AddStudentQo addStudentQo, Integer teacherId);
 
-    void importByExcel(InputStream in, Integer teacherId);
+    List<AddStudentDto> importByExcel(InputStream in, Integer teacherId);
 
     void deleteStudentById(List<Integer> studentIds);
 

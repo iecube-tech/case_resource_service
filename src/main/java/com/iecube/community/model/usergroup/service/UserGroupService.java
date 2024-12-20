@@ -26,5 +26,4 @@ public interface UserGroupService {
     UserGroupVo removeAuthFromGroup(Integer groupId, Integer authorityId);
 
     List<String> teacherAuth(Integer teacherId);
-
 }
