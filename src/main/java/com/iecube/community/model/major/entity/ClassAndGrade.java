@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class ClassAndGrade extends BaseEntity {
     Integer id;
-    String grade;
+    Integer grade;
     String name;
     Integer majorId;
 }

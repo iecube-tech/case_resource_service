@@ -8,9 +8,9 @@ public class StudentDto {
     String email;
     String studentId;
     String studentName;
-    String studentGrade;
+    Integer studentGrade;
     String studentClass;
     String major;
     String collage;
-    String school;
+//    String school;
 }

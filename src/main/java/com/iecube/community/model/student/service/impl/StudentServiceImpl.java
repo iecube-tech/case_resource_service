@@ -5,7 +5,7 @@ import com.iecube.community.email.EmailSender;
 import com.iecube.community.model.auth.Auth;
 import com.iecube.community.model.auth.service.AuthService;
 import com.iecube.community.model.major.entity.School;
-import com.iecube.community.model.teacher.dto.LoginDto;
+import com.iecube.community.model.student.dto.LoginDto;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.PasswordNotMatchException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
@@ -307,7 +307,7 @@ public class StudentServiceImpl implements StudentService {
                 String school = rowData.get(UserExcelHeaderEnum.SCHOOL);
                 String collage = rowData.get(UserExcelHeaderEnum.COLLAGE);
                 String major = rowData.get(UserExcelHeaderEnum.MAJOR);
-                String grade = rowData.get(UserExcelHeaderEnum.GRADE);
+                Integer grade = Integer.valueOf(rowData.get(UserExcelHeaderEnum.GRADE));
                 String gradeClass = rowData.get(UserExcelHeaderEnum.GRADE_CLASS);
                 // schoolId
                 Integer schoolId = this.getSchoolId(school);
@@ -440,7 +440,7 @@ public class StudentServiceImpl implements StudentService {
         return newMajor.getId();
     }
 
-    private Integer createGradeClass(String classGrade, String className, Integer majorId, Integer teacherId ){
+    private Integer createGradeClass(Integer classGrade, String className, Integer majorId, Integer teacherId ){
         ClassAndGrade classAndGrade = new ClassAndGrade();
         classAndGrade.setGrade(classGrade);
         classAndGrade.setName(className);
@@ -453,7 +453,7 @@ public class StudentServiceImpl implements StudentService {
         return classAndGrade.getId();
     }
 
-    private Integer getGradeClassId(String grade, String className, Integer majorId, Integer teacherId){
+    private Integer getGradeClassId(Integer grade, String className, Integer majorId, Integer teacherId){
         List<ClassAndGrade> classGradeList = majorMapper.getClassesByMajorId(majorId);
         for(ClassAndGrade classAndGrade : classGradeList){
             if(classAndGrade.getName().equals(className) && classAndGrade.getGrade().equals(grade)){

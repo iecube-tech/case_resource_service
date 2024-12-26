@@ -2,7 +2,7 @@ package com.iecube.community.model.student.controller;
 
 import com.iecube.community.basecontroller.student.StudentBaseController;
 import com.iecube.community.model.student.dto.AddStudentDto;
-import com.iecube.community.model.teacher.dto.LoginDto;
+import com.iecube.community.model.student.dto.LoginDto;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.qo.AddStudentQo;
 import com.iecube.community.model.student.qo.DeleteQo;
@@ -90,6 +90,7 @@ public class StudentController extends StudentBaseController {
             AuthUtils.cache(deviceUser, loginDto.getToken(), stringRedisTemplate);
             log.info("login:{},{},{},{}",deviceUser.getUserType(),deviceUser.getId(), deviceUser.getEmail(),deviceUser.getAgent());
         }
+        System.out.println(loginDto);
         return new JsonResult<>(OK,loginDto);
     }
 

@@ -97,56 +97,60 @@ public class WebSocketService {
                 onlineTask.put(this.userId,msg);
                 log.info("onlineTask:"+onlineTask);
             }
-            if(msg.getLogup()== true){
-                // 触发提交事件消息  仅做转发
-                if(onlineDeviceSn.get(msg.getUserId())!=null){
-                    try{
-                        Session deviceSession = onlineDevice.get(this.userId);
-                        deviceSession.getBasicRemote().sendText(sentTo3835Message(msg));
-                    }catch (Exception e){
-                        log.error("转发提交消息失败"+e.getMessage());
-                    }
+            if(msg.getLogup()!=null){
+                if(msg.getLogup()){
+                    // 触发提交事件消息  仅做转发
+                    if(onlineDeviceSn.get(msg.getUserId())!=null){
+                        try{
+                            Session deviceSession = onlineDevice.get(this.userId);
+                            deviceSession.getBasicRemote().sendText(sentTo3835Message(msg));
+                        }catch (Exception e){
+                            log.error("转发提交消息失败"+e.getMessage());
+                        }
 
+                    }
+                    return;
                 }
-                return;
             }
-            if(msg.getLock()==false){
-                if(onlineDeviceSn.get(msg.getUserId())!=null){
-                    // 鉴定为浏览器重连情况
-                    Session webSession = onlineUser.get(this.userId);
+            if(msg.getLock()!=null){
+                if(!msg.getLock()){
+                    if(onlineDeviceSn.get(msg.getUserId())!=null){
+                        // 鉴定为浏览器重连情况
+                        Session webSession = onlineUser.get(this.userId);
+                        Session deviceSession = onlineDevice.get(this.userId);
+                        try{
+                            Message3835 reConnectMessage = onlineDeviceSn.get(this.userId);
+                            reConnectMessage.setFrom("server");
+                            reConnectMessage.setLock(false);
+                            webSession.getBasicRemote().sendText(sendToOnlineMessage(reConnectMessage));
+                            deviceSession.getBasicRemote().sendText(sentTo3835Message(reConnectMessage));
+                            log.info("浏览器重连，已发送重连信息"+reConnectMessage);
+                        }catch (Exception e){
+                            log.error("浏览器重新上线，发送重连信息失败，重连失败"+e.getMessage());
+                            e.printStackTrace();
+                        }
+                    }
+                }else{
+                    // 第三步 向设备推送已锁定的消息
                     Session deviceSession = onlineDevice.get(this.userId);
                     try{
-                        Message3835 reConnectMessage = onlineDeviceSn.get(this.userId);
-                        reConnectMessage.setFrom("server");
-                        reConnectMessage.setLock(false);
-                        webSession.getBasicRemote().sendText(sendToOnlineMessage(reConnectMessage));
-                        deviceSession.getBasicRemote().sendText(sentTo3835Message(reConnectMessage));
-                        log.info("浏览器重连，已发送重连信息"+reConnectMessage);
+                        deviceSession.getBasicRemote().sendText(sentTo3835Message(msg));
+                        onlineDeviceSn.get(this.userId).setProjectId(msg.getProjectId());
+                        onlineDeviceSn.get(this.userId).setPstId(msg.getPstId());
+                        onlineDeviceSn.get(this.userId).setTaskNum(msg.getTaskNum());
+                        onlineDeviceSn.get(this.userId).setLock(msg.getLock());
+                        log.info("学生"+this.userId+"的浏览器接受连接，实验界面已锁定，已发送消息到3835设备");
                     }catch (Exception e){
-                        log.error("浏览器重新上线，发送重连信息失败，重连失败"+e.getMessage());
+                        log.info("学生"+this.userId+"的浏览器实验界面已锁定，但是向3835设备同步消息时发生异常"+e.getMessage());
                         e.printStackTrace();
                     }
-                }
-            }else{
-                // 第三步 向设备推送已锁定的消息
-                Session deviceSession = onlineDevice.get(this.userId);
-                try{
-                    deviceSession.getBasicRemote().sendText(sentTo3835Message(msg));
-                    onlineDeviceSn.get(this.userId).setProjectId(msg.getProjectId());
-                    onlineDeviceSn.get(this.userId).setPstId(msg.getPstId());
-                    onlineDeviceSn.get(this.userId).setTaskNum(msg.getTaskNum());
-                    onlineDeviceSn.get(this.userId).setLock(msg.getLock());
-                    log.info("学生"+this.userId+"的浏览器接受连接，实验界面已锁定，已发送消息到3835设备");
-                }catch (Exception e){
-                    log.info("学生"+this.userId+"的浏览器实验界面已锁定，但是向3835设备同步消息时发生异常"+e.getMessage());
-                    e.printStackTrace();
                 }
             }
         }
 
         //2. 收到3835的消息
         if(msg.getFrom().equals(DEVICE)){
-            if(msg.getLogup()!=null && msg.getLogup()==false && msg.getUserId()!=null){
+            if(msg.getLogup()!=null && !msg.getLogup() && msg.getUserId()!=null){
                 if(onlineTask.get(msg.getUserId())!=null){
                     try{
                         Session webSession = onlineUser.get(this.userId);
@@ -159,7 +163,7 @@ public class WebSocketService {
                 }
             }
             // 确定3835的消息是请求连接还是完成实验断开连接
-            if(msg.getPstId()==null && msg.getLock()==true){
+            if(msg.getPstId()==null && msg.getLock()){
                 // 请求连接消息
                 //这里要首先确保浏览器的在线状态，并确定有实验信息, 给设备返回消息
                 // 浏览器不在线
@@ -175,7 +179,7 @@ public class WebSocketService {
                     return;
                 }
                 //浏览器在线，这里应该携带设备的额sn号，且申请lock 并向浏览器发送消息，保存设备信息
-                if(msg.getSnId()!=null && msg.getLock()==true){
+                if(msg.getSnId()!=null && msg.getLock()){
                     onlineDeviceSn.put(this.userId, msg);
                     log.info(onlineDeviceSn.toString());
                     log.info("onlineDevice:"+onlineDevice);
