@@ -5,10 +5,10 @@ import com.iecube.community.model.content.entity.Content;
 import com.iecube.community.model.content.mapper.ContentMapper;
 import com.iecube.community.model.direction.service.ex.DeleteException;
 import com.iecube.community.model.npoints.entity.*;
+import com.iecube.community.model.npoints.entity.Module;
 import com.iecube.community.model.npoints.mapper.NPointsMapper;
 import com.iecube.community.model.npoints.service.NPointsService;
 import com.iecube.community.model.npoints.vo.*;
-import com.sun.org.apache.xpath.internal.operations.Mod;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

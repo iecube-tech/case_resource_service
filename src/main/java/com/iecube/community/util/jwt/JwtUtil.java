@@ -3,13 +3,12 @@ package com.iecube.community.util.jwt;
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.jdbc.Null;
 import org.springframework.stereotype.Component;
 
-import javax.xml.bind.DatatypeConverter;
 import java.time.Duration;
 import java.util.Date;
 import java.util.Map;
+import java.util.Base64;
 
 @Component
 @Slf4j
@@ -32,7 +31,8 @@ public class JwtUtil {
         }
         if(StringUtils.isNotEmpty(secretKey)){
             SignatureAlgorithm signatureAlgorithm=SignatureAlgorithm.HS256;
-            jwtBuilder.signWith(signatureAlgorithm, DatatypeConverter.parseBase64Binary(secretKey));
+//            jwtBuilder.signWith(signatureAlgorithm, DatatypeConverter.parseBase64Binary(secretKey));
+            jwtBuilder.signWith(signatureAlgorithm, Base64.getEncoder().encode(secretKey.getBytes()));
         }
 
         return jwtBuilder.compact();
@@ -44,7 +44,7 @@ public class JwtUtil {
     public Claims pareToken(String token){
         try {
             Claims claims=Jwts.parser()
-                    .setSigningKey(DatatypeConverter.parseBase64Binary(secretKey))
+                    .setSigningKey(Base64.getEncoder().encode(secretKey.getBytes()))
                     .parseClaimsJws(token).getBody();
             return claims;
         } catch (ExpiredJwtException e) {

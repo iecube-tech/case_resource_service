@@ -35,7 +35,7 @@ public class MajorMapperTests {
     @Test
     public void addGradeClass(){
         ClassAndGrade classAndGrade = new ClassAndGrade();
-        classAndGrade.setGrade("2022");
+        classAndGrade.setGrade(2022);
         classAndGrade.setMajorId(1);
         classAndGrade.setName("微电子科学与工程2204");
         classAndGrade.setCreator(6);
