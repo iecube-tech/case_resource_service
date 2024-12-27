@@ -164,7 +164,4 @@ public class StudentController extends StudentBaseController {
         studentService.sendSignInCodeToEmail(email, stringRedisTemplate);
         return new JsonResult<>(OK);
     }
-
-    @PostMapping("/sign/in")
-    public JsonResult
 }
