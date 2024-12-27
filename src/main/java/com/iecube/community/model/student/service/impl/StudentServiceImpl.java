@@ -2,6 +2,7 @@ package com.iecube.community.model.student.service.impl;
 
 import com.iecube.community.email.EmailParams;
 import com.iecube.community.email.EmailSender;
+import com.iecube.community.exception.ParameterException;
 import com.iecube.community.model.auth.Auth;
 import com.iecube.community.model.auth.service.AuthService;
 import com.iecube.community.model.major.entity.School;
@@ -21,10 +22,7 @@ import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.mapper.StudentMapper;
 import com.iecube.community.model.student.qo.AddStudentQo;
 import com.iecube.community.model.student.service.StudentService;
-import com.iecube.community.model.student.service.ex.StudentDuplicateException;
-import com.iecube.community.model.student.service.ex.StudentKeyFieldNotExistException;
-import com.iecube.community.model.student.service.ex.StudentNotFoundException;
-import com.iecube.community.model.student.service.ex.UnprocessableException;
+import com.iecube.community.model.student.service.ex.*;
 import com.iecube.community.model.teacher.mapper.TeacherMapper;
 import com.iecube.community.util.ex.SystemException;
 import com.iecube.community.util.jwt.AuthUtils;
@@ -35,6 +33,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -47,6 +46,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+
 import com.iecube.community.util.SHA256;
 
 @Slf4j
@@ -170,113 +172,6 @@ public class StudentServiceImpl implements StudentService {
 
     }
 
-    /**
-     * 返回一个密码为空的 AddStudentDto
-     */
-    public AddStudentDto initAddStudentDto(AddStudentQo addStudentQo, Integer modifiedUser){
-        AddStudentDto addStudentDto = new AddStudentDto();
-        addStudentDto.setEmail(addStudentQo.getEmail());
-        addStudentDto.setStudentId(addStudentQo.getStudentId());
-        addStudentDto.setStudentName(addStudentQo.getStudentName());
-        addStudentDto.setStudentClass(addStudentQo.getStudentClass());
-        addStudentDto.setMajorId(addStudentQo.getMajorId());
-        addStudentDto.setStatus(1);
-        addStudentDto.setCreator(modifiedUser);
-        addStudentDto.setCreateTime(new Date());
-        addStudentDto.setLastModifiedTime(new Date());
-        addStudentDto.setLastModifiedUser(modifiedUser);
-        String salt = UUID.randomUUID().toString().toUpperCase();
-        addStudentDto.setSalt(salt);
-        return addStudentDto;
-    }
-
-    public void saveStudent(AddStudentDto addStudentDto){
-        //检查关键字符是否存在
-        if(addStudentDto.getStudentName() == null){
-            throw new StudentKeyFieldNotExistException( addStudentDto.getStudentId()+"学生姓名不能为空");
-        }
-        if(addStudentDto.getStudentId() == null){
-            throw new StudentKeyFieldNotExistException(addStudentDto.getStudentName()+"学生学号不能为空");
-        }
-        if(addStudentDto.getEmail() == null){
-            throw new StudentKeyFieldNotExistException(addStudentDto.getStudentName()+"学生邮箱不能为空");
-        }
-
-        if(addStudentDto.getMajorId() == null){
-            throw new StudentKeyFieldNotExistException(addStudentDto.getStudentName()+"学生专业信息不能为空");
-        }
-        //判断是否和已有冲突
-//        System.out.println(addStudentDto);
-        List<Student> student1 = studentMapper.getByEmail(addStudentDto.getEmail());
-//        System.out.println(studentMapper.getByEmail(addStudentDto.getEmail()));
-        if(!student1.isEmpty()){
-            throw new StudentDuplicateException(addStudentDto.getEmail()+"邮箱已存在");
-        }
-        Student student = studentMapper.getByStudentId(addStudentDto.getStudentId());
-        if(student != null){
-            throw new StudentDuplicateException(addStudentDto.getStudentId()+"学号已存在");
-        }
-
-        Integer row = studentMapper.addStudent(addStudentDto);
-        if (row!=1){
-            throw new InsertException("添加数据异常");
-        }
-    }
-
-
-    /**定义一个md5算法加密**/
-    private static String getMD5Password(String password, String salt){
-        // md5加密算法的方法 进行3次
-        for (int i=0; i<3; i++){
-            password = DigestUtils.md5DigestAsHex((salt+password+salt).getBytes()).toUpperCase();
-        }
-        //返回加密之后的密码
-        return password;
-    }
-
-    //length用户要求产生字符串的长度
-    private String getRandomString(int length){
-        if(passwordDefaultEnable){
-            return defaultPassword;
-        }
-        String str="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        Random random=new Random();
-        StringBuilder sb=new StringBuilder();
-        for(int i=0;i<length;i++){
-            int number=random.nextInt(62);
-            sb.append(str.charAt(number));
-        }
-        return sb.toString();
-    }
-
-    //生成指定区间的随机数
-    private static int getRandomNumberInRange(int min, int max) {
-        if (min >= max) {
-            throw new IllegalArgumentException("max must be greater than min");
-        }
-        Random r = new Random();
-        return r.nextInt((max - min) + 1) + min;
-    }
-
-    private String buildText(Resource resource, Object... params) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try {
-            FileCopyUtils.copy(resource.getInputStream(), out);
-        } catch (IOException e) {
-            log.error("IO异常", e);
-        }
-        String text = out.toString();
-        text = MessageFormat.format(text, params);
-        return text;
-    }
-
-    @Async
-    public void sendStudentActiveEmail(String studentName, String studentEmail, String password) {
-        String text = this.buildText(userActivateEmail, studentName, password, DomainName);
-        emailSender.send(studentEmail, EMAIL_SUBJECT, text);
-    }
-
-
     @Override
     public List<AddStudentDto> importByExcel(InputStream in, Integer modifiedUser) {
         XSSFWorkbook workbook;
@@ -381,6 +276,134 @@ public class StudentServiceImpl implements StudentService {
         loginDto.setStudentDto(studentDto);
         loginDto.setToken(new AuthUtils().createToken(studentDto.getId(), studentDto.getEmail(), "student"));
         return loginDto;
+    }
+
+    @Override
+    public void sendSignInCodeToEmail(String email, StringRedisTemplate stringRedisTemplate) {
+        if( email == null || email.isEmpty()){
+            throw new ParameterException("参数异常", new Exception("参数email错误"));
+        }
+        // 验证是否已注册
+        List<Student> students = studentMapper.getByEmail(email);
+        if(!(students==null || students.isEmpty())){
+            throw new StudentDuplicateException("用户已存在");
+        }
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        int code  = random.nextInt(100000, 1000000);
+        stringRedisTemplate.opsForValue().set("CODE_SIGN_IN_"+email, String.valueOf(code), 10, TimeUnit.MINUTES);
+        emailSender.send(email, "【北京曾益慧创--IECUBEOnline】验证码 "+code,"您正在进行注册验证，\n 验证码为："+code+"\n此验证码15分钟有效。\n");
+    }
+
+    public void verifySignInCode(String email, String code, StringRedisTemplate stringRedisTemplate) {
+        String emailSignInCode = stringRedisTemplate.opsForValue().get("CODE_SIGN_IN_"+email);
+        if(emailSignInCode==null || !emailSignInCode.equals(code)){
+            throw new VerifyCodeFailed("验证码校验不通过");
+        }
+    }
+
+    /**
+     * 返回一个密码为空的 AddStudentDto
+     */
+    public AddStudentDto initAddStudentDto(AddStudentQo addStudentQo, Integer modifiedUser){
+        AddStudentDto addStudentDto = new AddStudentDto();
+        addStudentDto.setEmail(addStudentQo.getEmail());
+        addStudentDto.setStudentId(addStudentQo.getStudentId());
+        addStudentDto.setStudentName(addStudentQo.getStudentName());
+        addStudentDto.setStudentClass(addStudentQo.getStudentClass());
+        addStudentDto.setMajorId(addStudentQo.getMajorId());
+        addStudentDto.setStatus(1);
+        addStudentDto.setCreator(modifiedUser);
+        addStudentDto.setCreateTime(new Date());
+        addStudentDto.setLastModifiedTime(new Date());
+        addStudentDto.setLastModifiedUser(modifiedUser);
+        String salt = UUID.randomUUID().toString().toUpperCase();
+        addStudentDto.setSalt(salt);
+        return addStudentDto;
+    }
+
+    public void saveStudent(AddStudentDto addStudentDto){
+        //检查关键字符是否存在
+        if(addStudentDto.getStudentName() == null){
+            throw new StudentKeyFieldNotExistException( addStudentDto.getStudentId()+"学生姓名不能为空");
+        }
+        if(addStudentDto.getStudentId() == null){
+            throw new StudentKeyFieldNotExistException(addStudentDto.getStudentName()+"学生学号不能为空");
+        }
+        if(addStudentDto.getEmail() == null){
+            throw new StudentKeyFieldNotExistException(addStudentDto.getStudentName()+"学生邮箱不能为空");
+        }
+
+        if(addStudentDto.getMajorId() == null){
+            throw new StudentKeyFieldNotExistException(addStudentDto.getStudentName()+"学生专业信息不能为空");
+        }
+        //判断是否和已有冲突
+//        System.out.println(addStudentDto);
+        List<Student> student1 = studentMapper.getByEmail(addStudentDto.getEmail());
+//        System.out.println(studentMapper.getByEmail(addStudentDto.getEmail()));
+        if(!student1.isEmpty()){
+            throw new StudentDuplicateException(addStudentDto.getEmail()+"邮箱已存在");
+        }
+        Student student = studentMapper.getByStudentId(addStudentDto.getStudentId());
+        if(student != null){
+            throw new StudentDuplicateException(addStudentDto.getStudentId()+"学号已存在");
+        }
+
+        Integer row = studentMapper.addStudent(addStudentDto);
+        if (row!=1){
+            throw new InsertException("添加数据异常");
+        }
+    }
+
+    /**定义一个md5算法加密**/
+    private static String getMD5Password(String password, String salt){
+        // md5加密算法的方法 进行3次
+        for (int i=0; i<3; i++){
+            password = DigestUtils.md5DigestAsHex((salt+password+salt).getBytes()).toUpperCase();
+        }
+        //返回加密之后的密码
+        return password;
+    }
+
+    //length用户要求产生字符串的长度
+    private String getRandomString(int length){
+        if(passwordDefaultEnable){
+            return defaultPassword;
+        }
+        String str="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        Random random=new Random();
+        StringBuilder sb=new StringBuilder();
+        for(int i=0;i<length;i++){
+            int number=random.nextInt(62);
+            sb.append(str.charAt(number));
+        }
+        return sb.toString();
+    }
+
+    //生成指定区间的随机数
+    private static int getRandomNumberInRange(int min, int max) {
+        if (min >= max) {
+            throw new IllegalArgumentException("max must be greater than min");
+        }
+        Random r = new Random();
+        return r.nextInt((max - min) + 1) + min;
+    }
+
+    private String buildText(Resource resource, Object... params) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            FileCopyUtils.copy(resource.getInputStream(), out);
+        } catch (IOException e) {
+            log.error("IO异常", e);
+        }
+        String text = out.toString();
+        text = MessageFormat.format(text, params);
+        return text;
+    }
+
+    @Async
+    public void sendStudentActiveEmail(String studentName, String studentEmail, String password) {
+        String text = this.buildText(userActivateEmail, studentName, password, DomainName);
+        emailSender.send(studentEmail, EMAIL_SUBJECT, text);
     }
 
     @Async

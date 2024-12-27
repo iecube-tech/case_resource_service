@@ -36,6 +36,7 @@ public class LoginInterceptorConfigurer implements WebMvcConfigurer {
         patterns.add("/teacher/login");
         patterns.add("/student/login");
         patterns.add("/student/jlogin");
+        patterns.add("/student/sign/code");
         patterns.add("/files/e/image");
         patterns.add("/files/image/{fileName}");
         patterns.add("/files/file/{fileName}");

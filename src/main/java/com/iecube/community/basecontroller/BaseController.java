@@ -1,6 +1,7 @@
 package com.iecube.community.basecontroller;
 
 import com.iecube.community.baseservice.ex.ServiceException;
+import com.iecube.community.exception.ParameterException;
 import com.iecube.community.model.auth.service.ex.AuthException;
 import com.iecube.community.util.JsonResult;
 
@@ -27,6 +28,9 @@ public class BaseController {
 
     @ExceptionHandler(ServiceException.class)
     public JsonResult<Void> handleException(Throwable e){
+        System.out.println(e.getMessage());
+        System.out.println(e.getStackTrace());
+        System.out.println(e);
         JsonResult<Void> result = new JsonResult<>(e);
         if(e instanceof SystemException) {
             result.setState(404);
@@ -34,10 +38,14 @@ public class BaseController {
         } else if (e instanceof AuthException) {
             result.setState(401);
             result.setMessage(e.getMessage());
+        }else if (e instanceof ParameterException) {
+            result.setState(8001);
+            result.setMessage(e.getMessage());
         }
         else if (e instanceof ServiceException) {
-            result.setState(500);
+            result.setState(8000);
             result.setMessage(e.getMessage());
+            result.setCause(e.getCause().getMessage());
         }
         return result;
     }

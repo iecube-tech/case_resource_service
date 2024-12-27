@@ -15,11 +15,48 @@ public class JsonResult<E> implements Serializable {
     //响应的描述信息
     private String message;
 
+    private String cause;
+
+    private E success;
+
+    private E failed;
+
     //对应的数据  不确定的数据类型用泛型  方法中用到泛型类的声明中也要声明为泛型
     private E data;
 
     private String token;
 
+    public String getCause() {
+        return cause;
+    }
+
+    public void setCause(String cause) {
+        this.cause = cause;
+    }
+
+    public E getSuccess() {
+        return success;
+    }
+
+    public void setSuccess(E success) {
+        this.success = success;
+    }
+
+    public E getFailed() {
+        return failed;
+    }
+
+    public void setFailed(E failed) {
+        this.failed = failed;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
 
     public JsonResult() {
     }

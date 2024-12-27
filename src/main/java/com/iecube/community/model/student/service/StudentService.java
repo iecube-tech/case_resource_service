@@ -4,6 +4,7 @@ import com.iecube.community.model.student.dto.AddStudentDto;
 import com.iecube.community.model.student.dto.LoginDto;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.qo.AddStudentQo;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.io.InputStream;
 import java.util.List;
@@ -15,11 +16,7 @@ public interface StudentService {
 
     List<StudentDto> findAllInStatusByTeacher(Integer teacherId);
 
-    LoginDto jwtLogin(String studentId, String password);
-
     StudentDto my(Integer studentId);
-
-    void changePassword(Integer studentId, String oldPassword, String newPassword);
 
     void addStudent(AddStudentQo addStudentQo, Integer teacherId);
 
@@ -27,4 +24,9 @@ public interface StudentService {
 
     void deleteStudentById(List<Integer> studentIds);
 
+    LoginDto jwtLogin(String studentId, String password);
+
+    void changePassword(Integer studentId, String oldPassword, String newPassword);
+
+    void sendSignInCodeToEmail(String email, StringRedisTemplate stringRedisTemplate);
 }

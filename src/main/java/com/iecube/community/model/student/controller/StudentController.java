@@ -65,40 +65,18 @@ public class StudentController extends StudentBaseController {
         return new JsonResult<>(OK,students);
     }
 
-    @PostMapping("/login")
-    public  JsonResult<LoginDto> login(String email, String password, @RequestHeader("User-Agent") String userAgent, HttpSession session){
-
-        String agent="Browser"; // 区分浏览器还是 设备， 允许一个账号登录在 一个浏览器 一个软件端
-        LoginDto loginDto = studentService.jwtLogin(email, password);
-        CurrentUser currentUser = new CurrentUser();
-        currentUser.setUserType("student");
-        currentUser.setId(loginDto.getStudentDto().getId());
-        currentUser.setEmail(loginDto.getStudentDto().getEmail());
-        currentUser.setAgent(agent);
-        session.setAttribute("userid", loginDto.getStudentDto().getId());
-        session.setAttribute("username", loginDto.getStudentDto().getStudentName());
-        session.setAttribute("type", "student");
-        AuthUtils.cache(currentUser, loginDto.getToken(), stringRedisTemplate);
-        log.info("login:{},{},{},{}",currentUser.getUserType(),currentUser.getId(), currentUser.getEmail(), currentUser.getAgent());
-        if(clientAgents.contains(userAgent)){
-            // 设备登录
-            CurrentUser deviceUser = new CurrentUser();
-            deviceUser.setAgent(userAgent);
-            deviceUser.setUserType("student");
-            deviceUser.setId(loginDto.getStudentDto().getId());
-            deviceUser.setEmail(loginDto.getStudentDto().getEmail());
-            AuthUtils.cache(deviceUser, loginDto.getToken(), stringRedisTemplate);
-            log.info("login:{},{},{},{}",deviceUser.getUserType(),deviceUser.getId(), deviceUser.getEmail(),deviceUser.getAgent());
-        }
-        System.out.println(loginDto);
-        return new JsonResult<>(OK,loginDto);
+    @GetMapping("/by_id")
+    public JsonResult<StudentDto> getMyStudentDto(Integer studentId){
+        StudentDto studentDto = studentService.my(studentId);
+        return new JsonResult<>(OK, studentDto);
     }
 
-    @GetMapping("/logout")
-    public JsonResult<Void> logout(){
-        AuthUtils.rm(stringRedisTemplate);
-        log.info("logout:{},{},{}",currentUserType(),currentUserId(),currentUserEmail());
-        return new JsonResult<>(OK);
+    @PostMapping("/delete")
+    public JsonResult<List> deleteStudent(@RequestBody DeleteQo deleteQo){
+        studentService.deleteStudentById(deleteQo.getStudentIds());
+        Integer teacherId = currentUserId();
+        List<StudentDto> students = studentService.findAllInStatusByTeacher(teacherId);
+        return new JsonResult<>(OK, students);
     }
 
     @PostMapping("/add")
@@ -136,10 +114,40 @@ public class StudentController extends StudentBaseController {
         return new JsonResult<>(OK, studentDto);
     }
 
-    @GetMapping("/by_id")
-    public JsonResult<StudentDto> getMyStudentDto(Integer studentId){
-        StudentDto studentDto = studentService.my(studentId);
-        return new JsonResult<>(OK, studentDto);
+    @PostMapping("/login")
+    public  JsonResult<LoginDto> login(String email, String password, @RequestHeader("User-Agent") String userAgent, HttpSession session){
+
+        String agent="Browser"; // 区分浏览器还是 设备， 允许一个账号登录在 一个浏览器 一个软件端
+        LoginDto loginDto = studentService.jwtLogin(email, password);
+        CurrentUser currentUser = new CurrentUser();
+        currentUser.setUserType("student");
+        currentUser.setId(loginDto.getStudentDto().getId());
+        currentUser.setEmail(loginDto.getStudentDto().getEmail());
+        currentUser.setAgent(agent);
+        session.setAttribute("userid", loginDto.getStudentDto().getId());
+        session.setAttribute("username", loginDto.getStudentDto().getStudentName());
+        session.setAttribute("type", "student");
+        AuthUtils.cache(currentUser, loginDto.getToken(), stringRedisTemplate);
+        log.info("login:{},{},{},{}",currentUser.getUserType(),currentUser.getId(), currentUser.getEmail(), currentUser.getAgent());
+        if(clientAgents.contains(userAgent)){
+            // 设备登录
+            CurrentUser deviceUser = new CurrentUser();
+            deviceUser.setAgent(userAgent);
+            deviceUser.setUserType("student");
+            deviceUser.setId(loginDto.getStudentDto().getId());
+            deviceUser.setEmail(loginDto.getStudentDto().getEmail());
+            AuthUtils.cache(deviceUser, loginDto.getToken(), stringRedisTemplate);
+            log.info("login:{},{},{},{}",deviceUser.getUserType(),deviceUser.getId(), deviceUser.getEmail(),deviceUser.getAgent());
+        }
+        System.out.println(loginDto);
+        return new JsonResult<>(OK,loginDto);
+    }
+
+    @GetMapping("/logout")
+    public JsonResult<Void> logout(){
+        AuthUtils.rm(stringRedisTemplate);
+        log.info("logout:{},{},{}",currentUserType(),currentUserId(),currentUserEmail());
+        return new JsonResult<>(OK);
     }
 
     @PostMapping("/change_password")
@@ -150,11 +158,10 @@ public class StudentController extends StudentBaseController {
         return new JsonResult<>(OK);
     }
 
-    @PostMapping("/delete")
-    public JsonResult<List> deleteStudent(@RequestBody DeleteQo deleteQo){
-        studentService.deleteStudentById(deleteQo.getStudentIds());
-        Integer teacherId = currentUserId();
-        List<StudentDto> students = studentService.findAllInStatusByTeacher(teacherId);
-        return new JsonResult<>(OK, students);
+    @PostMapping("/sign/code")
+    public JsonResult<Void> getSignInCode(String email){
+        System.out.println(email);
+        studentService.sendSignInCodeToEmail(email, stringRedisTemplate);
+        return new JsonResult<>(OK);
     }
 }
