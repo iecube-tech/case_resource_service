@@ -4,9 +4,8 @@ import com.iecube.community.model.npoints.dto.CaseModuleDto;
 import com.iecube.community.model.npoints.entity.*;
 import com.iecube.community.model.npoints.vo.CaseVo;
 import com.iecube.community.model.npoints.vo.ConceptVo;
-import com.iecube.community.model.npoints.vo.ModuleConceptVo;
 import com.iecube.community.model.npoints.vo.ModuleVo;
-import com.sun.org.apache.xpath.internal.operations.Mod;
+import com.iecube.community.model.npoints.entity.Module;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
