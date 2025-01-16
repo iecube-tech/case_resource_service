@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.elaborate_md.course.mapper.CourseMapper">
+    <resultMap id="CourseEntity" type="com.iecube.community.model.elaborate_md.course.entity.CourseEntity">
+    </resultMap>
+
+    <insert id="InsertCourseEntity" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO e_md_course (id, `name`) VALUES (NULL, #{name})
+    </insert>
+
+    <delete id="DelCourseEntity">
+        DELETE FROM e_md_course WHERE id=#{id}
+    </delete>
+
+    <select id="GetAll" resultMap="CourseEntity">
+        SELECT id, `name` FROM e_md_course ORDER BY `name`
+    </select>
+
+    <update id="UpCourseEntity">
+        UPDATE e_md_course SET `name`=#{name} WHERE id=#{id}
+    </update>
+</mapper>
