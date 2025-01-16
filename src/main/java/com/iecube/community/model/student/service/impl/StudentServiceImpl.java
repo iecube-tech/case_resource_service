@@ -21,6 +21,7 @@ import com.iecube.community.model.student.entity.Student;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.mapper.StudentMapper;
 import com.iecube.community.model.student.qo.AddStudentQo;
+import com.iecube.community.model.student.qo.SignInQo;
 import com.iecube.community.model.student.service.StudentService;
 import com.iecube.community.model.student.service.ex.*;
 import com.iecube.community.model.teacher.mapper.TeacherMapper;
@@ -56,7 +57,7 @@ import com.iecube.community.util.SHA256;
 public class StudentServiceImpl implements StudentService {
 
 
-    private static final String EMAIL_SUBJECT = "IECUBE产业案例资教学资源库和过程评价系统-新用户通知";
+    private static final String EMAIL_SUBJECT = "IECUBE-online数智化实验平台-新用户通知";
 
     @Value("${email.template.user-activate}")
     private Resource userActivateEmail;
@@ -236,7 +237,7 @@ public class StudentServiceImpl implements StudentService {
                 if(!passwordDefaultEnable) {
                     toSendEmail.add(EmailParams.build(
                             EMAIL_SUBJECT,
-                            this.buildText(this.userActivateEmail, addStudentDto.getStudentName(), password),
+                            this.buildText(this.userActivateEmail, addStudentDto.getStudentName(), password, DomainName),
                             addStudentDto.getEmail()
                     ));
                 }
@@ -292,6 +293,22 @@ public class StudentServiceImpl implements StudentService {
         int code  = random.nextInt(100000, 1000000);
         stringRedisTemplate.opsForValue().set("CODE_SIGN_IN_"+email, String.valueOf(code), 10, TimeUnit.MINUTES);
         emailSender.send(email, "【北京曾益慧创--IECUBEOnline】验证码 "+code,"您正在进行注册验证，\n 验证码为："+code+"\n此验证码15分钟有效。\n");
+    }
+
+    @Override
+    public LoginDto signIn(SignInQo signInQo) {
+        return null;
+    }
+
+    @Override
+    public void sendEmail() {
+        List<EmailParams> toSendEmail = new ArrayList<>();
+        toSendEmail.add(EmailParams.build(
+                EMAIL_SUBJECT,
+                this.buildText(this.userActivateEmail, "姓名", "password", "https://student.iecube.online/login"),
+                "xiaolong.zhang@iecube.com.cn"
+        ));
+        this.sendEmail(toSendEmail);
     }
 
     public void verifySignInCode(String email, String code, StringRedisTemplate stringRedisTemplate) {

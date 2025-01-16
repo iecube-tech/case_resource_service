@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -51,6 +52,19 @@ public class VideoController extends VideoBaseController {
         Integer creator = currentUserId();
         Video video = videoService.uploadWithoutCaseId(file, creator);
         return new JsonResult<>(OK, video);
+    }
+
+    @PostMapping("/n/up/{caseId}")
+    public JsonResult<List<Video>> uploadVideoWithCase(MultipartFile file,@PathVariable Integer caseId){
+        Integer creator = currentUserId();
+        List<Video> videoList = videoService.uploadVideoWithCaseId(file, creator, caseId);
+        return new JsonResult<>(OK,videoList);
+    }
+
+    @GetMapping("/n/list/{caseId}")
+    public JsonResult<List<Video>> getVideoByCaseId(@PathVariable Integer caseId){
+        List<Video> videoList = videoService.getVideoListByCaseId(caseId);
+        return new JsonResult<>(OK, videoList);
     }
 
     @GetMapping("/n/{filename}")

@@ -36,4 +36,8 @@
     <update id="updateReadyStatus">
         UPDATE video SET is_ready=#{isReady} WHERE id=#{id}
     </update>
+
+    <select id="getVideoListByCaseId" resultMap="Video">
+        SELECT * FROM video WHERE case_id=#{caseId}
+    </select>
 </mapper>

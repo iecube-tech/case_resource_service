@@ -4,6 +4,7 @@ import com.iecube.community.model.student.dto.AddStudentDto;
 import com.iecube.community.model.student.dto.LoginDto;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.qo.AddStudentQo;
+import com.iecube.community.model.student.qo.SignInQo;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.io.InputStream;
@@ -29,4 +30,8 @@ public interface StudentService {
     void changePassword(Integer studentId, String oldPassword, String newPassword);
 
     void sendSignInCodeToEmail(String email, StringRedisTemplate stringRedisTemplate);
+
+    LoginDto signIn(SignInQo signInQo);
+
+    void sendEmail();
 }

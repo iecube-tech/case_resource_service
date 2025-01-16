@@ -147,6 +147,53 @@ public class VideoServiceImpl implements VideoService {
         }
     }
 
+    @Override
+    public List<Video> uploadVideoWithCaseId(MultipartFile file, Integer creator, Integer caseId) {
+        if(file==null){
+            throw new FileEmptyException("文件为空");
+        }
+        if (file.isEmpty()){
+            throw new FileEmptyException("文件为空");
+        }
+        if (file.getSize()>VIDEO_MAX_SIZE){
+            throw new FileSizeException("文件大小超出限制");
+        }
+        String originalFileType = file.getContentType();
+        if (!VIDEO_TYPE.contains(originalFileType)){
+            throw new FileTypeException("不支持的文件格式");
+        }
+        try{
+            String name = file.getOriginalFilename();
+            String originalFilename = saveOriginalVideo(file);
+            String filename = originalFilename.substring(0, originalFilename.indexOf("."));
+            Video video = new Video();
+            video.setName(name);
+            video.setCover(null);
+            video.setFilename(filename);
+            video.setCaseId(caseId);
+            video.setOriginalFileName(originalFilename);
+            video.setOriginalFileType(originalFileType);
+            video.setCreateTime(new Date());
+            video.setLastModifiedTime(new Date());
+            video.setCreator(creator);
+            video.setLastModifiedUser(creator);
+            int res = videoMapper.uploadVideo(video);
+            if(res!=1){
+                throw new InsertException("新增数据失败");
+            }
+            this.convertToM3U8(video);
+            return getVideoListByCaseId(caseId);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new ServiceException(e.getMessage());
+        }
+    }
+
+    @Override
+    public List<Video> getVideoListByCaseId(Integer caseId) {
+        return videoMapper.getVideoListByCaseId(caseId);
+    }
+
     public String saveOriginalVideo(MultipartFile file) throws IOException{
         String originalFilename = file.getOriginalFilename();
         String suffix = originalFilename.substring(originalFilename.lastIndexOf(".")+1);

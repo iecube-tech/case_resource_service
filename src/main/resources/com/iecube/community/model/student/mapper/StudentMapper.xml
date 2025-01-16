@@ -103,7 +103,7 @@
         LIMIT #{page},#{pageSize}
     </select>
 
-    <select id="findAllStudent " resultMap="StudentDto">
+    <select id="findAllStudent" resultMap="StudentDto">
         SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.grade as student_grade,
                class_and_grade.name as student_class, Major.name as major, Collage.name as collage, School.`name` as school
         FROM Student RIGHT JOIN Major ON Student.major_id=Major.id RIGHT JOIN Collage ON Major.collage_id=Collage.id RIGHT JOIN School ON Collage.school_id=School.id

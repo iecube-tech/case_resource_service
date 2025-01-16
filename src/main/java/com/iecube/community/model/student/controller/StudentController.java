@@ -6,6 +6,7 @@ import com.iecube.community.model.student.dto.LoginDto;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.qo.AddStudentQo;
 import com.iecube.community.model.student.qo.DeleteQo;
+import com.iecube.community.model.student.qo.SignInQo;
 import com.iecube.community.model.student.service.StudentService;
 import com.iecube.community.model.teacher.qo.ChangePassword;
 import com.iecube.community.util.DownloadUtil;
@@ -162,6 +163,18 @@ public class StudentController extends StudentBaseController {
     public JsonResult<Void> getSignInCode(String email){
         System.out.println(email);
         studentService.sendSignInCodeToEmail(email, stringRedisTemplate);
+        return new JsonResult<>(OK);
+    }
+
+    @PostMapping("/sign/in")
+    public JsonResult<LoginDto> signIn(@RequestBody SignInQo signInQo){
+
+        return new JsonResult<>(OK);
+    }
+
+    @GetMapping("/send/test")
+    public JsonResult<Void> sentTest(){
+        studentService.sendEmail();
         return new JsonResult<>(OK);
     }
 }
