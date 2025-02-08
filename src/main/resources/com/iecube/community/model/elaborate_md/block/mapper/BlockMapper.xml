@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.elaborate_md.block.mapper.BlockMapper">
+    <resultMap id="Block" type="com.iecube.community.model.elaborate_md.block.entity.Block">
+        <result column="parent_id" property="parentId"></result>
+        <result property="hasChildren" column="has_children"></result>
+    </resultMap>
+
+    <insert id="createBlock" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO e_md_block (id, parent_id, sort) VALUES (NULL, #{parentId}, #{sort})
+    </insert>
+
+    <delete id="delBlock">
+        DELETE FROM e_md_block WHERE id=#{id}
+    </delete>
+
+    <select id="getById" resultMap="Block">
+        SELECT `id`, `parent_id`, `sort`,
+               (SELECT COUNT(*) FROM e_md_compose WHERE parent_id = e_md_block.id) AS has_children
+        FROM e_md_block
+        WHERE id=#{id}
+    </select>
+
+    <select id="getBySectionId" resultMap="Block">
+        SELECT `id`, `parent_id`, `sort`,
+               (SELECT COUNT(*) FROM e_md_compose WHERE parent_id = e_md_block.id) AS has_children
+        FROM e_md_block
+        WHERE parent_id=#{parentId} ORDER BY sort
+    </select>
+
+    <update id="batchUpSort">
+        UPDATE e_md_block
+        SET sort =
+        <foreach collection="list" item="item" separator=" " open="CASE id" close="END">
+            WHEN #{item.id} THEN #{item.sort}
+        </foreach>
+        WHERE id IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </update>
+</mapper>

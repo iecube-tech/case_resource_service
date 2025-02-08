@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.elaborate_md.sectionalization.mapper.SectionalizationMapper">
+    <resultMap id="Sectionalization" type="com.iecube.community.model.elaborate_md.sectionalization.entity.Sectionalization">
+        <result column="parent_id" property="parentId"></result>
+        <result property="hasChildren" column="has_children"></result>
+    </resultMap>
+
+    <insert id="createSectionalization" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO e_md_sectionalization (id, parent_id, sort) VALUES (NULL, #{parentId}, #{sort})
+    </insert>
+
+    <update id="batchUpdateSort">
+        UPDATE e_md_sectionalization
+        SET sort =
+        <foreach collection="list" item="item" separator=" " open="CASE id" close="END">
+            WHEN #{item.id} THEN #{item.sort}
+        </foreach>
+        WHERE id IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </update>
+
+    <delete id="deleteSectionalization">
+        DELETE FROM e_md_sectionalization WHERE id=#{id}
+    </delete>
+
+    <select id="getById" resultMap="Sectionalization">
+        SELECT `id`, `parent_id`, `sort`,
+            (SELECT COUNT(*) FROM e_md_block WHERE parent_id = e_md_sectionalization.id) AS has_children
+        FROM e_md_sectionalization
+        WHERE id=#{id}
+    </select>
+
+    <select id="getByLabProcId" resultMap="Sectionalization">
+        SELECT `id`, `parent_id`, `sort`,
+            (SELECT COUNT(*) FROM e_md_block WHERE parent_id = e_md_sectionalization.id) AS has_children
+        FROM e_md_sectionalization
+        WHERE parent_id=#{parentId} ORDER BY sort
+    </select>
+
+</mapper>

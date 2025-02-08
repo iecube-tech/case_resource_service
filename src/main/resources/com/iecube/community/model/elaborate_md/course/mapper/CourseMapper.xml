@@ -3,6 +3,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.iecube.community.model.elaborate_md.course.mapper.CourseMapper">
     <resultMap id="CourseEntity" type="com.iecube.community.model.elaborate_md.course.entity.CourseEntity">
+        <result property="hasChildren" column="has_children"></result>
     </resultMap>
 
     <insert id="InsertCourseEntity" keyProperty="id" useGeneratedKeys="true">
@@ -14,7 +15,10 @@
     </delete>
 
     <select id="GetAll" resultMap="CourseEntity">
-        SELECT id, `name` FROM e_md_course ORDER BY `name`
+        SELECT
+            e_md_course.*,
+            (SELECT COUNT(*) FROM e_md_lab_proc WHERE parent_id = e_md_course.id) AS has_children
+        FROM e_md_course
     </select>
 
     <update id="UpCourseEntity">

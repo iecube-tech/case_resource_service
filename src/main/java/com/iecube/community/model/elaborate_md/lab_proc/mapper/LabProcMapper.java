@@ -9,9 +9,13 @@ import java.util.List;
 public interface LabProcMapper {
     int createLabProc(LabProc labProc);
 
-    int updateLabProc(LabProc labProc);
+    int updateLabProc(LabProc newLabProc);
+
+    int batchUpdateSort(List<LabProc> list);
 
     int deleteLabProc(long id);
+
+    LabProc getLabProcById(long id);
 
     List<LabProc> getLabProcByCourse(long courseId);
 }

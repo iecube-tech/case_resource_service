@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.elaborate_md.lab_proc.mapper.LabProcMapper">
+    <resultMap id="LabProc" type="com.iecube.community.model.elaborate_md.lab_proc.entity.LabProc">
+        <result column="parent_id" property="parentId"></result>
+        <result property="hasChildren" column="has_children"></result>
+    </resultMap>
+
+    <insert id="createLabProc" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO e_md_lab_proc (`id`, `parent_id`, `name`, `sort`) VALUES (NULL, #{parentId}, #{name}, #{sort})
+    </insert>
+
+    <update id="updateLabProc">
+        UPDATE e_md_lab_proc SET `name`=#{name}, `sort`=#{sort} WHERE `id`=#{id}
+    </update>
+
+    <update id="batchUpdateSort">
+        UPDATE e_md_lab_proc
+        SET sort =
+        <foreach collection="list" item="item" separator=" " open="CASE id" close="END">
+            WHEN #{item.id} THEN #{item.sort}
+        </foreach>
+        WHERE id IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </update>
+
+    <delete id="deleteLabProc">
+        DELETE FROM e_md_lab_proc WHERE id=#{id}
+    </delete>
+
+    <select id="getLabProcById" resultMap="LabProc">
+        SELECT
+            `id`, `parent_id`, `name`, `sort`,
+            (SELECT COUNT(*) FROM e_md_sectionalization WHERE parent_id = e_md_lab_proc.id) AS has_children
+        FROM e_md_lab_proc
+        WHERE id=#{id}
+    </select>
+
+    <select id="getLabProcByCourse" resultMap="LabProc">
+        SELECT
+            `id`, `parent_id`, `name`, `sort`,
+            (SELECT COUNT(*) FROM e_md_sectionalization WHERE parent_id = e_md_lab_proc.id) AS has_children
+        FROM e_md_lab_proc
+        WHERE `parent_id`=#{courseId} ORDER BY `sort`
+    </select>
+
+</mapper>
