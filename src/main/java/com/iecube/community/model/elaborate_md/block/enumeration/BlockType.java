@@ -1,16 +1,16 @@
-package com.iecube.community.model.elaborate_md.compose.enumeration;
+package com.iecube.community.model.elaborate_md.block.enumeration;
 
 import lombok.Getter;
 
 @Getter
-public enum ComposeType {
+public enum BlockType {
     TEXT(0),
     QUESTION(1),
     INTERACTION(2);
 
     private final int value;
 
-    private ComposeType(final int value) {
+    private BlockType(final int value) {
         this.value = value;
     }
 }

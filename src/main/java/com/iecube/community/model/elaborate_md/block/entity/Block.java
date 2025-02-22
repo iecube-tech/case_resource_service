@@ -7,7 +7,8 @@ public class Block {
     private long id;
     private long parentId; // 外键 sectionId
     private int sort;
-    private boolean hasChildren;
+    private boolean hasChildren=false;
     private String name="块";
     private int level=3;
+    private String type;
 }

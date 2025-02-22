@@ -2,8 +2,10 @@ package com.iecube.community.model.elaborate_md.block.controller;
 
 import com.iecube.community.basecontroller.BaseController;
 import com.iecube.community.model.elaborate_md.block.entity.Block;
+import com.iecube.community.model.elaborate_md.block.entity.BlockDetail;
 import com.iecube.community.model.elaborate_md.block.qo.BlockQo;
 import com.iecube.community.model.elaborate_md.block.service.BlockService;
+import com.iecube.community.model.elaborate_md.block.vo.BlockVo;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +20,9 @@ public class BlockController extends BaseController {
     private BlockService blockService;
 
     @PostMapping("/create")
-    public JsonResult<List<Block>> createBlock(@RequestBody BlockQo blockQo){
-        blockService.createBlock(blockQo);
-        return new JsonResult<>(OK, blockService.getBlockListBySection(blockQo.getSectionId()));
+    public JsonResult<BlockVo> createBlock(@RequestBody BlockQo blockQo){
+        BlockVo res = blockService.createBlock(blockQo);
+        return new JsonResult<>(OK, res);
     }
 
     @DeleteMapping("/del")
@@ -39,4 +41,23 @@ public class BlockController extends BaseController {
     public JsonResult<List<Block>> getBlockListBySectionId(@PathVariable long sectionId){
         return new JsonResult<>(OK, blockService.getBlockListBySection(sectionId));
     }
+
+    @GetMapping("/vo/list")
+    public JsonResult<List<BlockVo>> getBlockVoList(Long sectionId){
+        List<BlockVo> res = blockService.getBlockVoListBySection(sectionId);
+        return new JsonResult<>(OK, res);
+    }
+
+    @GetMapping("/detail")
+    public JsonResult<BlockDetail> getBlockDetail(Long blockId){
+        return new JsonResult<>(OK,blockService.getBlockDetailByBlock(blockId));
+    }
+
+    @PostMapping("/up/detail")
+    public JsonResult<Void> upBlockDetail(@RequestBody BlockDetail blockDetail){
+        blockService.upBlockDetail(blockDetail);
+        return new JsonResult<>(OK);
+    }
+
+
 }

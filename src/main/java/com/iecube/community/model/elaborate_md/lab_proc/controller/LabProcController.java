@@ -35,7 +35,7 @@ public class LabProcController extends BaseController {
         return new JsonResult<>(OK, res);
     }
 
-    @PostMapping("/sorts")
+    @PostMapping("/sort")
     public JsonResult<List<LabProc>> sortLabProc(@RequestBody List<LabProc> labProcList) {
         List<LabProc> res = labProcService.batchUpdateSort(labProcList);
         return new JsonResult<>(OK, res);

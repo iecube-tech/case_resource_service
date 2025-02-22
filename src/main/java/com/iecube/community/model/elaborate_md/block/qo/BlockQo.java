@@ -6,4 +6,5 @@ import lombok.Data;
 public class BlockQo {
     private Long sectionId;
     private Integer sort;
+    private String type;
 }

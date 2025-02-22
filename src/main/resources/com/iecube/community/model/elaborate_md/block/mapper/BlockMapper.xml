@@ -4,7 +4,20 @@
 <mapper namespace="com.iecube.community.model.elaborate_md.block.mapper.BlockMapper">
     <resultMap id="Block" type="com.iecube.community.model.elaborate_md.block.entity.Block">
         <result column="parent_id" property="parentId"></result>
-        <result property="hasChildren" column="has_children"></result>
+    </resultMap>
+
+    <resultMap id="BlockDetail" type="com.iecube.community.model.elaborate_md.block.entity.BlockDetail">
+        <result column="parent_id" property="parentId"></result>
+        <result column="conf_data" property="confData"></result>
+        <result column="reference_data" property="referenceData"></result>
+        <result column="data_template" property="dataTemplate"></result>
+    </resultMap>
+
+    <resultMap id="BlockVo" type="com.iecube.community.model.elaborate_md.block.vo.BlockVo">
+        <result column="block_id" property="blockId"></result>
+        <result column="section_id" property="sectionId"></result>
+        <result column="conf_data" property="confData"></result>
+        <result column="reference_data" property="referenceData"></result>
     </resultMap>
 
     <insert id="createBlock" useGeneratedKeys="true" keyProperty="id">
@@ -16,17 +29,15 @@
     </delete>
 
     <select id="getById" resultMap="Block">
-        SELECT `id`, `parent_id`, `sort`,
-               (SELECT COUNT(*) FROM e_md_compose WHERE parent_id = e_md_block.id) AS has_children
-        FROM e_md_block
-        WHERE id=#{id}
+        SELECT e_md_block.id, e_md_block.parent_id, e_md_block.sort, e_md_block_detail.type
+        FROM e_md_block LEFT JOIN e_md_block_detail ON e_md_block.id=e_md_block_detail.parent_id
+        WHERE e_md_block.id=#{id}
     </select>
 
     <select id="getBySectionId" resultMap="Block">
-        SELECT `id`, `parent_id`, `sort`,
-               (SELECT COUNT(*) FROM e_md_compose WHERE parent_id = e_md_block.id) AS has_children
-        FROM e_md_block
-        WHERE parent_id=#{parentId} ORDER BY sort
+        SELECT e_md_block.id, e_md_block.parent_id, e_md_block.sort, e_md_block_detail.type
+        FROM e_md_block LEFT JOIN e_md_block_detail ON e_md_block.id=e_md_block_detail.parent_id
+        WHERE e_md_block.parent_id=#{parentId} ORDER BY sort
     </select>
 
     <update id="batchUpSort">
@@ -40,4 +51,45 @@
             #{item.id}
         </foreach>
     </update>
+
+    <!--    ##################################### block_detail ##################################################-->
+    <insert id="createBlockDetail">
+        INSERT INTO e_md_block_detail (id, parent_id, type, title, content, catalogue, conf_data, reference_data, data_template)
+        VALUES (NULL, #{parentId}, #{type}, #{title}, #{content}, #{catalogue}, #{confData}, #{referenceData},#{dataTemplate})
+    </insert>
+
+    <select id="getBlockDetailByBlock" resultMap="BlockDetail">
+        SELECT id, parent_id, type, title, content, catalogue, conf_data, reference_data, data_template FROM e_md_block_detail
+        WHERE parent_id=#{blockId}
+    </select>
+
+    <update id="upBlockDetail">
+        UPDATE e_md_block_detail SET title=#{title},
+                                     content=#{content},
+                                     catalogue=#{catalogue},
+                                     conf_data=#{confData},
+                                     reference_data=#{referenceData},
+                                     data_template=#{dataTemplate}
+        WHERE id=#{id}
+    </update>
+
+
+    <!-- ##################################  block & block_detail ############################################### -->
+    <select id="getBlockVoBySection" resultMap="BlockVo">
+        SELECT e_md_block.id AS block_id, e_md_block.parent_id AS section_id, e_md_block.sort,
+               e_md_block_detail.type, e_md_block_detail.title, e_md_block_detail.content, e_md_block_detail.catalogue,
+               e_md_block_detail.conf_data, e_md_block_detail.reference_data
+        FROM e_md_block LEFT JOIN e_md_block_detail ON e_md_block.id=e_md_block_detail.parent_id
+        WHERE e_md_block.parent_id=#{sectionId}
+        ORDER BY sort
+    </select>
+
+    <select id="getBlockVoByBlockId" resultMap="BlockVo">
+        SELECT e_md_block.id AS block_id, e_md_block.parent_id AS section_id, e_md_block.sort,
+               e_md_block_detail.type, e_md_block_detail.title, e_md_block_detail.content, e_md_block_detail.catalogue,
+               e_md_block_detail.conf_data, e_md_block_detail.reference_data
+        FROM e_md_block LEFT JOIN e_md_block_detail ON e_md_block.id=e_md_block_detail.parent_id
+        WHERE e_md_block.id=#{id}
+        ORDER BY sort
+    </select>
 </mapper>

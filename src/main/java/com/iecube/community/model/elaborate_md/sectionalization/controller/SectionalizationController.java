@@ -4,6 +4,7 @@ import com.iecube.community.basecontroller.BaseController;
 import com.iecube.community.model.elaborate_md.sectionalization.entity.Sectionalization;
 import com.iecube.community.model.elaborate_md.sectionalization.qo.SectionalizationQo;
 import com.iecube.community.model.elaborate_md.sectionalization.service.SectionalizationService;
+import com.iecube.community.model.elaborate_md.sectionalization.vo.SectionVo;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -41,5 +42,10 @@ public class SectionalizationController extends BaseController {
     @GetMapping("/{labProcId}")
     public JsonResult<List<Sectionalization>> getListByLabProc(@PathVariable long labProcId){
         return new JsonResult<>(OK, sectionalizationService.getSectionalizationByLabProcId(labProcId));
+    }
+
+    @GetMapping("/vo/list")
+    public JsonResult<List<SectionVo>> getSectionVoListByLab(Long labProcId){
+        return new JsonResult<>(OK, sectionalizationService.getSectionVoByLabProcId(labProcId));
     }
 }
