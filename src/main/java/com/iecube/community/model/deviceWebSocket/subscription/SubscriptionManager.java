@@ -1,10 +1,15 @@
 package com.iecube.community.model.deviceWebSocket.subscription;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.iecube.community.model.deviceWebSocket.dto.Message;
 import com.iecube.community.model.deviceWebSocket.handler.DeviceWebSocketHandler;
 import com.iecube.community.model.deviceWebSocket.handler.FrontendWebSocketHandler;
+import com.iecube.community.model.deviceWebSocket.middleware.SubscriptionMiddleware;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -17,75 +22,52 @@ import java.util.concurrent.ConcurrentMap;
 @Component
 public class SubscriptionManager {
     @Autowired
-    private DeviceWebSocketHandler deviceWebSocketHandler;
-
-    @Autowired
-    private FrontendWebSocketHandler frontendWebSocketHandler;
-
-    // 设备订阅表：<设备ID, 前端session>
-    private final ConcurrentMap<String, WebSocketSession> deviceSubscriptions = new ConcurrentHashMap<>();
-    // 会话订阅记录：<前端sessionId, 订阅设备>
-    private final ConcurrentMap<String, String> sessionSubscriptions = new ConcurrentHashMap<>();
+    private SubscriptionMiddleware subscriptionMiddleware;
 
     // 添加订阅
-    public synchronized void subscribe(String deviceId, WebSocketSession session) {
+    public synchronized void subscribe(String deviceId, WebSocketSession session) throws IOException {
+        if(deviceId==null){
+            Message message = new Message();
+            message.setType("ERROR");
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree("{\"msg\":\"未携带参数deviceId\"}");
+            message.setData(jsonNode);
+            subscriptionMiddleware.sendMessage(session, message);
+        }
         // 先判断设备有无被订阅
-        if(deviceSubscriptions.containsKey(deviceId)) {
+        WebSocketSession deviceSession = subscriptionMiddleware.deviceSessions.get(deviceId);
+        if(deviceSession == null) {
+            session.close(new CloseStatus(CloseStatus.GOING_AWAY.getCode(),"设备不在线"));
+            return;
+        }
+        if(subscriptionMiddleware.deviceSubscriptions.containsKey(deviceId)) {
             // 设备已经被订阅
-            try {
-                session.sendMessage(new TextMessage("设备已被订阅"));
-                session.close();
-            } catch (IOException e) {
-                log.warn(e.getMessage());
-            }
+            session.close(new CloseStatus(CloseStatus.GOING_AWAY.getCode(),"设备已经被订阅"));
             return;
         }
-        //再判断设备状态
-        if(!deviceWebSocketHandler.deviceOnline(deviceId)) {
-            //设备不在线
-            try {
-                session.sendMessage(new TextMessage("设备离线"));
-                session.close();
-            } catch (IOException e) {
-                log.warn(e.getMessage());
-            }
-            return;
-        }
-        deviceSubscriptions.put(deviceId, session);
-        sessionSubscriptions.put(session.getId(), deviceId);
+        subscriptionMiddleware.deviceSubscriptions.put(deviceId, session);
+        subscriptionMiddleware.sessionSubscriptions.put(session.getId(), deviceId);
+        Message message = new Message();
+        message.setType("START");
+        subscriptionMiddleware.sendMessage(deviceSession,message);
+
+        Message msg =new Message();
+        msg.setType("SUCCESS");
+        subscriptionMiddleware.sendMessage(session,msg);
+        log.info("订阅设备{}",deviceId);
     }
 
     // 前端移除订阅
-    public synchronized void unsubscribe(String deviceId, WebSocketSession session) {
-        deviceSubscriptions.remove(deviceId);
-        sessionSubscriptions.remove(session.getId());
-    }
-
-    // 设备离线
-    public synchronized void deviceDisSubscribe(String deviceId){
-        WebSocketSession frontSession = deviceSubscriptions.get(deviceId);
-        deviceSubscriptions.remove(deviceId);
-        sessionSubscriptions.remove(frontSession.getId());
-    }
-
-    // 会话断开时清理
-    public void cleanupSession(WebSocketSession session) {
-        String deviceId = sessionSubscriptions.get(session.getId());
-        deviceSubscriptions.remove(deviceId);
-        sessionSubscriptions.remove(session.getId());
-    }
-
-    public void sendToDevice(WebSocketSession frontSession, String message) {
-        String deviceId = sessionSubscriptions.get(frontSession.getId());
-        if(deviceId!=null) {
-            deviceWebSocketHandler.sendToDevice(deviceId, message);
-        }
-    }
-
-    public void sendToFrontend(String deviceId, String message) {
-        WebSocketSession session = deviceSubscriptions.get(deviceId);
-        if(session!=null) {
-            frontendWebSocketHandler.sendToFront(session, message);
-        }
+    public synchronized void unsubscribe(String deviceId, WebSocketSession session) throws IOException {
+        WebSocketSession deviceSession = subscriptionMiddleware.deviceSessions.get(deviceId);
+        Message msg = new Message();
+        msg.setType("STOP");
+        subscriptionMiddleware.sendMessage(deviceSession,msg);
+        subscriptionMiddleware.deviceSubscriptions.remove(deviceId);
+        subscriptionMiddleware.sessionSubscriptions.remove(session.getId());
+        Message msg1 =new Message();
+        msg1.setType("SUCCESS");
+        subscriptionMiddleware.sendMessage(session,msg1);
+        log.info("取消订阅{}",deviceId);
     }
 }

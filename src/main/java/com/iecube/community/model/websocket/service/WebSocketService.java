@@ -17,8 +17,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import static javax.websocket.CloseReason.CloseCodes.*;
 
 @Slf4j
-@ServerEndpoint(value = "/{type}/{id}")
-@Component
+//@ServerEndpoint(value = "/{type}/{id}")
+//@Component
 public class WebSocketService {
 
     private static final String USER="online";

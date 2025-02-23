@@ -5,9 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iecube.community.model.deviceWebSocket.dto.DeviceData;
 import com.iecube.community.model.deviceWebSocket.dto.Message;
-import com.iecube.community.model.deviceWebSocket.subscription.SubscriptionManager;
+import com.iecube.community.model.deviceWebSocket.middleware.SubscriptionMiddleware;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -17,89 +16,101 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 @Component
 @Slf4j
 public class DeviceWebSocketHandler extends TextWebSocketHandler {
-
     @Autowired
-    private SubscriptionManager subscriptionManager;
-
-    private static final ConcurrentMap<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
+    private SubscriptionMiddleware subscriptionMiddleware;
 
     @Override
-    protected void handleTextMessage(@NotNull WebSocketSession session, TextMessage message) throws IOException {
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
         // 1. 解析设备数据
         DeviceData data = parseMessage(session, message.getPayload());
         if(data.getDeviceId() == null || data.getType() == null) {
-            session.close(new CloseStatus(CloseStatus.BAD_DATA.getCode(),"携带数据异常"));
+            log.warn("设备消息参数错误");
+            Message msg = new Message();
+            msg.setType("ERROR");
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree("{\"msg\":\"设备消息参数错误\"}");
+            msg.setData(jsonNode);
+            subscriptionMiddleware.sendMessage(session,msg);
             return;
         }
-        if(!sessions.containsKey(data.getDeviceId())) {
-            sessions.put(session.getId(), session);
+        if(!subscriptionMiddleware.deviceSessions.containsKey(data.getDeviceId())) {
+            subscriptionMiddleware.deviceSessions.put(data.getDeviceId(), session);
         }
-        ObjectMapper objectMapper = new ObjectMapper();
+        log.info("设备：{}",data.getDeviceId());
         switch(data.getType()) {
-            case "SEND":
+            case "INIT":
+                log.info("INIT");
+                break;
+            case "DATA":
+                log.info("发送数据");
+                // 广播实时数据到前端（由设备数据处理器调用）
                 Message msg = new Message();
                 msg.setType("DATA");
                 msg.setData(data.getData());
                 if(data.getData()!=null){
-                    subscriptionManager.sendToFrontend(data.getDeviceId(),objectMapper.writeValueAsString(msg));
+                    WebSocketSession frontSession = subscriptionMiddleware.deviceSubscriptions.get(data.getDeviceId());
+                    subscriptionMiddleware.sendMessage(frontSession, msg);
                 }
+                break;
             case "PING":
+                log.info("PING");
                 Message msg1 = new Message();
                 msg1.setType("PONG");
-                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(msg1)));
+                subscriptionMiddleware.sendMessage(session,msg1);
+                break;
         }
     }
 
     @Override
-    public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus status) throws Exception {
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
-        sessions.forEach((key,val)->{
-            if (val.equals(session)) {
-                // 若相等，则删除该键值对
-                sessions.remove(key);
-                subscriptionManager.deviceDisSubscribe(key);
+        // 设备断连
+        for(ConcurrentHashMap.Entry<String, WebSocketSession> entry:subscriptionMiddleware.deviceSessions.entrySet()){
+            if(entry.getValue().equals(session)){
+                log.info(entry.getKey(),entry.getValue());
+                log.info("{}掉线",entry.getKey());
+                // 若相等，获取订阅的前端session
+                WebSocketSession frontSession = subscriptionMiddleware.deviceSubscriptions.get(entry.getKey());
+                // 前端session断连
+                if(frontSession!=null){
+                    try {
+                        CloseStatus closeStatus = new CloseStatus(CloseStatus.BAD_DATA.getCode(), "设备掉线");
+                        frontSession.close(closeStatus);
+                        log.info("通告并断连订阅方{}",frontSession.getId());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    if(subscriptionMiddleware.frontSessions.containsKey(frontSession.getId())){
+                        subscriptionMiddleware.frontSessions.remove(frontSession.getId());
+                    }
+                    if(subscriptionMiddleware.sessionSubscriptions.containsKey(frontSession.getId())){
+                        subscriptionMiddleware.sessionSubscriptions.remove(frontSession.getId());
+                    }
+                }
+                if(subscriptionMiddleware.deviceSubscriptions.containsKey(entry.getKey())){
+                    subscriptionMiddleware.deviceSubscriptions.remove(entry.getKey());
+                }
+                // 则删除该键值对
+                subscriptionMiddleware.deviceSessions.remove(entry.getKey());
             }
-        });
-
-    }
-
-    public Boolean deviceOnline(String deviceId) {
-        WebSocketSession session = sessions.get(deviceId);
-        if(session != null) {
-            return session.isOpen();
-        }
-        else {
-            return false;
         }
     }
 
-    private DeviceData parseMessage(WebSocketSession session, String payload) {
+    private DeviceData parseMessage(WebSocketSession session, String payload) throws IOException {
         DeviceData deviceData = new DeviceData();
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             JsonNode json = objectMapper.readTree(payload);
-            deviceData.setDeviceId(json.get("deviceId").asText());
-            deviceData.setType(json.get("type").asText());
-            deviceData.setData(json.get("data"));
+            deviceData.setDeviceId(json.get("deviceId")==null?null:json.get("deviceId").asText());
+            deviceData.setType(json.get("type")==null?null:json.get("type").asText());
+            deviceData.setData(json.get("data")==null?null:json.get("data"));
         } catch (JsonProcessingException e) {
-            // todo 向客户端发送消息异常
+            log.warn("解析数据异常");
         }
         return deviceData;
-    }
-
-    public void sendToDevice(String deviceId, String message) {
-        WebSocketSession session = sessions.get(deviceId);
-        if(session != null) {
-            try{
-                session.sendMessage(new TextMessage(message));
-            }catch (IOException e){
-                log.error(e.getMessage());
-            }
-        }
     }
 }
