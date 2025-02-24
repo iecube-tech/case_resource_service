@@ -1,5 +1,6 @@
 package com.iecube.community.model.taskTemplate.dto;
 
+import com.iecube.community.model.elaborate_md.lab_proc.entity.LabProc;
 import com.iecube.community.model.markdown.entity.MDChapter;
 import com.iecube.community.model.resource.entity.Resource;
 import com.iecube.community.model.task_attention.entity.Attention;
@@ -33,4 +34,6 @@ public class TaskTemplateDto {
     String taskDetails;
     Integer taskMdDoc;
     MDChapter mdChapter;
+    Long taskEMdProc;
+    LabProc labProc;
 }

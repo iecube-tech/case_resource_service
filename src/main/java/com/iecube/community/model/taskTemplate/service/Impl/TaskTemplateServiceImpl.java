@@ -2,6 +2,7 @@ package com.iecube.community.model.taskTemplate.service.Impl;
 
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
+import com.iecube.community.model.elaborate_md.lab_proc.entity.LabProc;
 import com.iecube.community.model.markdown.entity.MDChapter;
 import com.iecube.community.model.markdown.service.MarkdownService;
 import com.iecube.community.model.resource.entity.Resource;
@@ -23,6 +24,8 @@ import com.iecube.community.model.task_deliverable_requirement.mapper.Deliverabl
 import com.iecube.community.model.task_details.entity.Details;
 import com.iecube.community.model.task_details.entity.TaskDetails;
 import com.iecube.community.model.task_details.mapper.TaskDetailsMapper;
+import com.iecube.community.model.task_e_md_proc.entity.TaskTemplateEMdProc;
+import com.iecube.community.model.task_e_md_proc.mapper.TaskEMdProcMapper;
 import com.iecube.community.model.task_experimental_subject.entity.ExperimentalSubject;
 import com.iecube.community.model.task_experimental_subject.entity.TaskExperimentalSubject;
 import com.iecube.community.model.task_experimental_subject.mapper.TaskExperimentalSubjectMapper;
@@ -85,6 +88,9 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
 
     @Autowired
     private MarkdownService markdownService;
+
+    @Autowired
+    private TaskEMdProcMapper taskEMdProcMapper;
 
     @Override
     public void addTaskTemplateToContent(TaskTemplateDto taskTemplateDto, Integer user){
@@ -232,6 +238,18 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 throw new InsertException("插入数据异常");
             }
         }
+
+        // EMD 指导书
+        if(taskTemplateDto.getTaskEMdProc() != null){
+            TaskTemplateEMdProc taskTemplateEMdProc = new TaskTemplateEMdProc();
+            taskTemplateEMdProc.setTaskTemplateId(taskTemplateDto.getId());
+            taskTemplateEMdProc.setProcId(taskTemplateDto.getTaskEMdProc());
+            int re = taskEMdProcMapper.taskTemplateAddProc(taskTemplateEMdProc);
+            if(re!=1){
+                throw new InsertException("插入数据异常");
+            }
+        }
+
         //实验内容 taskDetails
         if(taskTemplateDto.getTaskDetails() != null){
             Details details=new Details();
@@ -261,6 +279,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         taskTemplate.setTaskName(taskTemplateDto.getTaskName());
         taskTemplate.setNum(taskTemplateDto.getNum());
         taskTemplate.setWeighting(taskTemplateDto.getWeighting());
+        taskTemplate.setClassHour(taskTemplateDto.getClassHour());
         taskTemplate.setTaskCover(taskCover.codeOf(taskTemplateDto.getNum()).getFiled());
         taskTemplate.setTaskDevice(taskTemplateDto.getTaskDevice());
         taskTemplate.setLastModifiedUser(user);
@@ -283,6 +302,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             List<ExperimentalSubject> experimentalSubjectList = experimentalSubjectMapper.getExperimentalSubjectByTaskTemplateId(taskTemplateDto.getId());
             Details details = taskDetailsMapper.getDetailsByTaskTemplateId(taskTemplateDto.getId());
             TaskMdDoc taskMdDoc = taskMdDocMapper.getTaskMdDocByTaskTemplateId(taskTemplateDto.getId());
+            LabProc labProc = taskEMdProcMapper.getLabProcByTaskTemplateId(taskTemplateDto.getId());
             taskTemplateDto.setBackDropList(backDropList);
             taskTemplateDto.setRequirementList(requirementList);
             taskTemplateDto.setDeliverableRequirementList(deliverableRequirementList);
@@ -297,6 +317,10 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 taskTemplateDto.setTaskMdDoc(taskMdDoc.getMdDocId());
                 MDChapter mdChapter = markdownService.getChapterById(taskMdDoc.getMdDocId());
                 taskTemplateDto.setMdChapter(mdChapter);
+            }
+            if(labProc != null){
+                taskTemplateDto.setLabProc(labProc);
+                taskTemplateDto.setTaskEMdProc(labProc.getId());
             }
         }
         return contentTaskTemplates;
@@ -349,7 +373,9 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         taskAttentionMapper.deleteByTaskTemplateId(taskTemplateId);
         experimentalSubjectMapper.deleteByTaskTemplateId(taskTemplateId);
         taskDetailsMapper.deleteByTaskTemplateId(taskTemplateId);
+
         taskMdDocMapper.deleteByTaskTemplateId(taskTemplateId);
+        taskEMdProcMapper.deleteLabProcByTaskTemplateId(taskTemplateId);
     }
 
     @Override

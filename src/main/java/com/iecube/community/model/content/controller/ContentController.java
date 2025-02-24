@@ -43,6 +43,10 @@ public class ContentController extends ContentBaseController {
         Integer lastModifiedUser = currentUserId();
         //todo 替换下面一行
         String userType = currentUserType();
+        if(content.getId()!=null){
+            contentService.updateContent(content,currentUserId());
+            return new JsonResult<>(OK, content.getId());
+        }
         Integer id = contentService.addContent(content,userType, lastModifiedUser);
         return new JsonResult<>(OK, id);
     }

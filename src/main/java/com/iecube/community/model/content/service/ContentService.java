@@ -73,4 +73,5 @@ public interface ContentService {
 
     List<Content> getMdCourseCreated(Integer user);
 
+    List<Content> getEMdCourseCreated(Integer user);
 }

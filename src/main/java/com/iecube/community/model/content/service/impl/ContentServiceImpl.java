@@ -456,4 +456,10 @@ public class ContentServiceImpl implements ContentService {
      return contentList;
     }
 
+    @Override
+    public List<Content> getEMdCourseCreated(Integer user) {
+        List<Content> contentList = contentMapper.getEMdCourseCreated(user);
+        return contentList;
+    }
+
 }

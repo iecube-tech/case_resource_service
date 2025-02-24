@@ -27,6 +27,7 @@ public class Content extends BaseEntity {
     private Integer deviceId;
     private Integer isPrivate;
     private Integer mdCourse; // md_course的id
+    private Long emdCourse;  // emd_course
 }
 
 /**

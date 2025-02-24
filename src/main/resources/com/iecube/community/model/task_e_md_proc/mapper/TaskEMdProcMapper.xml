@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.task_e_md_proc.mapper.TaskEMdProcMapper">
+    <resultMap id="LabProc" type="com.iecube.community.model.elaborate_md.lab_proc.entity.LabProc">
+        <result column="parent_id" property="parentId"></result>
+        <result property="hasChildren" column="has_children"></result>
+    </resultMap>
+
+    <insert id="taskTemplateAddProc" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO task_template_emd_proc (id, task_template_id, proc_id) VALUES (NULL, #{taskTemplateId}, #{procId})
+    </insert>
+
+    <insert id="taskAddProc" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO task_emd_proc (id, task_id, proc_id) VALUES (NULL, #{taskId},#{procId})
+    </insert>
+
+    <select id="getLabProcByTaskTemplateId" resultMap="LabProc">
+        SELECT e_md_lab_proc.id,e_md_lab_proc.`parent_id`, e_md_lab_proc.`name`, e_md_lab_proc.`sort`,
+               (SELECT COUNT(*) FROM e_md_sectionalization WHERE parent_id = e_md_lab_proc.id) AS has_children
+        FROM e_md_lab_proc LEFT JOIN task_template_emd_proc ON e_md_lab_proc.id=task_template_emd_proc.proc_id
+        WHERE task_template_emd_proc.task_template_id=#{taskTemlateId}
+    </select>
+
+    <select id="getLabProcByTaskId" resultMap="LabProc">
+        SELECT e_md_lab_proc.id,e_md_lab_proc.`parent_id`, e_md_lab_proc.`name`, e_md_lab_proc.`sort`,
+               (SELECT COUNT(*) FROM e_md_sectionalization WHERE parent_id = e_md_lab_proc.id) AS has_children
+        FROM e_md_lab_proc LEFT JOIN task_emd_proc ON e_md_lab_proc.id=task_emd_proc.proc_id
+        WHERE task_emd_proc.task_id=#{taskId}
+    </select>
+
+    <delete id="deleteLabProcByTaskTemplateId">
+        DELETE FROM task_template_emd_proc WHERE task_template_emd_proc.task_template_id=#{taskTemlateId}
+    </delete>
+
+    <delete id="deleteLabProcByTaskId">
+        DELETE FROM task_emd_proc WHERE task_emd_proc.task_id=#{taskId}
+    </delete>
+
+</mapper>

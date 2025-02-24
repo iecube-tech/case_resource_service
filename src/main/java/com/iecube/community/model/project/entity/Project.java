@@ -26,4 +26,5 @@ public class Project extends BaseEntity {
     Integer useRemote;
     String fourth;
     String fourthType;
+    Long emdCourse;
 }

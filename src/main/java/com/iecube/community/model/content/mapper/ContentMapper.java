@@ -79,4 +79,6 @@ public interface ContentMapper {
     Integer updateIsPrivate(Integer contentId, Integer isPrivate);
 
     List<Content> getMdCourseCreated(Integer user);
+
+    List<Content> getEMdCourseCreated(Integer user);
 }
