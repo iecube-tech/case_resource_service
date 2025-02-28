@@ -26,6 +26,7 @@ public class DeviceWebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
         // 1. 解析设备数据
+        log.info(message.getPayload());
         DeviceData data = parseMessage(session, message.getPayload());
         if(data.getDeviceId() == null || data.getType() == null) {
             log.warn("设备消息参数错误");

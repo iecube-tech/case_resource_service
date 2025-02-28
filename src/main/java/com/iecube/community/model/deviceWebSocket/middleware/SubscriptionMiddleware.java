@@ -41,13 +41,18 @@ public class SubscriptionMiddleware {
      * @param message 消息
      * @throws IOException 异常
      */
-    public void sendMessage(WebSocketSession session, Message message) throws IOException {
-        if(session == null){
-            log.warn("尝试向不存在的session发送消息: {}",message);
+    public void sendMessage(WebSocketSession session, Message message){
+        if(session == null || !session.isOpen()){
+            log.warn("尝试向不存在或已关闭的session发送消息: {}",message);
             return;
         }
         ObjectMapper objectMapper = new ObjectMapper();
-        String msg = objectMapper.writeValueAsString(message);
-        session.sendMessage(new TextMessage(msg));
+        try{
+            String msg = objectMapper.writeValueAsString(message);
+            session.sendMessage(new TextMessage(msg));
+        }catch (Exception e){
+            log.error("发送消息异常{}",e.getMessage());
+        }
+
     }
 }

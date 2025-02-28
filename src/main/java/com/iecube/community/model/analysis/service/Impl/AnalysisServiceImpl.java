@@ -62,56 +62,58 @@ public class AnalysisServiceImpl implements AnalysisService {
         List<ProjectTaskStudentsGrade> projectTaskStudentsGradeList = new ArrayList<>();
         List<ProjectTaskStudentsTags> projectTaskStudentsTagsList = new ArrayList<>();
         List<String> allTags = new ArrayList<>();
-        for (int i=0; i<tasksOfAllProjectStudents.get(0).size(); i++){
-            //第i个任务 的所有分数列表
-            List<Double> grades = new ArrayList<>();
-            List<String> tags = new ArrayList<>();
-            int num = 0;
-            for (int j=0; j<tasksOfAllProjectStudents.size(); j++){
-                if(tasksOfAllProjectStudents.get(j).get(i).getTaskGrade()!=null){
-                    grades.add(tasksOfAllProjectStudents.get(j).get(i).getTaskGrade());
-                }else{
-                    grades.add(0.0);
-                }
-                if( Objects.equals(tasksOfAllProjectStudents.get(j).get(i).getTaskStatus(),1)){
-                    num++;
-                }
-                if(!tasksOfAllProjectStudents.get(j).get(i).getTaskTags().isEmpty()){
-                    for(Tag tag: tasksOfAllProjectStudents.get(j).get(i).getTaskTags()){
-                        tags.add(tag.getName());
+        if(!tasksOfAllProjectStudents.isEmpty()) {
+            for (int i = 0; i < tasksOfAllProjectStudents.get(0).size(); i++) {
+                //第i个任务 的所有分数列表
+                List<Double> grades = new ArrayList<>();
+                List<String> tags = new ArrayList<>();
+                int num = 0;
+                for (int j = 0; j < tasksOfAllProjectStudents.size(); j++) {
+                    if (tasksOfAllProjectStudents.get(j).get(i).getTaskGrade() != null) {
+                        grades.add(tasksOfAllProjectStudents.get(j).get(i).getTaskGrade());
+                    } else {
+                        grades.add(0.0);
+                    }
+                    if (Objects.equals(tasksOfAllProjectStudents.get(j).get(i).getTaskStatus(), 1)) {
+                        num++;
+                    }
+                    if (!tasksOfAllProjectStudents.get(j).get(i).getTaskTags().isEmpty()) {
+                        for (Tag tag : tasksOfAllProjectStudents.get(j).get(i).getTaskTags()) {
+                            tags.add(tag.getName());
+                        }
                     }
                 }
+                allTags.addAll(tags);
+                ProjectTaskStudentsTags projectTaskStudentsTags = new ProjectTaskStudentsTags();
+                projectTaskStudentsTags.setTaskNum(i + 1);
+                projectTaskStudentsTags.setTags(tags);
+                projectTaskStudentsTagsList.add(projectTaskStudentsTags);
+                //分布
+                PersonnelDistribution personnelDistribution = new PersonnelDistribution();
+                personnelDistribution.setTaskNum(i + 1);
+                personnelDistribution.setStudentNum(num);
+                personnelDistributionList.add(personnelDistribution);
+                //平均值
+                TaskAverage taskAverage = new TaskAverage();
+                taskAverage.setTaskNum(i + 1);
+                taskAverage.setAverageGrade(getAverage(grades));
+                taskAverageList.add(taskAverage);
+                //中位数
+                if (grades != null) {
+                    QuickSort.quickSort(grades);
+                }
+                TaskMedian taskMedian = new TaskMedian();
+                taskMedian.setTaskNum(i + 1);
+                taskMedian.setMedianGrade(getMedian(grades));
+                taskMedianList.add(taskMedian);
+                ProjectTaskStudentsGrade projectTaskStudentsGrade = new ProjectTaskStudentsGrade();
+                projectTaskStudentsGrade.setTaskNum(i + 1);
+                projectTaskStudentsGrade.setGradeList(grades);
+                projectTaskStudentsGradeList.add(projectTaskStudentsGrade);
             }
-            allTags.addAll(tags);
-            ProjectTaskStudentsTags projectTaskStudentsTags = new ProjectTaskStudentsTags();
-            projectTaskStudentsTags.setTaskNum(i+1);
-            projectTaskStudentsTags.setTags(tags);
-            projectTaskStudentsTagsList.add(projectTaskStudentsTags);
-            //分布
-            PersonnelDistribution personnelDistribution = new PersonnelDistribution();
-            personnelDistribution.setTaskNum(i+1);
-            personnelDistribution.setStudentNum(num);
-            personnelDistributionList.add(personnelDistribution);
-            //平均值
-            TaskAverage taskAverage = new TaskAverage();
-            taskAverage.setTaskNum(i+1);
-            taskAverage.setAverageGrade(getAverage(grades));
-            taskAverageList.add(taskAverage);
-            //中位数
-            if(grades!=null){
-                QuickSort.quickSort(grades);
-            }
-            TaskMedian taskMedian = new TaskMedian();
-            taskMedian.setTaskNum(i+1);
-            taskMedian.setMedianGrade(getMedian(grades));
-            taskMedianList.add(taskMedian);
-            ProjectTaskStudentsGrade projectTaskStudentsGrade= new ProjectTaskStudentsGrade();
-            projectTaskStudentsGrade.setTaskNum(i+1);
-            projectTaskStudentsGrade.setGradeList(grades);
-            projectTaskStudentsGradeList.add(projectTaskStudentsGrade);
         }
         List<ListCounter.Occurrence> tagsCount = new ArrayList<>();
-        if(allTags.size()>0){
+        if(!allTags.isEmpty()){
             tagsCount = ListCounter.countOccurrences(allTags);
         }
         List<Integer> projectGradeList = analysisMapper.getProjectStudentScoreList(projectId);

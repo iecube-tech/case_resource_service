@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.elaborate_md_task.mapper.EMDSTSAiRecordMapper">
+    <resultMap id="EMDSTSAiRecord" type="com.iecube.community.model.elaborate_md_task.entity.EMDSTSAiRecord">
+        <result property="STSId" column="STS_id"></result>
+        <result property="aiRecord" column="ai_record"></result>
+    </resultMap>
+
+
+</mapper>

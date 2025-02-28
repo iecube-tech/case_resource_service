@@ -8,12 +8,12 @@ import java.util.List;
 
 @Data
 public class RemoteQo {
-    String  startDate;
-    String endDate;
-    String startTime;
-    String endTime;
-    Integer appointmentDuration;
-    Integer appointmentCount;
-    Integer dayLimit;
-    List<Integer> remoteDeviceIdList;
+    private String  startDate;
+    private String endDate;
+    private String startTime;
+    private String endTime;
+    private Integer appointmentDuration;
+    private Integer appointmentCount;
+    private Integer dayLimit;
+    private List<Integer> remoteDeviceIdList;
 }

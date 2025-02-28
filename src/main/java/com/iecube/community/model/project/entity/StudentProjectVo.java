@@ -11,6 +11,6 @@ import java.util.List;
  */
 @Data
 public class StudentProjectVo {
-    Project project;
-    List<TaskVo> projectTaskList;
+    private Project project;
+    private List<TaskVo> projectTaskList;
 }

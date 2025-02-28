@@ -1,6 +1,7 @@
 package com.iecube.community.model.task.entity;
 
 import com.iecube.community.entity.BaseEntity;
+import com.iecube.community.model.elaborate_md.lab_proc.entity.LabProc;
 import com.iecube.community.model.markdown.entity.MDChapter;
 import com.iecube.community.model.resource.entity.Resource;
 import com.iecube.community.model.task_attention.entity.Attention;
@@ -16,26 +17,28 @@ import java.util.List;
 
 @Data
 public class Task extends BaseEntity {
-    Integer id;
-    Integer taskTemplateId;
-    Integer projectId;
-    Integer num; //用于一个项目下的任务排序
-    Double weighting;
-    Double classHour;
-    String taskName;
-    String taskCover;
-    Integer taskDevice;
-    String taskDataTables;
-    List<BackDrop> backDropList;
-    List<Requirement> requirementList;
-    List<DeliverableRequirement> deliverableRequirementList;
-    List<ReferenceLink> referenceLinkList;
-    List<Resource> referenceFileList;
-    List<Attention> attentionList;
-    List<ExperimentalSubject> experimentalSubjectList;
-    String taskDetails;
-    Date taskStartTime;
-    Date taskEndTime;
-    Integer taskMdDoc;
-    MDChapter mdChapter;
+    private Integer id;
+    private Integer taskTemplateId;
+    private Integer projectId;
+    private Integer num; //用于一个项目下的任务排序
+    private Double weighting;
+    private Double classHour;
+    private String taskName;
+    private String taskCover;
+    private Integer taskDevice;
+    private String taskDataTables;
+    private List<BackDrop> backDropList;
+    private List<Requirement> requirementList;
+    private List<DeliverableRequirement> deliverableRequirementList;
+    private List<ReferenceLink> referenceLinkList;
+    private List<Resource> referenceFileList;
+    private List<Attention> attentionList;
+    private List<ExperimentalSubject> experimentalSubjectList;
+    private String taskDetails;
+    private Date taskStartTime;
+    private Date taskEndTime;
+    private Integer taskMdDoc;
+    private MDChapter mdChapter;
+    private Long taskEMdProc;
+    private LabProc labProc;
 }

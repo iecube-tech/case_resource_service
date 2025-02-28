@@ -3,6 +3,7 @@ package com.iecube.community.model.task.service.impl;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
+import com.iecube.community.model.elaborate_md.lab_proc.entity.LabProc;
 import com.iecube.community.model.markdown.entity.MDChapter;
 import com.iecube.community.model.markdown.service.MarkdownService;
 import com.iecube.community.model.project.entity.Project;
@@ -47,6 +48,8 @@ import com.iecube.community.model.task_deliverable_requirement.mapper.Deliverabl
 import com.iecube.community.model.task_details.entity.Details;
 import com.iecube.community.model.task_details.entity.TaskDetails;
 import com.iecube.community.model.task_details.mapper.TaskDetailsMapper;
+import com.iecube.community.model.task_e_md_proc.entity.TaskEMdProc;
+import com.iecube.community.model.task_e_md_proc.mapper.TaskEMdProcMapper;
 import com.iecube.community.model.task_experimental_subject.entity.ExperimentalSubject;
 import com.iecube.community.model.task_experimental_subject.entity.TaskExperimentalSubject;
 import com.iecube.community.model.task_experimental_subject.mapper.TaskExperimentalSubjectMapper;
@@ -142,6 +145,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Autowired
     private PSTArticleComposeMapper pstArticleComposeMapper;
+
+    @Autowired
+    private TaskEMdProcMapper taskEMdProcMapper;
 
     @Value("${generated-report}")
     private String genStudentReportDir;
@@ -325,6 +331,15 @@ public class TaskServiceImpl implements TaskService {
             }
         }
 
+        if (task.getTaskEMdProc() != null){
+            TaskEMdProc taskEMdProc = new TaskEMdProc();
+            taskEMdProc.setTaskId(task.getId());
+            taskEMdProc.setProcId(task.getTaskEMdProc());
+            int re = taskEMdProcMapper.taskAddProc(taskEMdProc);
+            if(re != 1){
+                throw new InsertException("插入数据异常");
+            }
+        }
         return task;
     }
 
@@ -615,6 +630,11 @@ public class TaskServiceImpl implements TaskService {
                 task.setTaskMdDoc(taskMdDoc.getMdDocId());
                 MDChapter mdChapter = markdownService.getChapterById(taskMdDoc.getMdDocId());
                 task.setMdChapter(mdChapter);
+            }
+            LabProc labProc = taskEMdProcMapper.getLabProcByTaskId(task.getId());
+            if(labProc!=null){
+                task.setLabProc(labProc);
+                task.setTaskEMDProc(labProc.getId());
             }
         }
         return tasks;

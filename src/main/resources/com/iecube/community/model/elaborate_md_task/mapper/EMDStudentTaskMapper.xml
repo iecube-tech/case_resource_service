@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.elaborate_md_task.mapper.EMDStudentTaskMapper">
+    <resultMap id="EMDStudentTask" type="com.iecube.community.model.elaborate_md_task.entity.EMDStudentTask">
+        <result property="studentId" column="student_id"></result>
+        <result property="taskId" column="task_id"></result>
+    </resultMap>
+
+    <insert id="BatchAdd" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO e_md_student_task (id, studnet_id, task_id, status) VALUES
+        <foreach collection="list" separator="," item="item">
+            (NULL, #{item.studentId}, #{item.taskId}, #{item.status})
+        </foreach>
+    </insert>
+</mapper>

@@ -1,5 +1,6 @@
 package com.iecube.community.model.task.entity;
 
+import com.iecube.community.model.elaborate_md.lab_proc.entity.LabProc;
 import com.iecube.community.model.markdown.entity.MDChapter;
 import com.iecube.community.model.resource.entity.Resource;
 import com.iecube.community.model.task_attention.entity.Attention;
@@ -16,26 +17,28 @@ import java.util.List;
 
 @Data
 public class TaskVo {
-    Integer id;
-    Integer taskTemplateId;
-    Integer projectId;
-    Integer num;
-    Double weighting;
-    Double classHour;
-    String taskName;
-    String taskCover;
-    Integer taskDevice;
-    String taskDataTables;
-    Date taskStartTime;
-    Date taskEndTime;
-    List<BackDrop> backDrops;
-    List<Requirement> taskTargets;
-    List<DeliverableRequirement> taskDeliverables;
-    List<ReferenceLink> taskReferenceLinks;
-    List<Resource> taskReferenceFiles;
-    List<Attention> attentionList;
-    List<ExperimentalSubject> experimentalSubjectList;
-    String taskDetails;
-    Integer taskMdDoc;
-    MDChapter mdChapter;
+    private Integer id;
+    private Integer taskTemplateId;
+    private Integer projectId;
+    private Integer num;
+    private Double weighting;
+    private Double classHour;
+    private String taskName;
+    private String taskCover;
+    private Integer taskDevice;
+    private String taskDataTables;
+    private Date taskStartTime;
+    private Date taskEndTime;
+    private List<BackDrop> backDrops;
+    private List<Requirement> taskTargets;
+    private List<DeliverableRequirement> taskDeliverables;
+    private List<ReferenceLink> taskReferenceLinks;
+    private List<Resource> taskReferenceFiles;
+    private List<Attention> attentionList;
+    private List<ExperimentalSubject> experimentalSubjectList;
+    private String taskDetails;
+    private Integer taskMdDoc;
+    private MDChapter mdChapter;
+    private Long taskEMDProc;
+    private LabProc labProc;
 }

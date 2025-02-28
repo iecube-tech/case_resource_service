@@ -11,11 +11,11 @@ import java.util.List;
  */
 @Data
 public class ProjectStudentVo {
-    Integer psId; // project_student 的id
-    Integer id;  //学生信息表的id
-    String studentId; // 学号
-    String studentName;
-    Double studentGrade;
-    List<StudentTaskVo> studentTasks;
-    List<String> suggestion;
+    private Integer psId; // project_student 的id
+    private Integer id;  //学生信息表的id
+    private String studentId; // 学号
+    private String studentName;
+    private Double studentGrade;
+    private List<StudentTaskVo> studentTasks;
+    private List<String> suggestion;
 }

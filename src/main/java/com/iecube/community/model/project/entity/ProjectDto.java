@@ -10,13 +10,13 @@ import java.util.List;
 
 @Data
 public class ProjectDto {
-    Integer caseId;
-    String projectName;
-    Integer useGroup;
-    Integer groupLimit;
-    Integer useRemote;
-    RemoteQo remoteQo;
-    List<Date> date;
-    List<Student> students;
-    List<Task> task;
+    private Integer caseId;
+    private String projectName;
+    private Integer useGroup;
+    private Integer groupLimit;
+    private Integer useRemote;
+    private RemoteQo remoteQo;
+    private List<Date> date;
+    private List<Student> students;
+    private List<Task> task;
 }

@@ -16,24 +16,24 @@ import java.util.List;
 
 @Data
 public class TaskTemplateDto {
-    Integer id;
-    Integer contentId;
-    Integer num; //用于一个项目下的任务排序
-    Double weighting;
-    Double classHour;
-    String taskName;
-    String taskCover;
-    Integer taskDevice;
-    List<BackDrop> backDropList;
-    List<Requirement> requirementList;
-    List<DeliverableRequirement> deliverableRequirementList;
-    List<ReferenceLink> referenceLinkList;
-    List<Resource> referenceFileList;
-    List<Attention> attentionList;
-    List<ExperimentalSubject> experimentalSubjectList;
-    String taskDetails;
-    Integer taskMdDoc;
-    MDChapter mdChapter;
-    Long taskEMdProc;
-    LabProc labProc;
+    private Integer id;
+    private Integer contentId;
+    private Integer num; //用于一个项目下的任务排序
+    private Double weighting;
+    private Double classHour;
+    private String taskName;
+    private String taskCover;
+    private Integer taskDevice;
+    private List<BackDrop> backDropList;
+    private List<Requirement> requirementList;
+    private List<DeliverableRequirement> deliverableRequirementList;
+    private List<ReferenceLink> referenceLinkList;
+    private List<Resource> referenceFileList;
+    private List<Attention> attentionList;
+    private List<ExperimentalSubject> experimentalSubjectList;
+    private String taskDetails;
+    private Integer taskMdDoc;
+    private MDChapter mdChapter;
+    private Long taskEMdProc;
+    private LabProc labProc;
 }

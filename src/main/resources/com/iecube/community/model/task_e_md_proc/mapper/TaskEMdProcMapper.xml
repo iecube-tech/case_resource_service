@@ -9,33 +9,33 @@
     </resultMap>
 
     <insert id="taskTemplateAddProc" keyProperty="id" useGeneratedKeys="true">
-        INSERT INTO task_template_emd_proc (id, task_template_id, proc_id) VALUES (NULL, #{taskTemplateId}, #{procId})
+        INSERT INTO e_md_sectionalization (id, task_template_id, proc_id) VALUES (NULL, #{taskTemplateId}, #{procId})
     </insert>
 
     <insert id="taskAddProc" keyProperty="id" useGeneratedKeys="true">
-        INSERT INTO task_emd_proc (id, task_id, proc_id) VALUES (NULL, #{taskId},#{procId})
+        INSERT INTO e_md_task_proc (id, task_id, proc_id) VALUES (NULL, #{taskId},#{procId})
     </insert>
 
     <select id="getLabProcByTaskTemplateId" resultMap="LabProc">
         SELECT e_md_lab_proc.id,e_md_lab_proc.`parent_id`, e_md_lab_proc.`name`, e_md_lab_proc.`sort`,
                (SELECT COUNT(*) FROM e_md_sectionalization WHERE parent_id = e_md_lab_proc.id) AS has_children
-        FROM e_md_lab_proc LEFT JOIN task_template_emd_proc ON e_md_lab_proc.id=task_template_emd_proc.proc_id
-        WHERE task_template_emd_proc.task_template_id=#{taskTemlateId}
+        FROM e_md_lab_proc LEFT JOIN e_md_task_template_proc ON e_md_lab_proc.id=e_md_task_template_proc.proc_id
+        WHERE e_md_task_template_proc.task_template_id=#{taskTemlateId}
     </select>
 
     <select id="getLabProcByTaskId" resultMap="LabProc">
         SELECT e_md_lab_proc.id,e_md_lab_proc.`parent_id`, e_md_lab_proc.`name`, e_md_lab_proc.`sort`,
                (SELECT COUNT(*) FROM e_md_sectionalization WHERE parent_id = e_md_lab_proc.id) AS has_children
-        FROM e_md_lab_proc LEFT JOIN task_emd_proc ON e_md_lab_proc.id=task_emd_proc.proc_id
-        WHERE task_emd_proc.task_id=#{taskId}
+        FROM e_md_lab_proc LEFT JOIN e_md_task_proc ON e_md_lab_proc.id=e_md_task_proc.proc_id
+        WHERE e_md_task_proc.task_id=#{taskId}
     </select>
 
     <delete id="deleteLabProcByTaskTemplateId">
-        DELETE FROM task_template_emd_proc WHERE task_template_emd_proc.task_template_id=#{taskTemlateId}
+        DELETE FROM e_md_task_template_proc WHERE e_md_task_template_proc.task_template_id=#{taskTemlateId}
     </delete>
 
     <delete id="deleteLabProcByTaskId">
-        DELETE FROM task_emd_proc WHERE task_emd_proc.task_id=#{taskId}
+        DELETE FROM e_md_task_proc WHERE e_md_task_proc.task_id=#{taskId}
     </delete>
 
 </mapper>

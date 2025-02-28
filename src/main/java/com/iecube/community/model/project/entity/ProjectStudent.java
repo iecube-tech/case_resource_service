@@ -7,15 +7,15 @@ import java.util.List;
 
 @Data
 public class ProjectStudent extends BaseEntity {
-    Integer id;
-    Integer projectId;
-    Integer studentId;
-    Double grade;
-    List<String> tags;
-    String evaluate;
-    String improvement;
-    List<String> imgs;
-    List<String> files;
-    String video;
-    String content;
+    private Integer id;
+    private Integer projectId;
+    private Integer studentId;
+    private Double grade;
+    private List<String> tags;
+    private String evaluate;
+    private String improvement;
+    private List<String> imgs;
+    private List<String> files;
+    private String video;
+    private String content;
 }
