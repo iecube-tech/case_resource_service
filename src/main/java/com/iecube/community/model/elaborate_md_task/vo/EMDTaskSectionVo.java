@@ -6,8 +6,8 @@ import java.util.List;
 
 @Data
 public class EMDTaskSectionVo {
-    private Long STSid;
-    private Long sectionId;
+    private Long STSId;
     private Integer status;
+    private Integer sort;
     private List<EMDTaskBlockVo> blockVoList;
 }

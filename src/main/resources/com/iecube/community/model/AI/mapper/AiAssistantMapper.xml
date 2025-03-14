@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.AI.mapper.AiAssistantMapper">
+
+    <resultMap id="AiAssistant" type="com.iecube.community.model.AI.entity.AiAssistant">
+        <result column="student_id" property="studentId"></result>
+        <result column="task_id" property="taskId"></result>
+        <result column="chat_id" property="chatId"></result>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_client_assistant (id, student_id, task_id, chat_id)
+        VALUES (NULL, #{studentId}, #{taskId}, #{chatId})
+    </insert>
+
+    <select id="getChatIdByStuTask" resultMap="AiAssistant">
+        SELECT id, student_id, task_id, chat_id
+        FROM ai_client_assistant
+        WHERE student_id=#{studentId} AND task_id=#{taskId}
+    </select>
+
+    <select id="getAiAssistantByChatId" resultMap="AiAssistant">
+        SELECT id, student_id, task_id, chat_id
+        FROM ai_client_assistant
+        WHERE chat_id=#{chatId}
+    </select>
+
+</mapper>

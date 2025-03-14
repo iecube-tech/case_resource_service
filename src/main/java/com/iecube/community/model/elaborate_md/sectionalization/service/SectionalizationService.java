@@ -10,7 +10,7 @@ public interface SectionalizationService {
 
     void createSectionalization(SectionalizationQo sectionalizationQo);
 
-    void deleteSectionalization(long id);
+    void deleteSectionalization(SectionalizationQo sectionalizationQo);
 
     void updateSectionalizationSort(List<Sectionalization> list);
 

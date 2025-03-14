@@ -2,6 +2,7 @@ package com.iecube.community.model.elaborate_md_task.controller;
 
 import com.iecube.community.basecontroller.BaseController;
 import com.iecube.community.model.elaborate_md_task.service.EMDTaskService;
+import com.iecube.community.model.elaborate_md_task.vo.EMDTaskDetailVo;
 import com.iecube.community.model.elaborate_md_task.vo.EMDTaskVo;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,13 @@ public class EMDTaskController extends BaseController {
     @GetMapping("/tasks")
     public JsonResult<List<EMDTaskVo>> getEMDTaskVoListByProjectId(Integer projectId) {
         List<EMDTaskVo> res = emdTaskService.getEMDTaskVoList(projectId);
+        return new JsonResult<>(OK, res);
+    }
+
+    @GetMapping("/task")
+    public JsonResult<EMDTaskDetailVo> getEMDTaskDetailVoByTaskId(Integer taskId) {
+        Integer studentId = currentUserId();
+        EMDTaskDetailVo res = emdTaskService.getTaskDetailVo(taskId, studentId);
         return new JsonResult<>(OK, res);
     }
 }

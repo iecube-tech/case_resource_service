@@ -4,7 +4,8 @@ import lombok.Data;
 
 @Data
 public class LabProcQo {
+    private long id;
     private Long courseId;
     private String name;
-    private int sort;
+    private int sort;  // 服务端判断排序的数字
 }

@@ -45,6 +45,7 @@ public class LoginInterceptorConfigurer implements WebMvcConfigurer {
         patterns.add("/elaborate/md/**/**");
         patterns.add("/device-connect");
         patterns.add("/dashboard");
+//        patterns.add("/ai/**/**");
 
         registry.addInterceptor(authInterceptor).addPathPatterns("/**").excludePathPatterns(patterns);
     }

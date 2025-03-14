@@ -26,9 +26,9 @@ public class SectionalizationController extends BaseController {
     }
 
     @DeleteMapping("/del")
-    public JsonResult<List<Sectionalization>> delSection(@RequestBody Sectionalization sectionalization){
-        sectionalizationService.deleteSectionalization(sectionalization.getId());
-        List<Sectionalization> res = sectionalizationService.getSectionalizationByLabProcId(sectionalization.getParentId());
+    public JsonResult<List<Sectionalization>> delSection(@RequestBody SectionalizationQo sectionalizationQo){
+        sectionalizationService.deleteSectionalization(sectionalizationQo);
+        List<Sectionalization> res = sectionalizationService.getSectionalizationByLabProcId(sectionalizationQo.getLabProcId());
         return new JsonResult<>(OK, res);
     }
 

@@ -28,8 +28,9 @@ public class SectionalizationServiceImpl implements SectionalizationService {
     @Override
     public void createSectionalization(SectionalizationQo sectionalizationQo) {
         Sectionalization sectionalization = new Sectionalization();
+        List<Sectionalization> sectionalizationList = sectionalizationMapper.getByLabProcId(sectionalizationQo.getLabProcId());
         sectionalization.setParentId(sectionalizationQo.getLabProcId());
-        sectionalization.setSort(sectionalizationQo.getSort());
+        sectionalization.setSort(sectionalizationList.isEmpty()?1:sectionalizationList.get(sectionalizationList.size()-1).getSort()+1);
         int res = sectionalizationMapper.createSectionalization(sectionalization);
         if(res != 1){
             throw new InsertException("添加数据异常");
@@ -37,12 +38,12 @@ public class SectionalizationServiceImpl implements SectionalizationService {
     }
 
     @Override
-    public void deleteSectionalization(long id) {
-        Sectionalization sectionalization = sectionalizationMapper.getById(id);
+    public void deleteSectionalization(SectionalizationQo sectionalizationQo) {
+        Sectionalization sectionalization = sectionalizationMapper.getById(sectionalizationQo.getId());
         if(sectionalization==null){
             throw new DeleteException("数据不存在，删除异常");
         }
-        int res = sectionalizationMapper.deleteSectionalization(id);
+        int res = sectionalizationMapper.deleteSectionalization(sectionalizationQo.getId());
         if(res!=1){
             throw new DeleteException("删除数据异常");
         }

@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class EMDTaskBlockVo {
+    private Long blockId;
     private String type;
     private String title;
     private String content;
@@ -11,6 +12,6 @@ public class EMDTaskBlockVo {
     private String confData;
     private String referenceData;
     private String dataTemplate;
-    private Long stuData;
+    private String stuData;
     private Integer result;
 }

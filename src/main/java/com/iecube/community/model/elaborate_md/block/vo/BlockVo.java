@@ -13,4 +13,5 @@ public class BlockVo {
     private String catalogue;
     private String confData;
     private String referenceData;
+    private String payload;
 }

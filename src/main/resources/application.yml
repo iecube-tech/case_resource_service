@@ -11,13 +11,12 @@ spring:
 #    西安数据库穿透
     url: jdbc:mysql://192.168.1.18:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    url: jdbc:mysql://47.108.137.115:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
-#    url: jdbc:mysql://172.24.92.225:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+#    url: jdbc:mysql://172.31.110.48:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    url: jdbc:mysql://47.94.161.154:8001/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
     username: root
 #    password: 11223366zxl
 #    password: Root@123
     # 线上数据库密码
-
 #    password: 123456
     password: 12345678
     # 办公室服务器sql密码
@@ -28,6 +27,7 @@ spring:
       minimum-idle: 3
   redis:
     host: 192.168.1.18
+#    host: 172.31.110.48
     port: 6379
   mail:
     port: 587
@@ -108,3 +108,15 @@ password:
 font:
   path: D:\work\iecube_community\service\community\src\main\resources\fonts\simfang.ttf
 #  path: /community/service/fonts/simfang.ttf
+
+Ai:
+  baseUrl: 'https://beta.megamoyo.com/api'
+  wssBaseUrl: 'wss://beta.megamoyo.com/api/interact/chat/'
+  header:
+    auth:
+      field: 'x-w6-api-key'
+      val: '5byg5bCP6b6ZOjp4aWFvbG9uZzo6VlhjbmQzQ25BWEttbTVjMU8wSUw2RXMtajRkRm5FWUUwTDRHX1RPbkpNMD0='
+  model:
+    procedure: "raw"
+    llm: "doubao-pro"
+    llm_short: "DoubaoPro"

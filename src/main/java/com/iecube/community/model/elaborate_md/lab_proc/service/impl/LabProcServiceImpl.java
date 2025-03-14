@@ -27,10 +27,11 @@ public class LabProcServiceImpl implements LabProcService {
         if(labProcQo==null||labProcQo.getCourseId()==null){
             throw new InsertException("缺少必要参数");
         }
+        List<LabProc> labProcList = labProcMapper.getLabProcByCourse(labProcQo.getCourseId());
         LabProc labProc = new LabProc();
         labProc.setName(labProcQo.getName());
         labProc.setParentId(labProcQo.getCourseId());
-        labProc.setSort(labProcQo.getSort());
+        labProc.setSort(labProcList.isEmpty()?1:labProcList.get(labProcList.size()-1).getSort()+1);
         int res = labProcMapper.createLabProc(labProc);
         if(res != 1){
             throw new InsertException("新增数据异常");
@@ -51,21 +52,23 @@ public class LabProcServiceImpl implements LabProcService {
     }
 
     @Override
-    public LabProc updateLabProc(LabProc labProc) {
+    public List<LabProc> updateLabProc(LabProcQo labProcQo) {
+        LabProc labProc = labProcMapper.getLabProcById(labProcQo.getId());
+        labProc.setName(labProcQo.getName());
         int res = labProcMapper.updateLabProc(labProc);
         if(res != 1){
             throw new UpdateException("更新数据异常");
         }
-        return labProc;
+        return labProcMapper.getLabProcByCourse(labProc.getParentId());
     }
 
     @Override
-    public List<LabProc> deleteLabProc(long id) {
-        LabProc labProc = labProcMapper.getLabProcById(id);
+    public List<LabProc> deleteLabProc(LabProcQo labProcQo) {
+        LabProc labProc = labProcMapper.getLabProcById(labProcQo.getId());
         if(labProc == null){
             throw new DeleteException("数据不存在");
         }
-        int res = labProcMapper.deleteLabProc(id);
+        int res = labProcMapper.deleteLabProc(labProcQo.getId());
         if(res != 1){
             throw new DeleteException("删除数据异常");
         }

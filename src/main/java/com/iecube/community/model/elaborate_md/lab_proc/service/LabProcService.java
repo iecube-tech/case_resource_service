@@ -12,8 +12,8 @@ public interface LabProcService {
 
     List<LabProc> batchUpdateSort(List<LabProc> labProcList);
 
-    LabProc updateLabProc(LabProc labProc);
+    List<LabProc> updateLabProc(LabProcQo labProcQo);
 
-    List<LabProc> deleteLabProc(long id);
+    List<LabProc> deleteLabProc(LabProcQo labProcQo);
 
 }

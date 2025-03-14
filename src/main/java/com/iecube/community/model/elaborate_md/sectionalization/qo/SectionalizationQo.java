@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class SectionalizationQo {
+    private long id;
     private long labProcId;
     private int sort;
 }

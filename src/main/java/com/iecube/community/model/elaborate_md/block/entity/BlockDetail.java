@@ -13,4 +13,5 @@ public class BlockDetail {
     private String confData;
     private String referenceData;
     private String dataTemplate;
+    private String payload;
 }

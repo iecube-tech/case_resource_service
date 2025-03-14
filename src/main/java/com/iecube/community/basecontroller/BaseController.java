@@ -1,6 +1,7 @@
 package com.iecube.community.basecontroller;
 
 import com.iecube.community.baseservice.ex.ServiceException;
+import com.iecube.community.exception.NotFoundException;
 import com.iecube.community.exception.ParameterException;
 import com.iecube.community.model.auth.service.ex.AuthException;
 import com.iecube.community.util.JsonResult;
@@ -46,6 +47,9 @@ public class BaseController {
             result.setState(8000);
             result.setMessage(e.getMessage());
             result.setCause(e.getCause().getMessage());
+        } else if (e instanceof NotFoundException) {
+            result.setState(8002);
+            result.setMessage(e.getMessage());
         }
         return result;
     }

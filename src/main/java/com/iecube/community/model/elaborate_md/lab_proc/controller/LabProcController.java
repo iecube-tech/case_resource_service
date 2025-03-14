@@ -24,14 +24,14 @@ public class LabProcController extends BaseController {
     }
 
     @DeleteMapping("/del")
-    public JsonResult<List<LabProc>> delLabProc(long labProcId) {
-        List<LabProc> res = labProcService.deleteLabProc(labProcId);
+    public JsonResult<List<LabProc>> delLabProc(@RequestBody LabProcQo labProcQo) {
+        List<LabProc> res = labProcService.deleteLabProc(labProcQo);
         return new JsonResult<>(OK, res);
     }
 
     @PostMapping("/up")
-    public JsonResult<LabProc> upLabProc(@RequestBody LabProc labProc) {
-        LabProc res = labProcService.updateLabProc(labProc);
+    public JsonResult<List<LabProc>> upLabProc(@RequestBody LabProcQo labProcQo) {
+        List<LabProc> res = labProcService.updateLabProc(labProcQo);
         return new JsonResult<>(OK, res);
     }
 

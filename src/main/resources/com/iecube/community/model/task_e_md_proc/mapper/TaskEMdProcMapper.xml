@@ -9,7 +9,7 @@
     </resultMap>
 
     <insert id="taskTemplateAddProc" keyProperty="id" useGeneratedKeys="true">
-        INSERT INTO e_md_sectionalization (id, task_template_id, proc_id) VALUES (NULL, #{taskTemplateId}, #{procId})
+        INSERT INTO e_md_task_template_proc (id, task_template_id, proc_id) VALUES (NULL, #{taskTemplateId}, #{procId})
     </insert>
 
     <insert id="taskAddProc" keyProperty="id" useGeneratedKeys="true">
