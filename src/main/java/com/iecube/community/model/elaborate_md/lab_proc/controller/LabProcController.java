@@ -2,6 +2,7 @@ package com.iecube.community.model.elaborate_md.lab_proc.controller;
 
 import com.iecube.community.basecontroller.BaseController;
 import com.iecube.community.model.elaborate_md.lab_proc.entity.LabProc;
+import com.iecube.community.model.elaborate_md.lab_proc.entity.LabProcRef;
 import com.iecube.community.model.elaborate_md.lab_proc.qo.LabProcQo;
 import com.iecube.community.model.elaborate_md.lab_proc.service.LabProcService;
 import com.iecube.community.util.JsonResult;
@@ -44,6 +45,18 @@ public class LabProcController extends BaseController {
     @GetMapping("/{courseId}")
     public JsonResult<List<LabProc>> getLabProc(@PathVariable long courseId) {
         List<LabProc> res = labProcService.getByCourse(courseId);
+        return new JsonResult<>(OK, res);
+    }
+
+    @GetMapping("/ref/{labProcId}")
+    public JsonResult<LabProcRef> getLabProcRef(@PathVariable long labProcId) {
+        LabProcRef res = labProcService.getLabProcRef(labProcId);
+        return new JsonResult<>(OK, res);
+    }
+
+    @PostMapping("/ref/update")
+    public JsonResult<LabProcRef> updateLabProcRef(@RequestBody LabProcRef labProcRef) {
+        LabProcRef res = labProcService.updateLabProcRef(labProcRef);
         return new JsonResult<>(OK, res);
     }
 }

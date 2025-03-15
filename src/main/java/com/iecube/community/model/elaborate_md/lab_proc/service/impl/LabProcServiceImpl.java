@@ -1,10 +1,13 @@
 package com.iecube.community.model.elaborate_md.lab_proc.service.impl;
 
+import com.iecube.community.exception.ParameterException;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
 import com.iecube.community.model.elaborate_md.lab_proc.entity.LabProc;
+import com.iecube.community.model.elaborate_md.lab_proc.entity.LabProcRef;
 import com.iecube.community.model.elaborate_md.lab_proc.mapper.LabProcMapper;
+import com.iecube.community.model.elaborate_md.lab_proc.mapper.LabProcRefMapper;
 import com.iecube.community.model.elaborate_md.lab_proc.qo.LabProcQo;
 import com.iecube.community.model.elaborate_md.lab_proc.service.LabProcService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,9 @@ import java.util.List;
 public class LabProcServiceImpl implements LabProcService {
     @Autowired
     private LabProcMapper labProcMapper;
+
+    @Autowired
+    private LabProcRefMapper labProcRefMapper;
 
     @Override
     public List<LabProc> getByCourse(long courseId) {
@@ -73,5 +79,33 @@ public class LabProcServiceImpl implements LabProcService {
             throw new DeleteException("删除数据异常");
         }
         return labProcMapper.getLabProcByCourse(labProc.getParentId());
+    }
+
+    @Override
+    public LabProcRef getLabProcRef(long labId) {
+        LabProcRef labProcRef = labProcRefMapper.getByLabId(labId);
+        if(labProcRef == null){
+            LabProcRef labProcRef1 = new LabProcRef();
+            labProcRef1.setLabProcId(labId);
+            labProcRef1.setReference("");
+            int res = labProcRefMapper.insert(labProcRef1);
+            if(res != 1){
+                throw new InsertException("新增数据异常");
+            }
+            labProcRef=labProcRef1;
+        }
+        return labProcRef;
+    }
+
+    @Override
+    public LabProcRef updateLabProcRef(LabProcRef labProcRef) {
+        if(labProcRef == null || labProcRef.getId()==null){
+            throw new ParameterException("参数异常");
+        }
+        int res = labProcRefMapper.updateByLabId(labProcRef);
+        if(res != 1){
+            throw new UpdateException("更新数据异常");
+        }
+        return labProcRefMapper.getByLabId(labProcRef.getId());
     }
 }

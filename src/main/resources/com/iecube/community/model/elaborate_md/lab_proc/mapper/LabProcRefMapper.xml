@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.elaborate_md.lab_proc.mapper.LabProcRefMapper">
+    <resultMap id="LabProcRef" type="com.iecube.community.model.elaborate_md.lab_proc.entity.LabProcRef">
+        <result column="lab_proc_id" property="labProcId"></result>
+    </resultMap>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO e_md_lab_proc_ref (id, lab_proc_id, reference)
+        VALUES (NULL, #{labProcId}, #{reference})
+    </insert>
+
+    <update id="updateByLabId">
+        UPDATE e_md_lab_proc_ref
+        SET reference=#{reference}
+        WHERE id=#{id}
+    </update>
+
+    <select id="getByLabId" resultMap="LabProcRef">
+        SELECT id, lab_proc_id, reference FROM e_md_lab_proc_ref WHERE lab_proc_id=#{labProcId}
+    </select>
+</mapper>

@@ -46,7 +46,9 @@ public class AiServerAssistantWebSocketHandler extends TextWebSocketHandler {
 
         //断连AI端的对话连接
         WebSocketSession toCloseSession = webSocketSessionManage.clientSessionManager.getSessionById(chatId);
-        toCloseSession.close(CloseStatus.NORMAL);
+        if(toCloseSession!=null){
+            toCloseSession.close(CloseStatus.NORMAL);
+        }
 
     }
 

@@ -96,6 +96,7 @@ public class AiApiServiceImpl implements AiApiService {
         try {
             URI uri = new URI(url);
             WebSocketSession session = client.doHandshake(webSocketHandler,headers, uri).get();
+            session.setTextMessageSizeLimit(10485760);
             webSocketSessionManage.clientSessionManager.addSession(chatId, session);
         } catch (Exception e) {
             throw new AiAPiResponseException("与AI服务建立消息通道错误："+e.getMessage());

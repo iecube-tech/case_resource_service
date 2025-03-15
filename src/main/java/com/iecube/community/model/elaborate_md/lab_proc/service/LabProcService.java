@@ -1,6 +1,7 @@
 package com.iecube.community.model.elaborate_md.lab_proc.service;
 
 import com.iecube.community.model.elaborate_md.lab_proc.entity.LabProc;
+import com.iecube.community.model.elaborate_md.lab_proc.entity.LabProcRef;
 import com.iecube.community.model.elaborate_md.lab_proc.qo.LabProcQo;
 
 import java.util.List;
@@ -16,4 +17,7 @@ public interface LabProcService {
 
     List<LabProc> deleteLabProc(LabProcQo labProcQo);
 
+    LabProcRef getLabProcRef(long labId);
+
+    LabProcRef updateLabProcRef(LabProcRef labProcRef);
 }
