@@ -4,6 +4,7 @@ import com.iecube.community.basecontroller.BaseController;
 import com.iecube.community.model.elaborate_md_task.service.EMDTaskService;
 import com.iecube.community.model.elaborate_md_task.vo.EMDTaskDetailVo;
 import com.iecube.community.model.elaborate_md_task.vo.EMDTaskVo;
+import com.iecube.community.model.task_e_md_proc.entity.TaskEMdProc;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,5 +31,10 @@ public class EMDTaskController extends BaseController {
         Integer studentId = currentUserId();
         EMDTaskDetailVo res = emdTaskService.getTaskDetailVo(taskId, studentId);
         return new JsonResult<>(OK, res);
+    }
+
+    @GetMapping("/ref")
+    public JsonResult<String> getTaskEMDProcByTaskId(Integer taskId) {
+        return new JsonResult<>(OK, emdTaskService.getTaskEMDProc(taskId));
     }
 }

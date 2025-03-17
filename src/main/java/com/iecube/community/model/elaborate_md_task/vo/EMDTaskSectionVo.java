@@ -9,5 +9,6 @@ public class EMDTaskSectionVo {
     private Long STSId;
     private Integer status;
     private Integer sort;
+    private Long studentTaskId;
     private List<EMDTaskBlockVo> blockVoList;
 }

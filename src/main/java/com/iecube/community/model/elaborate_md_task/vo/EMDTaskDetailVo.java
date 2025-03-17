@@ -6,6 +6,6 @@ import java.util.List;
 
 @Data
 public class EMDTaskDetailVo {
-    private Long labProcId;
+    private Integer taskId;
     private List<EMDTaskSectionVo> sectionVoList;
 }

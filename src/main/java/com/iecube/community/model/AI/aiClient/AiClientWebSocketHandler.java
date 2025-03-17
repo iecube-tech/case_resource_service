@@ -42,7 +42,7 @@ public class AiClientWebSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         super.handleTextMessage(session, message);
         try{
-            log.info("消息长度:{}",message.getPayload().getBytes(StandardCharsets.UTF_8).length*8);
+//            log.info("消息长度:{}",message.getPayload().getBytes(StandardCharsets.UTF_8).length*8);
             String chatId = webSocketSessionManage.clientSessionManager.getIdBySession(session);
             WebSocketSession toSendSession = webSocketSessionManage.serverSessionManager.getSessionById(chatId);
             if(toSendSession != null) {

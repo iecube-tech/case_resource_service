@@ -14,4 +14,5 @@ public interface TaskEMdProcMapper {
     int taskAddProc(TaskEMdProc taskEMdProc);
     LabProc getLabProcByTaskId(int taskId);
     int deleteLabProcByTaskId(int taskId);
+    String getTaskProcByTaskId(int taskId);
 }

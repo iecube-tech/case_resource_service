@@ -8,4 +8,5 @@ public class EMDStudentTaskSection {
     private Long studentTaskId;
     private Long sectionId;
     private Integer status;
+    private Integer sort;
 }

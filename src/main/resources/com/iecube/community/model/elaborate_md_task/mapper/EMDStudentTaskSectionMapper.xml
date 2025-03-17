@@ -9,10 +9,22 @@
         <result property="sectionId" column="section_id"></result>
     </resultMap>
 
+    <resultMap id="EMDTaskSectionVo" type="com.iecube.community.model.elaborate_md_task.vo.EMDTaskSectionVo">
+        <result property="STSId" column="id"></result>
+        <result property="studentTaskId" column="studentTask_id"></result>
+    </resultMap>
+
     <insert id="BatchAdd" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO e_md_StudentTask_section (id, studentTask_id, section_id, status) VALUES
+        INSERT INTO e_md_StudentTask_section (id, studentTask_id, section_id, sort, status) VALUES
         <foreach collection="list" separator="," item="item">
-            (NULL, #{item.studentTaskId}, #{item.sectionId}, #{item.status})
+            (NULL, #{item.studentTaskId}, #{item.sectionId}, #{item.sort}, #{item.status})
         </foreach>
     </insert>
+
+    <select id="getByST" resultMap="EMDTaskSectionVo">
+        SELECT s.id, s.studentTask_id, s.sort, s.`status`
+        FROM  e_md_StudentTask_section s INNER JOIN e_md_student_task st ON s.studentTask_id=st.id
+        WHERE st.studnet_id=#{studentId} AND st.task_id=#{taskId}
+        ORDER BY sort
+    </select>
 </mapper>

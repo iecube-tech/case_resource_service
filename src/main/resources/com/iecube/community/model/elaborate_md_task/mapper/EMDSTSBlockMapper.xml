@@ -7,14 +7,34 @@
     <resultMap id="EMDSTSBlock" type="com.iecube.community.model.elaborate_md_task.entity.EMDSTSBlock">
         <result property="STSId" column="STS_id"></result>
         <result property="blockId" column="block_id"></result>
-        <result property="stuData" column="stu_data"></result>
+        <result property="aiHelpChatId" column="ai_help_chat_id"></result>
+        <result property="aiReviewChatId" column="ai_review_chat_id"></result>
     </resultMap>
 
+    <resultMap id="EMDTaskBlockVo" type="com.iecube.community.model.elaborate_md_task.vo.EMDTaskBlockVo">
+        <result property="STSId" column="STS_id"></result>
+    </resultMap>
+
+
+
     <insert id="BatchAdd" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO e_md_STS_block (id,STS_id, block_id, stu_data, result) VALUES
+        INSERT INTO e_md_STS_block
+            (id,STS_id, block_id , status, sort, type, title, content, catalogue, payload, ability, ai_help_chat_id,  ai_review_chat_id)
+        VALUES
         <foreach collection="list" separator="," item="item">
-            (NULL, #{item.STSId}, #{item.blockId}, NULL, #{item.result})
+            (NULL, #{item.STSId}, #{item.blockId}, #{item.status}, #{item.sort}, #{item.type}, #{item.title},
+             #{item.content}, #{item.catalogue}, #{item.payload}, #{item.ability}, #{item.aiHelpChatId}, #{item.aiReviewChatId})
         </foreach>
     </insert>
+
+    <select id="batchGetBySTSId" resultMap="EMDTaskBlockVo">
+        SELECT id, STS_id, status, sort, type, title, content, catalogue, payload
+        FROM e_md_STS_block
+        WHERE STS_id IN
+              <foreach collection="list" item="item" open="(" separator="," close=")">
+                  #{item}
+              </foreach>
+        ORDER BY STS_id, sort
+    </select>
 
 </mapper>

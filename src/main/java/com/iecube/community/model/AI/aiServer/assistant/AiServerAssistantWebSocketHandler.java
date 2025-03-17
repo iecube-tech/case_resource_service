@@ -11,6 +11,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 
 @Component
 @Slf4j
@@ -29,6 +30,7 @@ public class AiServerAssistantWebSocketHandler extends TextWebSocketHandler {
             String path = uri.toString();
             String chatId = path.substring(path.lastIndexOf('/') + 1);
             log.info("学生端对话已连接，{}, {}", chatId, session.getId());
+            session.setTextMessageSizeLimit(10485760);
             webSocketSessionManage.serverSessionManager.addSession(chatId, session); // manger 添加与前端的socket管理
             // 建立与AI服务的链接
             aiApiService.webSocketConnect(chatId);
@@ -41,7 +43,7 @@ public class AiServerAssistantWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
         String chatId = webSocketSessionManage.serverSessionManager.getIdBySession(session);
-        log.info("学生端对话已断开，{}, {}", chatId, session.getId());
+        log.info("学生端对话已断开，{}, {}, {}, {}", chatId, session.getId(), status.getCode(), status.getReason());
         webSocketSessionManage.serverSessionManager.removeSession(session);
 
         //断连AI端的对话连接
@@ -55,6 +57,7 @@ public class AiServerAssistantWebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         super.handleTextMessage(session, message);
+//        log.info("消息长度:{}",message.getPayload().getBytes(StandardCharsets.UTF_8).length*8);
         String chatId = webSocketSessionManage.serverSessionManager.getIdBySession(session);
         WebSocketSession toSendSession = webSocketSessionManage.clientSessionManager.getSessionById(chatId);
         toSendSession.sendMessage(message);

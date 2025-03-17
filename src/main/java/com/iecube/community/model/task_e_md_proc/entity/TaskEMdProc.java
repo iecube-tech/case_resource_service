@@ -7,4 +7,5 @@ public class TaskEMdProc {
     private Long id;
     private Integer taskId;
     private Long procId;
+    private String procRef;
 }

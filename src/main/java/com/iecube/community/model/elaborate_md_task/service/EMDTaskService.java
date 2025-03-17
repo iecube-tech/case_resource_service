@@ -14,4 +14,6 @@ public interface EMDTaskService {
     List<EMDTaskVo> getEMDTaskVoList(Integer projectId);
 
     EMDTaskDetailVo getTaskDetailVo(Integer taskId, Integer studentId);
+
+    String getTaskEMDProc(Integer taskId);
 }

@@ -13,7 +13,7 @@
     </insert>
 
     <insert id="taskAddProc" keyProperty="id" useGeneratedKeys="true">
-        INSERT INTO e_md_task_proc (id, task_id, proc_id) VALUES (NULL, #{taskId},#{procId})
+        INSERT INTO e_md_task_proc (id, task_id, proc_id, proc_ref) VALUES (NULL, #{taskId},#{procId}, #{procRef})
     </insert>
 
     <select id="getLabProcByTaskTemplateId" resultMap="LabProc">
@@ -37,5 +37,9 @@
     <delete id="deleteLabProcByTaskId">
         DELETE FROM e_md_task_proc WHERE e_md_task_proc.task_id=#{taskId}
     </delete>
+
+    <select id="getTaskProcByTaskId" resultType="java.lang.String">
+        SELECT proc_ref from e_md_task_proc WHERE task_id=#{taskId}
+    </select>
 
 </mapper>

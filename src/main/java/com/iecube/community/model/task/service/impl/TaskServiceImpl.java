@@ -4,6 +4,8 @@ import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
 import com.iecube.community.model.elaborate_md.lab_proc.entity.LabProc;
+import com.iecube.community.model.elaborate_md.lab_proc.entity.LabProcRef;
+import com.iecube.community.model.elaborate_md.lab_proc.mapper.LabProcRefMapper;
 import com.iecube.community.model.markdown.entity.MDChapter;
 import com.iecube.community.model.markdown.service.MarkdownService;
 import com.iecube.community.model.project.entity.Project;
@@ -148,6 +150,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Autowired
     private TaskEMdProcMapper taskEMdProcMapper;
+
+    @Autowired
+    private LabProcRefMapper labProcRefMapper;
 
     @Value("${generated-report}")
     private String genStudentReportDir;
@@ -331,10 +336,14 @@ public class TaskServiceImpl implements TaskService {
             }
         }
 
+        // emd
         if (task.getTaskEMdProc() != null){
             TaskEMdProc taskEMdProc = new TaskEMdProc();
             taskEMdProc.setTaskId(task.getId());
             taskEMdProc.setProcId(task.getTaskEMdProc());
+            // 设置实验的参考内容 md格式的文本 --> 用于ai包含文件
+            LabProcRef labProcRef = labProcRefMapper.getByLabId(task.getTaskEMdProc());
+            taskEMdProc.setProcRef(labProcRef.getReference());
             int re = taskEMdProcMapper.taskAddProc(taskEMdProc);
             if(re != 1){
                 throw new InsertException("插入数据异常");

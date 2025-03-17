@@ -280,12 +280,12 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     private void createEMDTask(ProjectDto projectDto, Project project, Integer teacherId) {
-        // 创建task task表 && e_md_task_proc 表
+        // projectDto 中 用户teacher携带的task ==> 创建task -> task表 &&  -> e_md_task_proc表
         List<Task> EMDTaskList = new ArrayList<>();
         for(Task task: projectDto.getTask()){
             task.setProjectId(project.getId());
-           Task createdTask = taskService.createTask(task, teacherId);
-           EMDTaskList.add(createdTask);
+            Task createdTask = taskService.createTask(task, teacherId);
+            EMDTaskList.add(createdTask);
         }
         // todo EMD 课程发布流程
         emdTaskService.EMDTaskPublish(projectDto.getStudents(), EMDTaskList);
