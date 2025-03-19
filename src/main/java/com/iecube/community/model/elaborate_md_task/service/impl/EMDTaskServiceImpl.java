@@ -2,6 +2,7 @@ package com.iecube.community.model.elaborate_md_task.service.impl;
 
 import com.iecube.community.exception.ParameterException;
 import com.iecube.community.model.auth.service.ex.InsertException;
+import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.elaborate_md.block.service.BlockService;
 import com.iecube.community.model.elaborate_md.block.vo.BlockVo;
 import com.iecube.community.model.elaborate_md.sectionalization.entity.Sectionalization;
@@ -9,9 +10,11 @@ import com.iecube.community.model.elaborate_md.sectionalization.service.Sectiona
 import com.iecube.community.model.elaborate_md_task.entity.EMDSTSBlock;
 import com.iecube.community.model.elaborate_md_task.entity.EMDStudentTask;
 import com.iecube.community.model.elaborate_md_task.entity.EMDStudentTaskSection;
+import com.iecube.community.model.elaborate_md_task.entity.EMDTaskRecord;
 import com.iecube.community.model.elaborate_md_task.mapper.EMDSTSBlockMapper;
 import com.iecube.community.model.elaborate_md_task.mapper.EMDStudentTaskMapper;
 import com.iecube.community.model.elaborate_md_task.mapper.EMDStudentTaskSectionMapper;
+import com.iecube.community.model.elaborate_md_task.mapper.EMDTaskRecordMapper;
 import com.iecube.community.model.elaborate_md_task.service.EMDTaskService;
 import com.iecube.community.model.elaborate_md_task.vo.EMDTaskBlockVo;
 import com.iecube.community.model.elaborate_md_task.vo.EMDTaskDetailVo;
@@ -24,12 +27,10 @@ import com.iecube.community.model.task.mapper.TaskMapper;
 import com.iecube.community.model.task_e_md_proc.mapper.TaskEMdProcMapper;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class EMDTaskServiceImpl implements EMDTaskService {
@@ -54,6 +55,9 @@ public class EMDTaskServiceImpl implements EMDTaskService {
 
     @Autowired
     private TaskEMdProcMapper taskEMdProcMapper;
+
+    @Autowired
+    private EMDTaskRecordMapper emdTaskRecordMapper;
 
 
     @Override
@@ -180,11 +184,42 @@ public class EMDTaskServiceImpl implements EMDTaskService {
         EMDTaskDetailVo emdTaskDetailVo = new EMDTaskDetailVo();
         emdTaskDetailVo.setTaskId(taskId);
         emdTaskDetailVo.setSectionVoList(emdTaskSectionVoList);
+
+        EMDTaskRecord record = new EMDTaskRecord();
+        record.setStudentId(studentId);
+        record.setTaskId(taskId);
+        record.setType("GET");
+        this.stsRecord(record);
         return emdTaskDetailVo;
     }
 
     @Override
     public String getTaskEMDProc(Integer taskId) {
         return taskEMdProcMapper.getTaskProcByTaskId(taskId);
+    }
+
+    @Override
+    @Async
+    public void stsRecord(EMDTaskRecord record) {
+        record.setTime(new Date());
+        emdTaskRecordMapper.insert(record);
+    }
+
+    @Override
+    public void updateEMDSSTSBlockPayload(EMDSTSBlock block, String cellId, Integer taskId, Integer studentId) {
+        int res = emdSTSBlockMapper.updatePayload(block);
+        if(res!= 1){
+            throw new UpdateException("保存数据出错了");
+        }
+
+        EMDTaskRecord record = new EMDTaskRecord();
+        record.setTaskId(taskId);
+        record.setStudentId(studentId);
+        record.setType("UPDATE");
+        record.setBlockId(block.getBlockId());
+        record.setBlockSort(block.getSort());
+        record.setPayload(block.getPayload());
+        record.setCellId(cellId);
+        this.stsRecord(record);
     }
 }

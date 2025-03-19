@@ -37,4 +37,8 @@
         ORDER BY STS_id, sort
     </select>
 
+    <update id="updatePayload">
+        UPDATE e_md_STS_block SET payload=#{payload} WHERE id=#{id}
+    </update>
+
 </mapper>

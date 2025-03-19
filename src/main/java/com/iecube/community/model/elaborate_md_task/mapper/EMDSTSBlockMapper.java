@@ -11,4 +11,6 @@ public interface EMDSTSBlockMapper {
     int BatchAdd(List<EMDSTSBlock> list);
 
     List<EMDTaskBlockVo> batchGetBySTSId(List<Long> list);
+
+    int updatePayload(EMDSTSBlock block);
 }
