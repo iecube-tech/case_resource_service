@@ -11,7 +11,6 @@ public class BlockDetail {
     private String content;
     private String catalogue;
     private String confData;
-    private String referenceData;
-    private String dataTemplate;
     private String payload;
+    private String styleType;
 }

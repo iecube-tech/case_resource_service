@@ -77,9 +77,9 @@ public class FrontendWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, @NotNull CloseStatus status) throws IOException {
         // 前端断开连接
-        String deviceId = subscriptionMiddleware.sessionSubscriptions.get(session.getId());
+        String deviceId = subscriptionMiddleware.sessionSubscriptions.get(session.getId()); // 获取设备id
         if(deviceId!=null){
-            subscriptionManager.unsubscribe(deviceId,session);
+            subscriptionManager.unsubscribe(deviceId,session); // 设备取消订阅
         }
         if(subscriptionMiddleware.sessionSubscriptions.containsKey(session.getId())){
             subscriptionMiddleware.sessionSubscriptions.remove(session.getId());

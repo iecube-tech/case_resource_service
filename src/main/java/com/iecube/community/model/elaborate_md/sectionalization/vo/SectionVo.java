@@ -8,10 +8,10 @@ import java.util.List;
 @Data
 public class SectionVo {
     private long id;
-    private long parentId; //LabProcId
+    private long parentId; //labModelId
     private int sort;
     private boolean hasChildren;
-    private String name="分节";
-    private int level=2;
+    private String name="步骤";
+    private int level=3;
     private List<Block> BlockList;
 }

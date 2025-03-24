@@ -19,7 +19,7 @@ public class DeviceWebSocketConfig implements WebSocketConfigurer {
                 .setAllowedOrigins("*");
 
         // 前端接入点（添加拦截器）
-        registry.addHandler(webSocketHandlerFront(), "/ws/front")
+        registry.addHandler(webSocketHandlerFront(), "/ws/front/")
                 .setAllowedOrigins("*");
     }
 

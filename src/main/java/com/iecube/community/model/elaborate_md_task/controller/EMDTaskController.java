@@ -42,4 +42,11 @@ public class EMDTaskController extends BaseController {
         emdTaskService.updateEMDSSTSBlockPayload(emdstsBlock, cellId, taskId, currentUserId());
         return new JsonResult<>(OK);
     }
+
+    @PostMapping("/section/next")
+    public JsonResult<Boolean> nextSection(Integer STSId) {
+        System.out.println(STSId);
+        Boolean res = emdTaskService.toNextSection(STSId.longValue());
+        return new JsonResult<>(OK, res);
+    }
 }

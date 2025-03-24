@@ -15,5 +15,5 @@ public interface SectionalizationMapper {
 
     Sectionalization getById(long id);
 
-    List<Sectionalization> getByLabProcId(long labProcId);
+    List<Sectionalization> getByLabModelId(long parentId);
 }

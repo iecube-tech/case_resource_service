@@ -12,6 +12,6 @@ public class BlockVo {
     private String content;
     private String catalogue;
     private String confData;
-    private String referenceData;
     private String payload;
+    private String styleType;
 }

@@ -22,4 +22,6 @@ public interface EMDTaskService {
     void stsRecord(EMDTaskRecord record);
 
     void updateEMDSSTSBlockPayload(EMDSTSBlock block, String cellId, Integer taskId,  Integer studentId);
+
+    Boolean toNextSection(Long STSId);
 }

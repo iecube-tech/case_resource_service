@@ -27,4 +27,15 @@
         WHERE st.studnet_id=#{studentId} AND st.task_id=#{taskId}
         ORDER BY sort
     </select>
+
+    <select id="getBySTSId" resultMap="EMDTaskSectionVo">
+        SELECT s.id, s.studentTask_id, s.sort, s.`status`
+        FROM  e_md_StudentTask_section s INNER JOIN e_md_student_task st ON s.studentTask_id=st.id
+        WHERE s.id=#{STSId}
+        ORDER BY sort
+    </select>
+
+    <update id="upStatus">
+        UPDATE e_md_StudentTask_section SET status=#{status} WHERE id=#{STSId}
+    </update>
 </mapper>

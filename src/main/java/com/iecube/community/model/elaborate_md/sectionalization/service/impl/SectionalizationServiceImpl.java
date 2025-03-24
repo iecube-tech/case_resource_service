@@ -28,8 +28,8 @@ public class SectionalizationServiceImpl implements SectionalizationService {
     @Override
     public void createSectionalization(SectionalizationQo sectionalizationQo) {
         Sectionalization sectionalization = new Sectionalization();
-        List<Sectionalization> sectionalizationList = sectionalizationMapper.getByLabProcId(sectionalizationQo.getLabProcId());
-        sectionalization.setParentId(sectionalizationQo.getLabProcId());
+        List<Sectionalization> sectionalizationList = sectionalizationMapper.getByLabModelId(sectionalizationQo.getLabModelId());
+        sectionalization.setParentId(sectionalizationQo.getLabModelId());
         sectionalization.setSort(sectionalizationList.isEmpty()?1:sectionalizationList.get(sectionalizationList.size()-1).getSort()+1);
         int res = sectionalizationMapper.createSectionalization(sectionalization);
         if(res != 1){
@@ -61,14 +61,14 @@ public class SectionalizationServiceImpl implements SectionalizationService {
     }
 
     @Override
-    public List<Sectionalization> getSectionalizationByLabProcId(long labProcId) {
-        return sectionalizationMapper.getByLabProcId(labProcId);
+    public List<Sectionalization> getSectionalizationByLabModeId(long labModelId) {
+        return sectionalizationMapper.getByLabModelId(labModelId);
     }
 
     @Override
-    public List<SectionVo> getSectionVoByLabProcId(long labProcId) {
+    public List<SectionVo> getSectionVoByLabModelId(long labModelId) {
         List<SectionVo> sectionVoList = new ArrayList<>();
-        List<Sectionalization> sectionList = this.getSectionalizationByLabProcId(labProcId);
+        List<Sectionalization> sectionList = this.getSectionalizationByLabModeId(labModelId);
         sectionList.forEach(section->{
             SectionVo sectionVo = new SectionVo();
             sectionVo.setId(section.getId());

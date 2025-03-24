@@ -34,7 +34,7 @@
         WHERE id=#{id}
     </select>
 
-    <select id="getByLabProcId" resultMap="Sectionalization">
+    <select id="getByLabModelId" resultMap="Sectionalization">
         SELECT `id`, `parent_id`, `sort`,
             (SELECT COUNT(*) FROM e_md_block WHERE parent_id = e_md_sectionalization.id) AS has_children
         FROM e_md_sectionalization

@@ -34,7 +34,7 @@
     <select id="getLabProcById" resultMap="LabProc">
         SELECT
             `id`, `parent_id`, `name`, `sort`,
-            (SELECT COUNT(*) FROM e_md_sectionalization WHERE parent_id = e_md_lab_proc.id) AS has_children
+            (SELECT COUNT(*) FROM e_md_lab_model WHERE parent_id = e_md_lab_proc.id) AS has_children
         FROM e_md_lab_proc
         WHERE id=#{id}
     </select>
@@ -42,7 +42,7 @@
     <select id="getLabProcByCourse" resultMap="LabProc">
         SELECT
             `id`, `parent_id`, `name`, `sort`,
-            (SELECT COUNT(*) FROM e_md_sectionalization WHERE parent_id = e_md_lab_proc.id) AS has_children
+            (SELECT COUNT(*) FROM e_md_lab_model WHERE parent_id = e_md_lab_proc.id) AS has_children
         FROM e_md_lab_proc
         WHERE `parent_id`=#{courseId} ORDER BY `sort`
     </select>

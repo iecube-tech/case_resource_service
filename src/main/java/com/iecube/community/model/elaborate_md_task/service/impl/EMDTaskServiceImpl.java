@@ -72,7 +72,7 @@ public class EMDTaskServiceImpl implements EMDTaskService {
         Map<Long, List<BlockVo>> sectionBlockMap = new HashMap<>(); // 取到 section 对应的 blockList <sectionId, blockList>
         for(Task task : taskList){ // task 中带着指导书的id ==> procId
             taskProcMap.put(task.getId(),task.getTaskEMdProc());
-            List<Sectionalization> sectionList = sectionalizationService.getSectionalizationByLabProcId(task.getTaskEMdProc());
+            List<Sectionalization> sectionList = sectionalizationService.getSectionalizationByLabModeId(task.getTaskEMdProc());
             procSectionMap.put(task.getTaskEMdProc(), sectionList);
         }
         procSectionMap.forEach((labId,sectionList)->{
@@ -221,5 +221,18 @@ public class EMDTaskServiceImpl implements EMDTaskService {
         record.setPayload(block.getPayload());
         record.setCellId(cellId);
         this.stsRecord(record);
+    }
+
+    @Override
+    public Boolean toNextSection(Long STSId) {
+        EMDTaskSectionVo emdTaskSectionVo = emdStudentTaskSectionMapper.getBySTSId(STSId);
+        // todo emdTaskSectionVo.setBlockVoList();
+        // 结果校验
+        // 设置status
+        int res = emdStudentTaskSectionMapper.upStatus(STSId, 1);
+        if(res != 1){
+            throw new UpdateException("更新数据异常");
+        }
+        return true;
     }
 }

@@ -1,31 +1,32 @@
-package com.iecube.community.model.elaborate_md.sectionalization.entity;
+package com.iecube.community.model.elaborate_md.lab_model.entity;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class Sectionalization {
-    private long id;
-    private long parentId; //LabProcId
-    private int sort;
-    private boolean hasChildren;
-    private String name="步骤";
-    private int level=3;
+public class LabModel {
+    private Long id;
+    private Long parentId;
+    private String name;
+    private String icon;
+    private Integer sort;
+    private int level=2;
     private String treeId;
+    private boolean hasChildren;
 
     // 无参构造函数
-    public Sectionalization() {
+    public LabModel() {
     }
-
     // 有参构造函数
-    public Sectionalization(long id, long parentId, String name, boolean hasChildren, int sort, int level) {
+    public LabModel(long id, long parentId, String name, String icon, int sort, int level, boolean hasChildren) {
         this.id = id;
-        this.level = level;
         this.parentId = parentId;
         this.name = name;
-        this.hasChildren = hasChildren;
+        this.icon = icon;
         this.sort = sort;
+        this.level = level;
+        this.hasChildren = hasChildren;
         this.treeId = generateTreeId();
     }
 

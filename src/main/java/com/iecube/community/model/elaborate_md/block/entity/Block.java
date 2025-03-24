@@ -8,7 +8,7 @@ public class Block {
     private long parentId; // 外键 sectionId
     private int sort;
     private boolean hasChildren=false;
-    private int level=3;
+    private int level=4;
     private String type;
     private String name;
     private String treeId;

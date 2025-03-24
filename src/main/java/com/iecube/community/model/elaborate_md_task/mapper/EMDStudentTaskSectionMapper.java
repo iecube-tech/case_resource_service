@@ -11,4 +11,8 @@ public interface EMDStudentTaskSectionMapper {
     int BatchAdd(List<EMDStudentTaskSection> list);
 
     List<EMDTaskSectionVo> getByST(Integer studentId, Integer taskId);
+
+    EMDTaskSectionVo getBySTSId(Long STSId);
+
+    int upStatus(Long STSId, int status);
 }

@@ -14,8 +14,8 @@ public interface SectionalizationService {
 
     void updateSectionalizationSort(List<Sectionalization> list);
 
-    List<Sectionalization> getSectionalizationByLabProcId(long labProcId);
+    List<Sectionalization> getSectionalizationByLabModeId(long labModelId);
 
-    List<SectionVo> getSectionVoByLabProcId(long labProcId);
+    List<SectionVo> getSectionVoByLabModelId(long labModelId);
 
 }
