@@ -38,7 +38,7 @@ public class ContentMapperTests {
         content.setCreateTime(new Date());
         content.setLastModifiedTime(new Date());
         content.setLastModifiedUser(10);
-        System.out.println(contentMapper.insert(content));
+//        System.out.println(contentMapper.insert(content));
     }
 
     @Test

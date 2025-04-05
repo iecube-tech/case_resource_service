@@ -34,7 +34,7 @@ public class PdfGenerator {
             contentStream.close();
 
             document.save("generated.pdf");
-            System.out.println("done");
+//            System.out.println("done");
         }
     }
 

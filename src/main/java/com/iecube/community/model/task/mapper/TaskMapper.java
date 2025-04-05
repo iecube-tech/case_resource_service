@@ -11,6 +11,8 @@ public interface TaskMapper {
 
     Integer addProjectTask(Task task);
 
+    Task getTaskById(Integer id);
+
     Integer addStudentTask(ProjectStudentTask PSK);
 
     List<StudentTaskVo> findTaskByProjectStudent(Integer projectId, Integer studentId);

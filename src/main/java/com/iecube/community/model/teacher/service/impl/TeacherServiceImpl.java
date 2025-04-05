@@ -121,7 +121,7 @@ public class TeacherServiceImpl implements TeacherService {
     @Async
     public void sendActiveEmail(String teacherName, String teacherEmail, String password) {
         String text = this.buildText(userActivateEmail, teacherName, password, DomainName);
-        System.out.println(text);
+//        System.out.println(text);
         emailSender.send(teacherEmail, EMAIL_SUBJECT, text);
     }
 

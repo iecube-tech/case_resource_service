@@ -20,4 +20,5 @@ public class EMDTaskRecord {
     private String cellData;
     private String chatId;
     private String sendMessage;
+    private Integer resourceId;
 }

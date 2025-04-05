@@ -43,7 +43,7 @@ public class FrontendWebSocketHandler extends TextWebSocketHandler {
         frontData.setDeviceId(jsonNode.get("deviceId")==null?null:jsonNode.get("deviceId").asText());
         frontData.setType(jsonNode.get("type")==null?null:jsonNode.get("type").asText());
         frontData.setData(jsonNode.get("data")==null?null:jsonNode.get("data"));
-        log.info("前端：{}",session.getId());
+//        log.info("前端：{} 消息",session.getId());
         if(frontData.getType() == null){
             session.sendMessage(new TextMessage("未携带参数：type"));
         }
@@ -54,19 +54,29 @@ public class FrontendWebSocketHandler extends TextWebSocketHandler {
             case "UNSUBSCRIBE":
                 subscriptionManager.unsubscribe(frontData.getDeviceId(), session);
                 break;
+            case "INIT":
+                Message initMsg = new Message();
+                initMsg.setType("INIT");
+                initMsg.setData(frontData.getData());
+                // 获取设备session
+                String deviceId = subscriptionMiddleware.sessionSubscriptions.get(session.getId());
+                WebSocketSession deviceSession = subscriptionMiddleware.deviceSessions.get(deviceId);
+                log.info("浏览器向设备初始化数据-->{},{}",deviceId, deviceSession.getId());
+                subscriptionMiddleware.sendMessage(deviceSession, initMsg);
+                break;
             case "DATA":
-                // 发送给设备
-                log.info("发送数据");
                 Message msg = new Message();
                 msg.setType("DATA");
                 msg.setData(frontData.getData());
                 // 获取设备session
-                String deviceId = subscriptionMiddleware.sessionSubscriptions.get(session.getId());
-                WebSocketSession deviceSession = subscriptionMiddleware.deviceSessions.get(deviceId);
-                subscriptionMiddleware.sendMessage(deviceSession, msg);
+                String deviceId2 = subscriptionMiddleware.sessionSubscriptions.get(session.getId());
+                WebSocketSession deviceSession2 = subscriptionMiddleware.deviceSessions.get(deviceId2);
+                // 发送给设备
+                log.info("前端：发送数据-->{},{}", deviceId2, deviceSession2.getId());
+                subscriptionMiddleware.sendMessage(deviceSession2, msg);
                 break;
             case "PING":
-                log.info("PING");
+//                log.info("PING");
                 Message msg1 = new Message();
                 msg1.setType("PONG");
                 subscriptionMiddleware.sendMessage(session, msg1);

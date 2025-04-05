@@ -36,7 +36,7 @@ public class QuestionBankServiceImpl implements QuestionBankService {
 
     @Override
     public List<QuestionVo> taskTemplateAddQuestionVo(QuestionVo questionVo) {
-        System.out.println(questionVo);
+//        System.out.println(questionVo);
         Question question = new Question();
         question.setName(questionVo.getName());
         question.setTaskTemplateId(questionVo.getTaskTemplateId());
@@ -61,7 +61,7 @@ public class QuestionBankServiceImpl implements QuestionBankService {
 
     @Override
     public List<QuestionVo> taskTemplateUpdateQuestionVo(QuestionVo questionVo) {
-        System.out.println(questionVo);
+//        System.out.println(questionVo);
         Question question = new Question();
         question.setName(questionVo.getName());
         question.setTaskTemplateId(questionVo.getTaskTemplateId());
@@ -117,7 +117,7 @@ public class QuestionBankServiceImpl implements QuestionBankService {
     @Override
     public void deleteQuestion(Integer questionId){
         List<Solution> solutionList = questionBankMapper.getSolutionByQuestion(questionId);
-        System.out.println(solutionList);
+//        System.out.println(solutionList);
         for(Solution solution:solutionList){
            this.deleteSolution(solution.getId());
         }
@@ -296,7 +296,7 @@ public class QuestionBankServiceImpl implements QuestionBankService {
     public PSTGW updateObjectiveGradeWeighting(Integer pstId, Integer weighting){
         // 需要判断是不是已经有计算过的成绩
         List<Integer> taskObjectiveGrades=questionBankMapper.getTaskGrades(pstId);
-        System.out.println(taskObjectiveGrades);
+//        System.out.println(taskObjectiveGrades);
         for(Integer grade: taskObjectiveGrades){
             if(grade != null){
                 throw new CanNotUpdateObjectiveWeighting("已使用当前权重计算过学生任务/实验的客观题成绩，不可再修改");

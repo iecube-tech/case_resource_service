@@ -1,6 +1,5 @@
 package com.iecube.community.model.elaborate_md_task.mapper;
 
-import com.iecube.community.model.elaborate_md_task.entity.EMDStudentTaskSection;
 import com.iecube.community.model.elaborate_md_task.vo.EMDTaskBlockVo;
 import com.iecube.community.model.elaborate_md_task.vo.EMDTaskSectionVo;
 import org.junit.Test;
@@ -17,19 +16,19 @@ import java.util.List;
 public class EMDTaskMapperTest {
 
     @Autowired
-    private EMDStudentTaskSectionMapper emdStudentTaskSectionMapper;
+    private EMDSTMSectionMapper EMDSTMSectionMapper;
 
     @Autowired
     private EMDStudentTaskMapper emdStudentTaskMapper;
 
     @Autowired
-    private EMDSTSBlockMapper emdSTSBlockMapper;
+    private EMDSTMSBlockMapper emdSTSBlockMapper;
 
     @Test
     public void getSectionViListTest(){
         int studentId = 35;
         int taskId = 672;
-        List<EMDTaskSectionVo> res = emdStudentTaskSectionMapper.getByST(studentId, taskId);
+        List<EMDTaskSectionVo> res = EMDSTMSectionMapper.getByST(studentId, taskId);
         System.out.println(res);
     }
 
@@ -46,7 +45,7 @@ public class EMDTaskMapperTest {
         stsIdList.add(150L);
         stsIdList.add(151L);
         stsIdList.add(152L);
-        List<EMDTaskBlockVo> res = emdSTSBlockMapper.batchGetBySTSId(stsIdList);
+        List<EMDTaskBlockVo> res = emdSTSBlockMapper.batchGetBySTMSId(stsIdList);
         System.out.println(res);
     }
 }

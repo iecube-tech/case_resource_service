@@ -86,6 +86,12 @@
                 #{taskStartTime},#{taskEndTime}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
     </insert>
 
+    <select id="getTaskById" resultMap="Task">
+            SELECT id,project_id,num,weighting,class_hour,task_name,task_cover,task_device,task_start_time,task_end_time
+            FROM task
+            WHERE id=#{id}
+    </select>
+
     <select id="findTaskByProject" resultMap="Task">
         SELECT * FROM task WHERE project_id=#{projectId}
     </select>

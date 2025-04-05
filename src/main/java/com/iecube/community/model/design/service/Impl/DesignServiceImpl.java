@@ -70,10 +70,10 @@ public class DesignServiceImpl implements DesignService {
             throw new InsertException("插入数据异常");
         }
         Integer targetId = caseTarget.getId();
-        System.out.println("targetId:"+targetId);
+//        System.out.println("targetId:"+targetId);
         for (KnowledgePoint knowledgePoint : design.getKnowledgePoints()){
             knowledgePoint.setTargetId(targetId);
-            System.out.println(knowledgePoint);
+//            System.out.println(knowledgePoint);
             designMapper.addKnowledgePoint(knowledgePoint);
         }
     }

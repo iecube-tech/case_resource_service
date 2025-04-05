@@ -435,7 +435,7 @@ public class ContentServiceImpl implements ContentService {
         }
         int row;
         int newPrivate;
-        System.out.println(content);
+//        System.out.println(content);
         if(content.getIsPrivate() == 0){
             row = contentMapper.updateIsPrivate(contentId,1);
             newPrivate=1;

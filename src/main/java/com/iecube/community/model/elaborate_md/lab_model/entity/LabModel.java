@@ -9,6 +9,10 @@ public class LabModel {
     private Long id;
     private Long parentId;
     private String name;
+    private String sectionPrefix; // ai知识库对应的章节序号
+    private Boolean isNeedAiAsk;  // 章节结束后 要进行ai提问
+    private Integer askNum;  // 需要提问几个问题
+    private String stage;  // 标识课前or课后  before-class after-class
     private String icon;
     private Integer sort;
     private int level=2;

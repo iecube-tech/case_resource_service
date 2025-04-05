@@ -5,6 +5,7 @@ import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
 import com.iecube.community.model.elaborate_md.lab_proc.entity.LabProc;
 import com.iecube.community.model.elaborate_md.lab_proc.entity.LabProcRef;
+import com.iecube.community.model.elaborate_md.lab_proc.mapper.LabProcMapper;
 import com.iecube.community.model.elaborate_md.lab_proc.mapper.LabProcRefMapper;
 import com.iecube.community.model.markdown.entity.MDChapter;
 import com.iecube.community.model.markdown.service.MarkdownService;
@@ -153,6 +154,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Autowired
     private LabProcRefMapper labProcRefMapper;
+
+    @Autowired
+    private LabProcMapper labProcMapper;
 
     @Value("${generated-report}")
     private String genStudentReportDir;
@@ -342,14 +346,32 @@ public class TaskServiceImpl implements TaskService {
             taskEMdProc.setTaskId(task.getId());
             taskEMdProc.setProcId(task.getTaskEMdProc());
             // 设置实验的参考内容 md格式的文本 --> 用于ai包含文件
+            LabProc labProc = labProcMapper.getLabProcById(task.getTaskEMdProc());
             LabProcRef labProcRef = labProcRefMapper.getByLabId(task.getTaskEMdProc());
             taskEMdProc.setProcRef(labProcRef.getReference());
+            taskEMdProc.setSectionPrefix(labProc.getSectionPrefix());
             int re = taskEMdProcMapper.taskAddProc(taskEMdProc);
             if(re != 1){
                 throw new InsertException("插入数据异常");
             }
         }
         return task;
+    }
+
+    @Override
+    public Task getById(Integer id) {
+        Task res  = taskMapper.getTaskById(id);
+        Project project;
+        if(res.getTaskStartTime() == null || res.getTaskEndTime() == null){
+           project =  projectMapper.findById(res.getProjectId());
+            if(res.getTaskStartTime() == null){
+                res.setTaskStartTime(project.getStartTime());
+            }
+            if(res.getTaskEndTime() == null){
+                res.setTaskEndTime(project.getEndTime());
+            }
+        }
+        return res;
     }
 
     @Override

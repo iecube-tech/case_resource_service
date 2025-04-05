@@ -1,14 +1,16 @@
 package com.iecube.community.model.elaborate_md_task.controller;
 
 import com.iecube.community.basecontroller.BaseController;
-import com.iecube.community.model.elaborate_md_task.entity.EMDSTSBlock;
+import com.iecube.community.model.elaborate_md_task.entity.EMDSTMSBlock;
 import com.iecube.community.model.elaborate_md_task.service.EMDTaskService;
 import com.iecube.community.model.elaborate_md_task.vo.EMDTaskDetailVo;
+import com.iecube.community.model.elaborate_md_task.vo.EMDTaskModelVo;
+import com.iecube.community.model.elaborate_md_task.vo.EMDTaskRefVo;
 import com.iecube.community.model.elaborate_md_task.vo.EMDTaskVo;
-import com.iecube.community.model.task_e_md_proc.entity.TaskEMdProc;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -33,20 +35,31 @@ public class EMDTaskController extends BaseController {
     }
 
     @GetMapping("/ref")
-    public JsonResult<String> getTaskEMDProcByTaskId(Integer taskId) {
+    public JsonResult<EMDTaskRefVo> getTaskEMDProcByTaskId(Integer taskId) {
         return new JsonResult<>(OK, emdTaskService.getTaskEMDProc(taskId));
     }
 
     @PostMapping("/up/cell/{taskId}/{cellId}")
-    public JsonResult<Void> updateBlockStuData(@RequestBody EMDSTSBlock emdstsBlock, @PathVariable Integer taskId, @PathVariable String cellId) {
-        emdTaskService.updateEMDSSTSBlockPayload(emdstsBlock, cellId, taskId, currentUserId());
+    public JsonResult<Void> updateBlockStuData(@RequestBody EMDSTMSBlock EMDSTMSBlock, @PathVariable Integer taskId, @PathVariable String cellId) {
+        emdTaskService.updateEMDSSTSBlockPayload(EMDSTMSBlock, cellId, taskId, currentUserId());
         return new JsonResult<>(OK);
     }
 
     @PostMapping("/section/next")
-    public JsonResult<Boolean> nextSection(Integer STSId) {
-        System.out.println(STSId);
-        Boolean res = emdTaskService.toNextSection(STSId.longValue());
+    public JsonResult<Boolean> nextSection(Integer STMSId) {
+        Boolean res = emdTaskService.toNextSection(STMSId.longValue());
         return new JsonResult<>(OK, res);
+    }
+
+    @PostMapping("/model/update")
+    public JsonResult<EMDTaskModelVo> nextModel(Integer modelId, Integer currAskNum, Integer status) {
+        EMDTaskModelVo emdTaskModelVo = emdTaskService.upModelStatus(modelId.longValue(),status, currAskNum);
+        return new JsonResult<>(OK, emdTaskModelVo);
+    }
+
+    @PostMapping("/dlog/upload/{studentId}/{taskId}")
+    public JsonResult<Void> uploadEMDLog(MultipartFile file, @PathVariable Integer studentId, @PathVariable Integer taskId) {
+        emdTaskService.uploadDeviceLog(studentId, taskId, file);
+        return new JsonResult<>(OK);
     }
 }

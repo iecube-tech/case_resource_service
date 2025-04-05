@@ -22,8 +22,8 @@ public class ListArrayDeduplication {
         list.add(4);
         list.add(4);
 
-        System.out.println("原始列表: " + list);
+//        System.out.println("原始列表: " + list);
         List<Integer> deduplicatedList = removeDuplicates(list);
-        System.out.println("去重后的列表: " + deduplicatedList);
+//        System.out.println("去重后的列表: " + deduplicatedList);
     }
 }

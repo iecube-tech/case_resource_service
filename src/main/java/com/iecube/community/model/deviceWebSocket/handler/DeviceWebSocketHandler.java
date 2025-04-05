@@ -26,7 +26,7 @@ public class DeviceWebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
         // 1. 解析设备数据
-        log.info(message.getPayload());
+//        log.info(message.getPayload());
         DeviceData data = parseMessage(session, message.getPayload());
         if(data.getDeviceId() == null || data.getType() == null) {
             log.warn("设备消息参数错误");
@@ -41,24 +41,24 @@ public class DeviceWebSocketHandler extends TextWebSocketHandler {
         if(!subscriptionMiddleware.deviceSessions.containsKey(data.getDeviceId())) {
             subscriptionMiddleware.deviceSessions.put(data.getDeviceId(), session);
         }
-        log.info("设备：{}",data.getDeviceId());
+        log.info("设备：{}消息",data.getDeviceId());
         switch(data.getType()) {
-            case "INIT":
+            case "init":
                 log.info("INIT");
                 break;
-            case "DATA":
-                log.info("发送数据");
+            case "data":
                 // 广播实时数据到前端（由设备数据处理器调用）
                 Message msg = new Message();
                 msg.setType("DATA");
                 msg.setData(data.getData());
                 if(data.getData()!=null){
                     WebSocketSession frontSession = subscriptionMiddleware.deviceSubscriptions.get(data.getDeviceId());
+                    log.info("设备发送数据-->{}",frontSession.getId());
                     subscriptionMiddleware.sendMessage(frontSession, msg);
                 }
                 break;
-            case "PING":
-                log.info("PING");
+            case "ping":
+                log.info("ping");
                 Message msg1 = new Message();
                 msg1.setType("PONG");
                 subscriptionMiddleware.sendMessage(session,msg1);

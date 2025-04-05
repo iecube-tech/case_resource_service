@@ -23,11 +23,11 @@ public class TextSplitExample {
         while (matcher.find()) {
             // 打印两个特殊文本字符之间的文本
             String textBefore = input.substring(lastEnd, matcher.start());
-            System.out.println("文本字符段落：" + textBefore);
+//            System.out.println("文本字符段落：" + textBefore);
 
             // 打印特殊文本字符
             String specialText = matcher.group(1);
-            System.out.println("特殊文本字符：" + specialText);
+//            System.out.println("特殊文本字符：" + specialText);
 
             // 更新下一个段落的起始位置
             lastEnd = matcher.end();
@@ -36,7 +36,7 @@ public class TextSplitExample {
         // 打印最后一个特殊文本字符后的文本
         if (lastEnd < input.length()) {
             String lastText = input.substring(lastEnd);
-            System.out.println("文本字符段落：" + lastText);
+//            System.out.println("文本字符段落：" + lastText);
         }
     }
 }

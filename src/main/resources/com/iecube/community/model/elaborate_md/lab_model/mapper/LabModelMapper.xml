@@ -5,14 +5,25 @@
     <resultMap id="LabModel" type="com.iecube.community.model.elaborate_md.lab_model.entity.LabModel">
         <result column="parent_id" property="parentId"></result>
         <result property="hasChildren" column="has_children"></result>
+        <result property="sectionPrefix" column="section_prefix"></result>
+        <result property="isNeedAiAsk" column="need_ai_ask"></result>
+        <result property="askNum" column="ask_num"></result>
     </resultMap>
 
     <insert id="createLabModel" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO e_md_lab_model (id, parent_id, name, icon,sort) VALUES (NULL, #{parentId}, #{name}, #{icon}, #{sort})
+        INSERT INTO e_md_lab_model (id, parent_id, name, icon,sort, need_ai_ask, ask_num, section_prefix, stage)
+        VALUES (NULL, #{parentId}, #{name}, #{icon}, #{sort}, #{isNeedAiAsk}, #{askNum}, #{sectionPrefix},#{stage})
     </insert>
 
     <update id="updateLabModel">
-        UPDATE e_md_lab_model SET `name`=#{name}, icon=#{icon}, sort=#{sort} WHERE id=#{id}
+        UPDATE e_md_lab_model SET `name`=#{name},
+                                  icon=#{icon},
+                                  sort=#{sort},
+                                  need_ai_ask=#{isNeedAiAsk},
+                                  ask_num=#{askNum},
+                                  section_prefix=#{sectionPrefix},
+                                  stage=#{stage}
+                              WHERE id=#{id}
     </update>
 
     <update id="batchUpdateSort">
@@ -33,7 +44,7 @@
 
     <select id="getLabModelById" resultMap="LabModel">
         SELECT
-            `id`, `parent_id`, `name`, `icon`, `sort`,
+            `id`, `parent_id`, `name`, `icon`, `sort`,`need_ai_ask`, `ask_num`, `section_prefix`, `stage`,
             (SELECT COUNT(*) FROM e_md_sectionalization WHERE parent_id = e_md_lab_model.id) AS has_children
         FROM e_md_lab_model
         WHERE id=#{id} ORDER BY sort
@@ -41,7 +52,7 @@
 
     <select id="getLabModelsByLabId" resultMap="LabModel">
         SELECT
-            `id`, `parent_id`, `name`, `icon`, `sort`,
+            `id`, `parent_id`, `name`, `icon`, `sort`,`need_ai_ask`,`ask_num`, `section_prefix`, `stage`,
             (SELECT COUNT(*) FROM e_md_sectionalization WHERE parent_id = e_md_lab_model.id) AS has_children
         FROM e_md_lab_model
         WHERE `parent_id`=#{labProcId} ORDER BY `sort`

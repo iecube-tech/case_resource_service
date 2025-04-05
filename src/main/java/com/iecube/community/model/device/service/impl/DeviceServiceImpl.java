@@ -184,7 +184,7 @@ public class DeviceServiceImpl implements DeviceService {
         deviceDetail.setLocalPort(device.getPort());
         deviceDetail.setRemotePort(frpServerPortManage.getRemotePort());
         tcpMessageDto.setDeviceDetail(deviceDetail);
-        System.out.println(tcpMessageDto);
+//        System.out.println(tcpMessageDto);
         String boxResponse = this.connectOnlineBox(thisFrpServer.getIp(), thisBoxPort,tcpMessageDto);
         ObjectMapper objectMapper = new ObjectMapper();
         //允许json使用单引号
@@ -538,7 +538,7 @@ public class DeviceServiceImpl implements DeviceService {
         objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
         try{
             OnlineBoxResponse onlineBoxResponse = objectMapper.readValue(res, OnlineBoxResponse.class);
-            System.out.println(onlineBoxResponse);
+//            System.out.println(onlineBoxResponse);
         }catch (JsonProcessingException e){
             e.printStackTrace();
             throw new ReceivedMessageException("解析OnlineBox数据异常"+ e.getMessage());

@@ -5,21 +5,16 @@ import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.elaborate_md.block.service.BlockService;
 import com.iecube.community.model.elaborate_md.block.vo.BlockVo;
+import com.iecube.community.model.elaborate_md.lab_model.entity.LabModel;
+import com.iecube.community.model.elaborate_md.lab_model.service.LabModelService;
 import com.iecube.community.model.elaborate_md.sectionalization.entity.Sectionalization;
 import com.iecube.community.model.elaborate_md.sectionalization.service.SectionalizationService;
-import com.iecube.community.model.elaborate_md_task.entity.EMDSTSBlock;
-import com.iecube.community.model.elaborate_md_task.entity.EMDStudentTask;
-import com.iecube.community.model.elaborate_md_task.entity.EMDStudentTaskSection;
-import com.iecube.community.model.elaborate_md_task.entity.EMDTaskRecord;
-import com.iecube.community.model.elaborate_md_task.mapper.EMDSTSBlockMapper;
-import com.iecube.community.model.elaborate_md_task.mapper.EMDStudentTaskMapper;
-import com.iecube.community.model.elaborate_md_task.mapper.EMDStudentTaskSectionMapper;
-import com.iecube.community.model.elaborate_md_task.mapper.EMDTaskRecordMapper;
+import com.iecube.community.model.elaborate_md_task.entity.*;
+import com.iecube.community.model.elaborate_md_task.mapper.*;
 import com.iecube.community.model.elaborate_md_task.service.EMDTaskService;
-import com.iecube.community.model.elaborate_md_task.vo.EMDTaskBlockVo;
-import com.iecube.community.model.elaborate_md_task.vo.EMDTaskDetailVo;
-import com.iecube.community.model.elaborate_md_task.vo.EMDTaskSectionVo;
-import com.iecube.community.model.elaborate_md_task.vo.EMDTaskVo;
+import com.iecube.community.model.elaborate_md_task.vo.*;
+import com.iecube.community.model.resource.entity.Resource;
+import com.iecube.community.model.resource.service.ResourceService;
 import com.iecube.community.model.student.entity.Student;
 import com.iecube.community.model.task.entity.Task;
 import com.iecube.community.model.task.entity.TaskVo;
@@ -29,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -39,16 +35,22 @@ public class EMDTaskServiceImpl implements EMDTaskService {
     private SectionalizationService sectionalizationService;
 
     @Autowired
+    private LabModelService labModelService;
+
+    @Autowired
     private BlockService blockService;
 
     @Autowired
     private EMDStudentTaskMapper emdStudentTaskMapper;
 
     @Autowired
-    private EMDStudentTaskSectionMapper emdStudentTaskSectionMapper;
+    private EMDSTModelMapper emdstModelMapper;
 
     @Autowired
-    private EMDSTSBlockMapper emdSTSBlockMapper;
+    private EMDSTMSectionMapper EMDSTMSectionMapper;
+
+    @Autowired
+    private EMDSTMSBlockMapper emdSTSBlockMapper;
 
     @Autowired
     private TaskMapper taskMapper;
@@ -59,29 +61,44 @@ public class EMDTaskServiceImpl implements EMDTaskService {
     @Autowired
     private EMDTaskRecordMapper emdTaskRecordMapper;
 
+    @Autowired
+    private ResourceService resourceService;
+
 
     @Override
-    /**
+    /*
      * 发布emd实验的task。 studentList 和 taskList 生成的emdStudentTasks 批量添加到 emdStudentTasks
-     *
-     *
      */
     public void EMDTaskPublish(List<Student> studentList, List<Task> taskList) {
         Map<Integer,Long> taskProcMap = new HashMap<>(); // <taskId, labProcId>
-        Map<Long,List<Sectionalization>> procSectionMap = new HashMap<>(); // 取到 task对应的实验指导书 的 section <labId, sectionList>
+
+        Map<Long, List<LabModel>> procModelMap = new HashMap<>();  // 取到 指导书的 model <labId, labModelList>
+
+        Map<Long,List<Sectionalization>> modelSectionMap = new HashMap<>(); // 取到 task对应的实验指导书 的 section <modelId, sectionList>
+
         Map<Long, List<BlockVo>> sectionBlockMap = new HashMap<>(); // 取到 section 对应的 blockList <sectionId, blockList>
+
         for(Task task : taskList){ // task 中带着指导书的id ==> procId
             taskProcMap.put(task.getId(),task.getTaskEMdProc());
-            List<Sectionalization> sectionList = sectionalizationService.getSectionalizationByLabModeId(task.getTaskEMdProc());
-            procSectionMap.put(task.getTaskEMdProc(), sectionList);
+            List<LabModel> labModelList = labModelService.getByLabProc(task.getTaskEMdProc());
+            procModelMap.put(task.getTaskEMdProc(), labModelList);
         }
-        procSectionMap.forEach((labId,sectionList)->{
-            sectionList.forEach(section->{
-               List<BlockVo> blocks = blockService.getBlockVoListBySection(section.getId());
-                sectionBlockMap.put(section.getId(),blocks);
+
+        procModelMap.forEach((labId, labModelList) -> {
+            labModelList.forEach(labModel -> {
+                List<Sectionalization> sectinList = sectionalizationService.getSectionalizationByLabModeId(labModel.getId());
+                modelSectionMap.put(labModel.getId(), sectinList);
             });
         });
 
+        modelSectionMap.forEach((modelId, sectionList)->{
+            sectionList.forEach(section -> {
+                List<BlockVo> blockVos = blockService.getBlockVoListBySection(section.getId());
+                sectionBlockMap.put(section.getId(), blockVos);
+            });
+        });
+
+        // student-task 批量添加
         List<EMDStudentTask> EMDStudentTaskList = new ArrayList<>();
         for(Student student : studentList){
             for(Task task: taskList){
@@ -98,41 +115,72 @@ public class EMDTaskServiceImpl implements EMDTaskService {
             throw new InsertException("新增数据异常");
         }
 
-        List<EMDStudentTaskSection> emdStudentTaskSectionList = new ArrayList<>();
-        // 创建 student-task -- section
-        for(EMDStudentTask eMDStudentTask : EMDStudentTaskList){
-            List<Sectionalization> sectionList = procSectionMap.get(taskProcMap.get(eMDStudentTask.getTaskId()));
-            for(Sectionalization section : sectionList){
-                EMDStudentTaskSection eMDStudentTaskSection = new EMDStudentTaskSection();
-                eMDStudentTaskSection.setStudentTaskId(eMDStudentTask.getId());
-                eMDStudentTaskSection.setSectionId(section.getId());
-                eMDStudentTaskSection.setSort(section.getSort());
-                eMDStudentTaskSection.setStatus(0);
-                emdStudentTaskSectionList.add(eMDStudentTaskSection);
+        // stModel 批量增加
+        List<EMDSTModel> EMDSTModelList = new ArrayList<>();
+        // 创建 studentTask -- model
+        for(EMDStudentTask emdStudentTask: EMDStudentTaskList){
+            List<LabModel> labModelList = procModelMap.get(taskProcMap.get(emdStudentTask.getTaskId()));
+            for(LabModel labModel: labModelList){
+                EMDSTModel emdSTModel = getEmdSTModel(emdStudentTask, labModel);
+                EMDSTModelList.add(emdSTModel);
             }
         }
-        int re1 = emdStudentTaskSectionMapper.BatchAdd(emdStudentTaskSectionList);
-        if(re1 != emdStudentTaskSectionList.size()){
+        int STMre = emdstModelMapper.batchAdd(EMDSTModelList);
+        if(STMre!=EMDSTModelList.size()){
             throw new InsertException("新增数据异常");
         }
 
-        List<EMDSTSBlock> emdstsBlockList = new ArrayList<>();
-        for(EMDStudentTaskSection emdSTS : emdStudentTaskSectionList){
-            List<BlockVo> blockList  = sectionBlockMap.get(emdSTS.getSectionId());
-            for(BlockVo blockVo : blockList){
-                EMDSTSBlock emdSTSBlock = getEmdSTSBlock(emdSTS, blockVo);
-                emdstsBlockList.add(emdSTSBlock);
+        List<EMDSTMSection> EMDSTMSectionList = new ArrayList<>();
+        // 创建 student-task -- section
+        for(EMDSTModel emdstModel : EMDSTModelList){
+            List<Sectionalization> sectionList = modelSectionMap.get(emdstModel.getModelId());
+            for(Sectionalization section : sectionList){
+                EMDSTMSection emdstmSection = new EMDSTMSection();
+                emdstmSection.setStmId(emdstModel.getId());
+                emdstmSection.setSectionId(section.getId());
+                emdstmSection.setSort(section.getSort());
+                emdstmSection.setStatus(0);
+                EMDSTMSectionList.add(emdstmSection);
             }
         }
-        int re2 = emdSTSBlockMapper.BatchAdd(emdstsBlockList);
-        if(re2 != emdstsBlockList.size()){
+        int re1 = EMDSTMSectionMapper.BatchAdd(EMDSTMSectionList);
+        if(re1 != EMDSTMSectionList.size()){
+            throw new InsertException("新增数据异常");
+        }
+
+        List<EMDSTMSBlock> EMDSTMSBlockList = new ArrayList<>();
+        for(EMDSTMSection emdstmSection : EMDSTMSectionList){
+            List<BlockVo> blockList  = sectionBlockMap.get(emdstmSection.getSectionId());
+            for(BlockVo blockVo : blockList){
+                EMDSTMSBlock emdSTSBlock = getEmdSTSBlock(emdstmSection, blockVo);
+                EMDSTMSBlockList.add(emdSTSBlock);
+            }
+        }
+        int re2 = emdSTSBlockMapper.BatchAdd(EMDSTMSBlockList);
+        if(re2 != EMDSTMSBlockList.size()){
             throw new InsertException("新增数据异常");
         }
     }
 
-    private static @NotNull EMDSTSBlock getEmdSTSBlock(EMDStudentTaskSection emdSTS, BlockVo blockVo) {
-        EMDSTSBlock emdSTSBlock = new EMDSTSBlock();
-        emdSTSBlock.setSTSId(emdSTS.getId());
+    private static @NotNull EMDSTModel getEmdSTModel(EMDStudentTask emdStudentTask, LabModel labModel) {
+        EMDSTModel emdSTModel = new EMDSTModel();
+        emdSTModel.setModelId(labModel.getId());
+        emdSTModel.setStId(emdStudentTask.getId());
+        emdSTModel.setName(labModel.getName());
+        emdSTModel.setIcon(labModel.getIcon());
+        emdSTModel.setSort(labModel.getSort());
+        emdSTModel.setIsNeedAiAsk(labModel.getIsNeedAiAsk());
+        emdSTModel.setAskNum(labModel.getAskNum());
+        emdSTModel.setCurrAskNum(0);
+        emdSTModel.setSectionPrefix(labModel.getSectionPrefix());
+        emdSTModel.setStage(labModel.getStage());
+        emdSTModel.setStatus(0);
+        return emdSTModel;
+    }
+
+    private static @NotNull EMDSTMSBlock getEmdSTSBlock(EMDSTMSection STModelSec, BlockVo blockVo) {
+        EMDSTMSBlock emdSTSBlock = new EMDSTMSBlock();
+        emdSTSBlock.setSTMSId(STModelSec.getId());
         emdSTSBlock.setBlockId(blockVo.getBlockId());
         emdSTSBlock.setStatus(0);
         emdSTSBlock.setSort(blockVo.getSort());
@@ -159,42 +207,62 @@ public class EMDTaskServiceImpl implements EMDTaskService {
 
     @Override
     public EMDTaskDetailVo getTaskDetailVo(Integer taskId, Integer studentId) {
-        if(taskId == null){
+        if(taskId == null || studentId==null){
             throw new ParameterException("请求参数不能为空");
         }
-        // studentId taskId ==> STId ==> List<EMDStudentTaskSection> ==> forEach List<EMDSTSBlock>
-        List<EMDTaskSectionVo> emdTaskSectionVoList = emdStudentTaskSectionMapper.getByST(studentId,taskId);
-        HashMap<Long, Integer> stsIdIndexMap = new HashMap<>();  // <stsId, emdTaskSectionVoList.Index>
-        List<Long> stsIdList = new ArrayList<>();
-        for(int i=0;i<emdTaskSectionVoList.size();i++){
-            stsIdList.add(emdTaskSectionVoList.get(i).getSTSId());
-            stsIdIndexMap.put(emdTaskSectionVoList.get(i).getSTSId(), i);
+        // studentId taskId ==> STId ===> List<EMDSTModel> ==> forEach List<EMDSTMSection> ==> forEach List<EMDSTMSBlock>
+        HashMap<Long, List<EMDTaskSectionVo>> modelSectionsMap = new HashMap<>();   // <modelId, List<EMDTaskSectionVo>>
+
+        // 获取 modelList
+        List<EMDTaskModelVo> emdTaskModelVoList = emdstModelMapper.getTaskModelVoByST(taskId, studentId);
+        for (EMDTaskModelVo emdTaskModelVo : emdTaskModelVoList) {
+            // 获取sectionList
+            List<EMDTaskSectionVo> emdTaskSectionVoList = EMDSTMSectionMapper.getBySTM(emdTaskModelVo.getId());
+            modelSectionsMap.put(emdTaskModelVo.getId(), emdTaskSectionVoList);
         }
-        List<EMDTaskBlockVo> emdTaskBlockVoList = emdSTSBlockMapper.batchGetBySTSId(stsIdList);
-        emdTaskBlockVoList.forEach(emdTaskBlockVo->{
-            int index = stsIdIndexMap.get(emdTaskBlockVo.getSTSId());
-            if(emdTaskSectionVoList.get(index).getBlockVoList()==null){
-                List<EMDTaskBlockVo> list = new ArrayList<>();
-                list.add(emdTaskBlockVo);
-                emdTaskSectionVoList.get(index).setBlockVoList(list);
-            }else{
-                emdTaskSectionVoList.get(index).getBlockVoList().add(emdTaskBlockVo);
+
+        modelSectionsMap.forEach((modelVoId, sectionVoList) -> {
+            // 获取blockList
+            HashMap<Long, Integer> sectionIdIndexMap = new HashMap<>();
+            List<Long> sectionIdList = new ArrayList<>();
+            for(int i=0; i< sectionVoList.size(); i++){
+                sectionIdList.add(sectionVoList.get(i).getId());
+                sectionIdIndexMap.put(sectionVoList.get(i).getId(), i);
+            }
+            List<EMDTaskBlockVo> emdTaskBlockVoList = emdSTSBlockMapper.batchGetBySTMSId(sectionIdList);
+            emdTaskBlockVoList.forEach(emdTaskBlockVo -> {
+                int index = sectionIdIndexMap.get(emdTaskBlockVo.getSTMSId());
+                if(sectionVoList.get(index).getBlockVoList()==null){
+                    List<EMDTaskBlockVo> list = new ArrayList<>();
+                    list.add(emdTaskBlockVo);
+                    sectionVoList.get(index).setBlockVoList(list);
+                }else{
+                    sectionVoList.get(index).getBlockVoList().add(emdTaskBlockVo);
+                }
+            });
+
+            for(EMDTaskModelVo modelVo: emdTaskModelVoList){
+                if(modelVoId.equals(modelVo.getId())){
+                    modelVo.setSectionVoList(sectionVoList);
+                }
             }
         });
         EMDTaskDetailVo emdTaskDetailVo = new EMDTaskDetailVo();
         emdTaskDetailVo.setTaskId(taskId);
-        emdTaskDetailVo.setSectionVoList(emdTaskSectionVoList);
+        emdTaskDetailVo.setLabModelVoList(emdTaskModelVoList);
 
+        // 记录
         EMDTaskRecord record = new EMDTaskRecord();
         record.setStudentId(studentId);
         record.setTaskId(taskId);
         record.setType("GET");
         this.stsRecord(record);
+
         return emdTaskDetailVo;
     }
 
     @Override
-    public String getTaskEMDProc(Integer taskId) {
+    public EMDTaskRefVo getTaskEMDProc(Integer taskId) {
         return taskEMdProcMapper.getTaskProcByTaskId(taskId);
     }
 
@@ -206,12 +274,11 @@ public class EMDTaskServiceImpl implements EMDTaskService {
     }
 
     @Override
-    public void updateEMDSSTSBlockPayload(EMDSTSBlock block, String cellId, Integer taskId, Integer studentId) {
+    public void updateEMDSSTSBlockPayload(EMDSTMSBlock block, String cellId, Integer taskId, Integer studentId) {
         int res = emdSTSBlockMapper.updatePayload(block);
         if(res!= 1){
             throw new UpdateException("保存数据出错了");
         }
-
         EMDTaskRecord record = new EMDTaskRecord();
         record.setTaskId(taskId);
         record.setStudentId(studentId);
@@ -224,15 +291,39 @@ public class EMDTaskServiceImpl implements EMDTaskService {
     }
 
     @Override
-    public Boolean toNextSection(Long STSId) {
-        EMDTaskSectionVo emdTaskSectionVo = emdStudentTaskSectionMapper.getBySTSId(STSId);
+    public void uploadDeviceLog(Integer studentId, Integer taskId, MultipartFile file) {
+        try{
+            Resource resource = resourceService.UploadFile(file, studentId);
+            EMDTaskRecord record = new EMDTaskRecord();
+            record.setTaskId(taskId);
+            record.setStudentId(studentId);
+            record.setType("DLOG");
+            record.setResourceId(resource.getId());
+            this.stsRecord(record);
+        }catch (Exception e){
+            throw new UpdateException("上传数据异常"+e.getMessage());
+        }
+    }
+
+    @Override
+    public Boolean toNextSection(Long STMSId) {
+//        EMDTaskSectionVo emdTaskSectionVo = EMDSTMSectionMapper.getBySTSId(STSId);
         // todo emdTaskSectionVo.setBlockVoList();
         // 结果校验
         // 设置status
-        int res = emdStudentTaskSectionMapper.upStatus(STSId, 1);
+        int res = EMDSTMSectionMapper.upStatus(STMSId, 1);
         if(res != 1){
             throw new UpdateException("更新数据异常");
         }
         return true;
+    }
+
+    @Override
+    public EMDTaskModelVo upModelStatus(Long modelId, int status, int currAskNum) {
+        int res = emdstModelMapper.updateModelStatus(modelId, status, currAskNum);
+        if(res != 1){
+            throw new UpdateException("更新数据异常");
+        }
+        return emdstModelMapper.getTaskModelVoByModelId(modelId);
     }
 }

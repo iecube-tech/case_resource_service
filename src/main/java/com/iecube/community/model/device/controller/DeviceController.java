@@ -74,14 +74,14 @@ public class DeviceController extends DeviceBaseController {
     @GetMapping("/connect")
     public JsonResult<String> connectOnlineBox(String ip, Integer port){
         String res = deviceService.connectOnlineBoxTest(ip, port);
-        System.out.println("res:"+res);
+//        System.out.println("res:"+res);
         return new JsonResult<>(OK, res);
     }
 
     @PostMapping("/start_vnc")
     public JsonResult<VncResponse> startVnc(String ip, Integer vnc, Integer listen){
         VncResponse vncResponse = deviceService.startVnc(ip, vnc, listen);
-        System.out.println(vncResponse);
+//        System.out.println(vncResponse);
         return new JsonResult<>(OK,vncResponse);
     }
 

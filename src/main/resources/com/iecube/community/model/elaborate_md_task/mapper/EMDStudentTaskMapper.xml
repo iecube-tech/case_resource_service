@@ -25,26 +25,10 @@
     </resultMap>
 
     <insert id="BatchAdd" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO e_md_student_task (id, studnet_id, task_id, status) VALUES
+        INSERT INTO e_md_student_task (id, student_id, task_id, status) VALUES
         <foreach collection="list" separator="," item="item">
             (NULL, #{item.studentId}, #{item.taskId}, #{item.status})
         </foreach>
     </insert>
-
-    <select id="getStuTaskDetail" resultMap="EMDStuTaskDetailDto">
-        SELECT st.id AS stu_task_id, sts.id AS sts_id, sts.`status` AS sts_status, section.sort AS sts_sort,
-               stsb.id AS sts_block_id, stsb.result AS sts_block_result, stsb.stu_data AS sts_block_stu_data,
-               b.id AS block_id, b.sort AS block_sort, bd.type, bd.title, bd.content, bd.catalogue, bd.conf_data,
-               bd.reference_data,bd.data_template
-        FROM e_md_student_task st
-            INNER JOIN e_md_StudentTask_section sts ON sts.studentTask_id=st.id
-            INNER JOIN e_md_sectionalization section ON sts.section_id=section.id
-            INNER JOIN e_md_STS_block stsb ON stsb.STS_id=sts.id
-            INNER JOIN e_md_block b ON stsb.block_id=b.id
-            INNER JOIN e_md_block_detail bd ON bd.parent_id=b.id
-        WHERE st.studnet_id=#{studentId} AND st.task_id=#{taskId}
-        ORDER BY sts_sort, block_sort;
-    </select>
-
 
 </mapper>

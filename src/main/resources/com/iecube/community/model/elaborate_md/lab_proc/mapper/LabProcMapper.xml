@@ -4,15 +4,21 @@
 <mapper namespace="com.iecube.community.model.elaborate_md.lab_proc.mapper.LabProcMapper">
     <resultMap id="LabProc" type="com.iecube.community.model.elaborate_md.lab_proc.entity.LabProc">
         <result column="parent_id" property="parentId"></result>
+        <result column="section_prefix" property="sectionPrefix"></result>
         <result property="hasChildren" column="has_children"></result>
+
     </resultMap>
 
     <insert id="createLabProc" keyProperty="id" useGeneratedKeys="true">
-        INSERT INTO e_md_lab_proc (`id`, `parent_id`, `name`, `sort`) VALUES (NULL, #{parentId}, #{name}, #{sort})
+        INSERT INTO e_md_lab_proc (`id`, `parent_id`, `name`, `sort`, section_prefix)
+        VALUES (NULL, #{parentId}, #{name}, #{sort}, #{sectionPrefix})
     </insert>
 
     <update id="updateLabProc">
-        UPDATE e_md_lab_proc SET `name`=#{name}, `sort`=#{sort} WHERE `id`=#{id}
+        UPDATE e_md_lab_proc SET `name`=#{name},
+                                 `sort`=#{sort},
+                                 `section_prefix`=#{sectionPrefix}
+                             WHERE `id`=#{id}
     </update>
 
     <update id="batchUpdateSort">
@@ -33,7 +39,7 @@
 
     <select id="getLabProcById" resultMap="LabProc">
         SELECT
-            `id`, `parent_id`, `name`, `sort`,
+            `id`, `parent_id`, `name`, `sort`, `section_prefix`,
             (SELECT COUNT(*) FROM e_md_lab_model WHERE parent_id = e_md_lab_proc.id) AS has_children
         FROM e_md_lab_proc
         WHERE id=#{id}
@@ -41,7 +47,7 @@
 
     <select id="getLabProcByCourse" resultMap="LabProc">
         SELECT
-            `id`, `parent_id`, `name`, `sort`,
+            `id`, `parent_id`, `name`, `sort`, `section_prefix`,
             (SELECT COUNT(*) FROM e_md_lab_model WHERE parent_id = e_md_lab_proc.id) AS has_children
         FROM e_md_lab_proc
         WHERE `parent_id`=#{courseId} ORDER BY `sort`

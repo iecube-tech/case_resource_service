@@ -39,6 +39,10 @@ public class LabModelServiceImpl implements LabModelService {
         LabModel labModel = new LabModel();
         labModel.setName(labModelQo.getName());
         labModel.setIcon(labModelQo.getIcon());
+        labModel.setIsNeedAiAsk(labModelQo.getIsNeedAiAsk());
+        labModel.setAskNum(labModelQo.getAskNum());
+        labModel.setSectionPrefix(labModelQo.getSectionPrefix());
+        labModel.setStage(labModelQo.getStage());
         labModel.setParentId(labModelQo.getLabProcId());
         labModel.setSort(labModelList.isEmpty()?1:labModelList.get(labModelList.size()-1).getSort()+1);
         int res = labModelMapper.createLabModel(labModel);
@@ -65,6 +69,10 @@ public class LabModelServiceImpl implements LabModelService {
         LabModel labModel = labModelMapper.getLabModelById(labModelQo.getId());
         labModel.setName(labModelQo.getName());
         labModel.setIcon(labModelQo.getIcon());
+        labModel.setIsNeedAiAsk(labModelQo.getIsNeedAiAsk());
+        labModel.setAskNum(labModelQo.getAskNum());
+        labModel.setSectionPrefix(labModelQo.getSectionPrefix());
+        labModel.setStage(labModelQo.getStage());
         int res = labModelMapper.updateLabModel(labModel);
         if(res != 1){
             throw new UpdateException("更新数据异常");

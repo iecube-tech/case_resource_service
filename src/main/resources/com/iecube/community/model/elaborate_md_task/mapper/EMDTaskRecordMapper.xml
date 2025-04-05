@@ -19,9 +19,9 @@
 
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
         INSERT INTO e_md_task_STS_record (id ,student_id,task_id,section_id,section_sort,block_id,block_sort,
-                                          `type`,payload,chat_id,send_message,`time`, cell_id, cell_data )
+                                          `type`,payload,chat_id,send_message,`time`, cell_id, cell_data, resource_id )
         VALUES (#{id} , #{studentId}, #{taskId}, #{sectionId}, #{sectionSort}, #{blockId}, #{blockSort},
-                   #{type}, #{payload}, #{chatId}, #{sendMessage}, #{time}, #{cellId}, #{cellData})
+                   #{type}, #{payload}, #{chatId}, #{sendMessage}, #{time}, #{cellId}, #{cellData}, #{resourceId})
     </insert>
 
 

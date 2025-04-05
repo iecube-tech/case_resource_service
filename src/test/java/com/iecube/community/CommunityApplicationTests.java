@@ -18,7 +18,7 @@ class CommunityApplicationTests {
 
     @Test
     void getConnection() throws SQLException{
-        System.out.println(dataSource.getConnection());
+//        System.out.println(dataSource.getConnection());
     }
 
 }

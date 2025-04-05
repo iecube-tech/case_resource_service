@@ -43,7 +43,7 @@ public class SubscriptionMiddleware {
      */
     public void sendMessage(WebSocketSession session, Message message){
         if(session == null || !session.isOpen()){
-            log.warn("尝试向不存在或已关闭的session发送消息: {}",message);
+            log.warn("尝试向不存在或已关闭的session发送消息: {}, {}", session,message);
             return;
         }
         ObjectMapper objectMapper = new ObjectMapper();
@@ -51,7 +51,7 @@ public class SubscriptionMiddleware {
             String msg = objectMapper.writeValueAsString(message);
             session.sendMessage(new TextMessage(msg));
         }catch (Exception e){
-            log.error("发送消息异常{}",e.getMessage());
+            log.error("发送消息异常{},{}",session.getId(), e.getMessage());
         }
 
     }

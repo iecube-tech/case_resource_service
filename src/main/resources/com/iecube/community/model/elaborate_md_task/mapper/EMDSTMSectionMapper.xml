@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.elaborate_md_task.mapper.EMDSTMSectionMapper">
+    <resultMap id="EMDStudentTaskSection" type="com.iecube.community.model.elaborate_md_task.entity.EMDSTMSection">
+        <result property="stm_id" column="stmId"></result>
+        <result property="sectionId" column="section_id"></result>
+    </resultMap>
+
+    <resultMap id="EMDTaskSectionVo" type="com.iecube.community.model.elaborate_md_task.vo.EMDTaskSectionVo">
+        <result property="stm_id" column="stmId"></result>
+    </resultMap>
+
+    <insert id="BatchAdd" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO e_md_STM_section (id, stm_id, section_id, sort, status) VALUES
+        <foreach collection="list" separator="," item="item">
+            (NULL, #{item.stmId}, #{item.sectionId}, #{item.sort}, #{item.status})
+        </foreach>
+    </insert>
+
+    <select id="getBySTM" resultMap="EMDTaskSectionVo">
+        SELECT id, stm_id, sort, `status`
+        FROM  e_md_STM_section
+        WHERE stm_id=#{stmId}
+    </select>
+
+
+    <update id="upStatus">
+        UPDATE e_md_STM_section SET status=#{status} WHERE id=#{STMSId}
+    </update>
+</mapper>

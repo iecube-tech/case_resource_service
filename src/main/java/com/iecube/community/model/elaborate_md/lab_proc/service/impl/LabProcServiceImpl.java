@@ -36,6 +36,7 @@ public class LabProcServiceImpl implements LabProcService {
         List<LabProc> labProcList = labProcMapper.getLabProcByCourse(labProcQo.getCourseId());
         LabProc labProc = new LabProc();
         labProc.setName(labProcQo.getName());
+        labProc.setSectionPrefix(labProcQo.getSectionPrefix());
         labProc.setParentId(labProcQo.getCourseId());
         labProc.setSort(labProcList.isEmpty()?1:labProcList.get(labProcList.size()-1).getSort()+1);
         int res = labProcMapper.createLabProc(labProc);
@@ -60,6 +61,7 @@ public class LabProcServiceImpl implements LabProcService {
     @Override
     public List<LabProc> updateLabProc(LabProcQo labProcQo) {
         LabProc labProc = labProcMapper.getLabProcById(labProcQo.getId());
+        labProc.setSectionPrefix(labProcQo.getSectionPrefix());
         labProc.setName(labProcQo.getName());
         int res = labProcMapper.updateLabProc(labProc);
         if(res != 1){

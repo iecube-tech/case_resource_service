@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class TestController extends BaseController {
     @GetMapping("/islogin")
     public JsonResult<String> isLoginTest(){
-        System.out.println(currentUserType()+currentUserId()+currentUserEmail());
+//        System.out.println(currentUserType()+currentUserId()+currentUserEmail());
         return new JsonResult<>(200,"已登录");
     }
 }

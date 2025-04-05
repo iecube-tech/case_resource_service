@@ -173,7 +173,7 @@ public class ContentController extends ContentBaseController {
     @PostMapping("/update_guidance/{contentId}")
     public JsonResult<Content> updateGuidance(@RequestBody Content data, @PathVariable Integer contentId){
         String guidance = data.getGuidance();
-        System.out.println(guidance);
+//        System.out.println(guidance);
         Integer user = currentUserId();
         contentService.updateGuidanceById(contentId, guidance, user);
         contentService.contentCompletionUpdate(5,contentId,user);

@@ -25,7 +25,7 @@ public class StudentReportGenerator {
     public void startGenerator(){
         try (PDDocument document = new PDDocument()) {
             PDPage page = new PDPage(PDRectangle.A4);
-            System.out.println(page.getMediaBox().getHeight()+"*"+page.getMediaBox().getWidth());
+//            System.out.println(page.getMediaBox().getHeight()+"*"+page.getMediaBox().getWidth());
             document.addPage(page);
             PDPageContentStream contentStream = new PDPageContentStream(document, page);
             File fontFile = new File("src/main/resources/fonts/simfang.ttf");
@@ -42,7 +42,7 @@ public class StudentReportGenerator {
             contentStream.close();
 
             document.save("generated.pdf");
-            System.out.println("done");
+//            System.out.println("done");
         } catch (IOException e) {
             e.printStackTrace();
         }

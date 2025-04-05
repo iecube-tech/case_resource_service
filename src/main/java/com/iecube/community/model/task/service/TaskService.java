@@ -11,6 +11,8 @@ import java.util.List;
 public interface TaskService {
     Task createTask(Task task, Integer user);
 
+    Task getById(Integer id);
+
     List<ProjectStudentTask> getPSTByProjectId(Integer projectId);
 
     List<StudentTaskDetailVo> findStudentTaskByProjectId(Integer projectId, Integer studentId);

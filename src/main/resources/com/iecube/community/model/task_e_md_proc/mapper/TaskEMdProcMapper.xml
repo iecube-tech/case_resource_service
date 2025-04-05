@@ -5,7 +5,12 @@
 <mapper namespace="com.iecube.community.model.task_e_md_proc.mapper.TaskEMdProcMapper">
     <resultMap id="LabProc" type="com.iecube.community.model.elaborate_md.lab_proc.entity.LabProc">
         <result column="parent_id" property="parentId"></result>
+        <result column="section_prefix" property="sectionPrefix"></result>
         <result property="hasChildren" column="has_children"></result>
+    </resultMap>
+
+    <resultMap id="EMDTaskRefVo" type="com.iecube.community.model.elaborate_md_task.vo.EMDTaskRefVo">
+        <result column="section_prefix" property="sectionPrefix"></result>
     </resultMap>
 
     <insert id="taskTemplateAddProc" keyProperty="id" useGeneratedKeys="true">
@@ -13,7 +18,8 @@
     </insert>
 
     <insert id="taskAddProc" keyProperty="id" useGeneratedKeys="true">
-        INSERT INTO e_md_task_proc (id, task_id, proc_id, proc_ref) VALUES (NULL, #{taskId},#{procId}, #{procRef})
+        INSERT INTO e_md_task_proc (id, task_id, proc_id, proc_ref, section_prefix)
+        VALUES (NULL, #{taskId},#{procId}, #{procRef}, #{sectionPrefix})
     </insert>
 
     <select id="getLabProcByTaskTemplateId" resultMap="LabProc">
@@ -24,7 +30,7 @@
     </select>
 
     <select id="getLabProcByTaskId" resultMap="LabProc">
-        SELECT e_md_lab_proc.id,e_md_lab_proc.`parent_id`, e_md_lab_proc.`name`, e_md_lab_proc.`sort`,
+        SELECT e_md_lab_proc.id,e_md_lab_proc.`parent_id`, e_md_lab_proc.`name`, e_md_lab_proc.`sort`, e_md_lab_proc.`section_prefix`,
                (SELECT COUNT(*) FROM e_md_sectionalization WHERE parent_id = e_md_lab_proc.id) AS has_children
         FROM e_md_lab_proc LEFT JOIN e_md_task_proc ON e_md_lab_proc.id=e_md_task_proc.proc_id
         WHERE e_md_task_proc.task_id=#{taskId}
@@ -38,8 +44,8 @@
         DELETE FROM e_md_task_proc WHERE e_md_task_proc.task_id=#{taskId}
     </delete>
 
-    <select id="getTaskProcByTaskId" resultType="java.lang.String">
-        SELECT proc_ref from e_md_task_proc WHERE task_id=#{taskId}
+    <select id="getTaskProcByTaskId" resultMap="EMDTaskRefVo">
+        SELECT proc_ref as ref, section_prefix from e_md_task_proc WHERE task_id=#{taskId}
     </select>
 
 </mapper>

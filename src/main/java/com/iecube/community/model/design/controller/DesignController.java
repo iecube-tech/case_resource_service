@@ -46,8 +46,8 @@ public class DesignController extends DesignBaseController {
 
     @PostMapping("/add_course_design")
     public JsonResult<List> addCourseDesign(Integer courseId, @RequestBody CourseDesignQo courseDesignQo){
-        System.out.println(courseId);
-        System.out.println(courseDesignQo);
+//        System.out.println(courseId);
+//        System.out.println(courseDesignQo);
         designService.addCourseDesign(courseId, courseDesignQo);
         List<CourseDesign> courseDesignList = designService.getCourseDesigns(courseId);
         return new JsonResult<>(OK, courseDesignList);

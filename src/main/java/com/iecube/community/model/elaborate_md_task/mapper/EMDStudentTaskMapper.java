@@ -9,6 +9,4 @@ import java.util.List;
 @Mapper
 public interface EMDStudentTaskMapper {
     int BatchAdd(List<EMDStudentTask> list);
-
-    List<EMDStuTaskDetailDto> getStuTaskDetail(Integer studentId, Integer taskId);
 }

@@ -23,7 +23,7 @@ public class JwtUtilTests {
         claims.put("id",1);
         claims.put("name", "kongzi");
         claims.put("user_type", "teacher");
-        System.out.println(jwtUtil.createToken(claims));
+//        System.out.println(jwtUtil.createToken(claims));
     }
 
     @Test
@@ -32,15 +32,15 @@ public class JwtUtilTests {
         Claims claims = jwtUtil.getClaims(token);
         Integer userId = (Integer) claims.get("id");
         String userType = (String) claims.get("user_type");
-        System.out.println(userId);
-        System.out.println(userType);
+//        System.out.println(userId);
+//        System.out.println(userType);
     }
 
     @Test
     public void validToken(){
         String token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJpZWN1YmUub25saW5lIiwidXNlcl90eXBlIjoidGVhY2hlciIsIm5hbWUiOiJrb25nemkiLCJpZCI6MSwiZXhwIjoxNzI3MTAyNDEzLCJpYXQiOjE3MjcwOTE2MTN9.zU7Ehf1c0R33y9DG_53L9a1XGo1GlYOgFHcaC_hJtqM";
-        System.out.println(jwtUtil.validateToken(token));
-        System.out.println(jwtUtil.validateToken(token));
+//        System.out.println(jwtUtil.validateToken(token));
+//        System.out.println(jwtUtil.validateToken(token));
 
     }
 }

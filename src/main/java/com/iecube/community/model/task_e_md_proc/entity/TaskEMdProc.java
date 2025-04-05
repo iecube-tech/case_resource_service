@@ -8,4 +8,5 @@ public class TaskEMdProc {
     private Integer taskId;
     private Long procId;
     private String procRef;
+    private String sectionPrefix;
 }

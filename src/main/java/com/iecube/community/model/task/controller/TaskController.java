@@ -152,4 +152,9 @@ public class TaskController extends TaskBaseController {
         }
         return new JsonResult<>(OK, pstBaseDetail);
     }
+
+    @GetMapping("/task/{taskId}")
+    public JsonResult<Task> getTaskById(@PathVariable Integer taskId){
+        return new JsonResult<>(OK, taskService.getById(taskId));
+    }
 }

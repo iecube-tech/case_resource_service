@@ -36,7 +36,7 @@ public class WebSocketClientManager {
             public void handleFrame(StompHeaders headers, Object payload) {
                 // 处理接收到的消息
                 byte[] message = (byte[]) payload;
-                System.out.println("Received message: " + new String(message));
+//                System.out.println("Received message: " + new String(message));
             }
         });
     }

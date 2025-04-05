@@ -146,14 +146,14 @@ public class NPointsServiceImpl implements NPointsService {
     public List getNodesByModuleId(Integer moduleId) {
         List<Case> res = nPointsMapper.getCasesByModuleId(moduleId);
         List<Case> cases = new ArrayList<>();
-        System.out.println(res);
+//        System.out.println(res);
         for(int i=0; i<res.size(); i++){
             Content content = contentMapper.findById(res.get(i).getId());
             if( content.getIsDelete().intValue() < 1 && content.getCompletion().intValue() >=6 && content.getIsPrivate().intValue() < 1){
                 cases.add(res.get(i));
             }
         }
-        System.out.println(cases);
+//        System.out.println(cases);
         List allNodes = new ArrayList<>();
         for (Case cas : cases){
             List caseNodes = getNodesByCaseId(cas.getId());

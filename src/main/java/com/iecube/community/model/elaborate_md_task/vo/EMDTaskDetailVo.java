@@ -7,5 +7,5 @@ import java.util.List;
 @Data
 public class EMDTaskDetailVo {
     private Integer taskId;
-    private List<EMDTaskSectionVo> sectionVoList;
+    private List<EMDTaskModelVo> labModelVoList;
 }

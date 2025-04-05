@@ -3,9 +3,9 @@ package com.iecube.community.model.elaborate_md_task.entity;
 import lombok.Data;
 
 @Data
-public class EMDSTSBlock {
+public class EMDSTMSBlock {
     private Long id;
-    private Long STSId;
+    private Long STMSId;
     private Long blockId;
     private Integer status; // 0  完成状态
     private Integer sort;

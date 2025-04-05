@@ -9,6 +9,7 @@ public class LabProc {
     private long id;
     private long parentId; // 外键
     private String name;
+    private String sectionPrefix; // ai知识库对应的章节序号
     private boolean hasChildren;
     private int sort; // 排序
     private int level=1;

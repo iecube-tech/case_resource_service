@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.elaborate_md_task.mapper.EMDSTModelMapper">
+    <resultMap id="EMDSTModel" type="com.iecube.community.model.elaborate_md_task.entity.EMDSTModel">
+        <result property="stId" column="st_id"></result>
+        <result property="modelId" column="model_id"></result>
+        <result property="sectionPrefix" column="section_prefix"></result>
+        <result property="isNeedAiAsk" column="need_ai_ask"></result>
+        <result property="askNum" column="ask_num"></result>
+        <result property="currAskNum" column="curr_ask_num"></result>
+    </resultMap>
+
+    <resultMap id="EMDTaskModelVo" type="com.iecube.community.model.elaborate_md_task.vo.EMDTaskModelVo">
+        <result property="stId" column="st_id"></result>
+        <result property="modelId" column="model_id"></result>
+        <result property="sectionPrefix" column="section_prefix"></result>
+        <result property="isNeedAiAsk" column="need_ai_ask"></result>
+        <result property="askNum" column="ask_num"></result>
+        <result property="currAskNum" column="curr_ask_num"></result>
+    </resultMap>
+
+    <insert id="batchAdd" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO e_md_ST_model (id, st_id, model_id, name, icon, sort, status,need_ai_ask, ask_num, curr_ask_num, section_prefix, stage )
+        VALUES
+        <foreach collection="list" separator="," item="item">
+             (NULL, #{item.stId}, #{item.modelId}, #{item.name}, #{item.icon}, #{item.sort}, #{item.status},
+              #{item.isNeedAiAsk}, #{item.askNum}, #{item.currAskNum}, #{item.sectionPrefix}, #{item.stage})
+        </foreach>
+    </insert>
+
+
+    <select id="getTaskModelVoByST" resultMap="EMDTaskModelVo">
+        SELECT m.id, m.st_id, m.model_id, m.name, m.icon, m.sort, m.status, m.need_ai_ask, m.ask_num, m.curr_ask_num, m.section_prefix, m.stage
+        FROM e_md_ST_model m INNER JOIN e_md_student_task st ON m.st_id=st.id
+        WHERE st.student_id=#{studentId} AND st.task_id=#{taskId}
+        ORDER BY sort
+    </select>
+
+    <select id="getTaskModelVoByModelId" resultMap="EMDTaskModelVo">
+        SELECT m.id, m.st_id, m.model_id, m.name, m.icon, m.sort, m.status, m.need_ai_ask, m.ask_num, m.curr_ask_num, m.section_prefix, m.stage
+        FROM e_md_ST_model m
+        WHERE m.id=#{id}
+    </select>
+
+    <update id="updateModelStatus">
+        UPDATE e_md_ST_model SET status=#{status},
+                                 curr_ask_num=#{currAskNum}
+                             WHERE id=#{id}
+    </update>
+</mapper>

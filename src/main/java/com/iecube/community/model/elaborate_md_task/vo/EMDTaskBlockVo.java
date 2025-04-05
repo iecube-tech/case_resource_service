@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class EMDTaskBlockVo {
     private Long id;
-    private Long STSId;
+    private Long STMSId;
     private Integer status;
     private Integer sort;
     private String type;

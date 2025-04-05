@@ -38,6 +38,6 @@ public class HtmlToPdfDemo {
         // 关闭文档
         document.close();
 
-        System.out.println("PDF created successfully.");
+//        System.out.println("PDF created successfully.");
     }
 }

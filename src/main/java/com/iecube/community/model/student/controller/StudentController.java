@@ -140,7 +140,7 @@ public class StudentController extends StudentBaseController {
             AuthUtils.cache(deviceUser, loginDto.getToken(), stringRedisTemplate);
             log.info("login:{},{},{},{}",deviceUser.getUserType(),deviceUser.getId(), deviceUser.getEmail(),deviceUser.getAgent());
         }
-        System.out.println(loginDto);
+//        System.out.println(loginDto);
         return new JsonResult<>(OK,loginDto);
     }
 
@@ -161,7 +161,7 @@ public class StudentController extends StudentBaseController {
 
     @PostMapping("/sign/code")
     public JsonResult<Void> getSignInCode(String email){
-        System.out.println(email);
+//        System.out.println(email);
         studentService.sendSignInCodeToEmail(email, stringRedisTemplate);
         return new JsonResult<>(OK);
     }
