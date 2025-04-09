@@ -50,6 +50,8 @@ public class SubscriptionMiddleware {
         try{
             String msg = objectMapper.writeValueAsString(message);
             session.sendMessage(new TextMessage(msg));
+            //todo 取消
+            log.info("msg of device success");
         }catch (Exception e){
             log.error("发送消息异常{},{}",session.getId(), e.getMessage());
         }

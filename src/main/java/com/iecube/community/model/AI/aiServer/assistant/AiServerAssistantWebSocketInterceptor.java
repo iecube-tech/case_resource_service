@@ -4,6 +4,7 @@ import com.iecube.community.model.AI.aiClient.service.AiApiService;
 import com.iecube.community.model.AI.aiMiddlware.WebSocketSessionManage;
 import com.iecube.community.model.AI.service.AiService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.stereotype.Component;

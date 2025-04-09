@@ -12,6 +12,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Timer;
 
 @Component
 @Slf4j
@@ -24,7 +25,7 @@ public class AiClientWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         super.afterConnectionEstablished(session);
-        log.info("连接到AI服务方：{}", session.getId());
+        log.info("连接到AI服务方-->{}",session.getId());
     }
 
     @Override
@@ -53,4 +54,5 @@ public class AiClientWebSocketHandler extends TextWebSocketHandler {
         }
 
     }
+
 }

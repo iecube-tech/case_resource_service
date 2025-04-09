@@ -24,8 +24,7 @@ public class SessionManager {
             sessionToId.put(getSessionKey(session), id);
         } finally {
             lock.unlock();
-            log.info("idToSession:{}", idToSession);
-            log.info("sessionToId:{}", sessionToId);
+            logSession();
         }
     }
 
@@ -35,6 +34,7 @@ public class SessionManager {
     public void removeSession(WebSocketSession session) {
         lock.lock();
         try {
+            log.info("session remove");
             String sessionKey = getSessionKey(session);
             String id = sessionToId.get(sessionKey);
             if (id != null) {
@@ -44,8 +44,7 @@ public class SessionManager {
             }
         } finally {
             lock.unlock();
-            log.info("idToSession:{}", idToSession);
-            log.info("sessionToId:{}", sessionToId);
+            logSession();
         }
     }
 
@@ -61,6 +60,11 @@ public class SessionManager {
         } finally {
             lock.unlock();
         }
+    }
+
+    private void logSession(){
+        log.info("idToSession:{}", idToSession.size());
+        log.info("sessionToId:{}", sessionToId.size());
     }
 
     /**

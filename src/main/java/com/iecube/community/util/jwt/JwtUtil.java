@@ -48,15 +48,15 @@ public class JwtUtil {
                     .parseClaimsJws(token).getBody();
             return claims;
         } catch (ExpiredJwtException e) {
-            log.error("ExpiredJwtException:{}",e);
+            log.error("ExpiredJwtException:{}",e.getMessage());
         } catch (UnsupportedJwtException e) {
-            log.error("UnsupportedJwtException:{}",e);
+            log.error("UnsupportedJwtException:{}",e.getMessage());
         } catch (MalformedJwtException e) {
-            log.error("MalformedJwtException:{}",e);
+            log.error("MalformedJwtException:{}",e.getMessage());
         } catch (SignatureException e) {
-            log.error("SignatureException:{}",e);
+            log.error("SignatureException:{}",e.getMessage());
         } catch (IllegalArgumentException e) {
-            log.error("IllegalArgumentException:{}",e);
+            log.error("IllegalArgumentException:{}",e.getMessage());
         }
         return null;
     }

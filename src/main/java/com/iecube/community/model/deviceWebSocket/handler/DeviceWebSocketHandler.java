@@ -41,10 +41,9 @@ public class DeviceWebSocketHandler extends TextWebSocketHandler {
         if(!subscriptionMiddleware.deviceSessions.containsKey(data.getDeviceId())) {
             subscriptionMiddleware.deviceSessions.put(data.getDeviceId(), session);
         }
-        log.info("设备：{}消息",data.getDeviceId());
         switch(data.getType()) {
-            case "init":
-                log.info("INIT");
+            case "INIT":
+                log.info("设备:{},INIT", data.getDeviceId());
                 break;
             case "data":
                 // 广播实时数据到前端（由设备数据处理器调用）
@@ -53,12 +52,12 @@ public class DeviceWebSocketHandler extends TextWebSocketHandler {
                 msg.setData(data.getData());
                 if(data.getData()!=null){
                     WebSocketSession frontSession = subscriptionMiddleware.deviceSubscriptions.get(data.getDeviceId());
-                    log.info("设备发送数据-->{}",frontSession.getId());
+                    log.info("设备:{}发送数据-->{}",data.getDeviceId(),frontSession.getId());
                     subscriptionMiddleware.sendMessage(frontSession, msg);
                 }
                 break;
             case "ping":
-                log.info("ping");
+                log.info("设备:{}ping",data.getDeviceId());
                 Message msg1 = new Message();
                 msg1.setType("PONG");
                 subscriptionMiddleware.sendMessage(session,msg1);

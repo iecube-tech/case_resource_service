@@ -3,6 +3,7 @@ server:
   servlet:
     session:
       timeout: 0
+  max-http-header-size: 1MB
 
 spring:
   datasource:

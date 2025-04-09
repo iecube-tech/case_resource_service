@@ -105,6 +105,14 @@ public class AiApiServiceImpl implements AiApiService {
         WebSocketClient client = new StandardWebSocketClient();
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
         headers.add(headerFiled, headerVal);
+        if(webSocketSessionManage.clientSessionManager.getSessionById(chatId)!=null){
+            try{
+                webSocketSessionManage.clientSessionManager.getSessionById(chatId).close(CloseStatus.NORMAL);
+            }catch (Exception e){
+                log.warn("连接到ai服务前-->新建连接前关闭已有连接, {}",e.getMessage());
+            }
+            webSocketSessionManage.clientSessionManager.removeSession(chatId);
+        }
         try {
             URI uri = new URI(url);
             WebSocketSession session = client.doHandshake(webSocketHandler,headers, uri).get();
