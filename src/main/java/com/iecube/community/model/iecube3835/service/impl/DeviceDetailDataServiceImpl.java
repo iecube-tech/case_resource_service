@@ -1,23 +1,13 @@
 package com.iecube.community.model.iecube3835.service.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
-import com.iecube.community.model.iecube3835.dto.GenStudentContentPdf;
-import com.iecube.community.model.iecube3835.dto.Question;
-import com.iecube.community.model.iecube3835.dto.StudentSubmitContentDetails;
-import com.iecube.community.model.iecube3835.dto.TaskDataTables;
 import com.iecube.community.model.iecube3835.entity.PSTDetailDevice;
 import com.iecube.community.model.iecube3835.mapper.PSTDetailsDeviceMapper;
 import com.iecube.community.model.iecube3835.service.DeviceDetailDataService;
-import com.iecube.community.model.iecube3835.service.ex.GenerateStudentReportException;
 import com.iecube.community.model.iecube3835.service.ex.ReportIOException;
-import com.iecube.community.model.project.service.ex.GenerateFileException;
-import com.iecube.community.model.project_student_group.entity.GroupStudent;
-import com.iecube.community.model.project_student_group.mapper.ProjectStudentGroupMapper;
+import com.iecube.community.model.task_student_group.entity.GroupStudent;
+import com.iecube.community.model.task_student_group.mapper.TaskStudentGroupMapper;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.mapper.StudentMapper;
 import com.iecube.community.model.task.entity.ProjectStudentTask;
@@ -32,7 +22,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +34,7 @@ public class DeviceDetailDataServiceImpl implements DeviceDetailDataService {
     private PSTDetailsDeviceMapper pstDetailsDeviceMapper;
 
     @Autowired
-    private ProjectStudentGroupMapper projectStudentGroupMapper;
+    private TaskStudentGroupMapper taskStudentGroupMapper;
 
     @Autowired
     private StudentMapper studentMapper;
@@ -107,7 +96,7 @@ public class DeviceDetailDataServiceImpl implements DeviceDetailDataService {
 
     public List<ProjectStudentTask> getGroupProjectStudentTask(Integer groupId, Integer pstId){
         //根据groupId 获取学生列表
-        List<GroupStudent> groupStudentList = projectStudentGroupMapper.getStudentsByGroupId(groupId);
+        List<GroupStudent> groupStudentList = taskStudentGroupMapper.getStudentsByGroupId(groupId);
         // 根据pstId获取projectId和taskId
         ProjectStudentTask projectStudentTask = taskMapper.getProjectStudentTaskById(pstId);
         Integer projectId = projectStudentTask.getProjectId();
@@ -170,7 +159,7 @@ public class DeviceDetailDataServiceImpl implements DeviceDetailDataService {
             this.submit(oneOfProjectStudentTask.getId(),oneOfProjectStudentTask.getStudentId());
         }
         // group 设置submitted
-        projectStudentGroupMapper.updateGroupSubmitted(groupId);
+        taskStudentGroupMapper.updateGroupSubmitted(groupId, 2);
         PSTDetailDevice rePSTDetailDevice = pstDetailsDeviceMapper.getByPSTId(pstId);
         return rePSTDetailDevice;
     }

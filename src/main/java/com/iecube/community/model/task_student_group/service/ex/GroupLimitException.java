@@ -1,4 +1,4 @@
-package com.iecube.community.model.project_student_group.service.ex;
+package com.iecube.community.model.task_student_group.service.ex;
 
 import com.iecube.community.baseservice.ex.ServiceException;
 

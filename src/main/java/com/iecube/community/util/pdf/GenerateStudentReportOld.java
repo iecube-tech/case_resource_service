@@ -36,7 +36,7 @@
 //
 //    public MultipartFile startGen(StudentDto studentDto, StudentTaskDetailVo studentTaskDetailVo, String studentData) throws IOException, DocumentException{
 ////        fontPath = ResourceUtils.getFile("classpath:fonts/simfang.ttf").getAbsolutePath();
-//        String FileName = studentTaskDetailVo.getProjectId() +"-"+studentTaskDetailVo.getTaskNum()+"-"+studentDto.getStudentName()
+//        String FileName = studentTaskDetailVo.getTaskId() +"-"+studentTaskDetailVo.getTaskNum()+"-"+studentDto.getStudentName()
 //                +"-"+studentTaskDetailVo.getTaskName()+""+".pdf";
 //        String filePath = genFileDir+"/"+FileName;
 //            // 创建文档对象并设置页面大小

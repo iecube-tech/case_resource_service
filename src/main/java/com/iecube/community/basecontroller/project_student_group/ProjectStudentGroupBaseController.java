@@ -5,9 +5,9 @@ import com.iecube.community.baseservice.ex.ServiceException;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
-import com.iecube.community.model.project_student_group.service.ex.GroupCodeException;
-import com.iecube.community.model.project_student_group.service.ex.GroupGenCodeException;
-import com.iecube.community.model.project_student_group.service.ex.GroupLimitException;
+import com.iecube.community.model.task_student_group.service.ex.GroupCodeException;
+import com.iecube.community.model.task_student_group.service.ex.GroupGenCodeException;
+import com.iecube.community.model.task_student_group.service.ex.GroupLimitException;
 import com.iecube.community.util.JsonResult;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 

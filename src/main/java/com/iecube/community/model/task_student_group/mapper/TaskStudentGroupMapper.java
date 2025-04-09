@@ -1,16 +1,16 @@
-package com.iecube.community.model.project_student_group.mapper;
+package com.iecube.community.model.task_student_group.mapper;
 
-import com.iecube.community.model.project_student_group.entity.Group;
-import com.iecube.community.model.project_student_group.entity.GroupCode;
-import com.iecube.community.model.project_student_group.entity.GroupStudent;
-import com.iecube.community.model.project_student_group.entity.ProjectStudentsWithGroup;
+import com.iecube.community.model.task_student_group.entity.Group;
+import com.iecube.community.model.task_student_group.entity.GroupCode;
+import com.iecube.community.model.task_student_group.entity.GroupStudent;
+import com.iecube.community.model.task_student_group.entity.TaskStudentsWithGroup;
 import com.iecube.community.model.student.entity.Student;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
 @Mapper
-public interface ProjectStudentGroupMapper {
+public interface TaskStudentGroupMapper {
     Integer addGroup(Group group);
     Integer updateGroup(Group group);
     Integer delGroup(Integer id);
@@ -18,23 +18,23 @@ public interface ProjectStudentGroupMapper {
     Integer GroupRemoveStudent(Integer groupId, Integer studentId);
     Integer GroupAddCode(GroupCode groupCode);
 
-    Integer updateGroupSubmitted(Integer groupId);
+    Integer updateGroupSubmitted(Integer groupId, Integer submitted);
 
     Group getGroupById(Integer id);
 
     Integer delGroupCode(Integer groupId);
 
-    Group getGroupByProjectStudent(Integer projectId, Integer studentId);
+    Group getGroupByTaskStudent(Integer taskId, Integer studentId);
 
     List<GroupCode> getGroupCodeByCode(String code);
     List<GroupCode> getGroupCodeByGroupId(Integer groupId);
     List<GroupStudent> getStudentsByGroupId(Integer groupId);
 
-    List<GroupStudent> getGroupStudentByStudentId(Integer studentId, Integer projectId);
+    List<GroupStudent> getGroupStudentByStudentId(Integer studentId, Integer taskId);
 
     List<Student> getStudentByGroup(Integer groupId);
 
     List<Integer> getPstListByGroupAndTaskId(Integer groupId, Integer taskNum);
 
-    List<ProjectStudentsWithGroup> getProjectStudentsWithGroup(Integer projectId);
+    List<TaskStudentsWithGroup> getTaskStudentsWithGroup(Integer taskId);
 }

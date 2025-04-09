@@ -5,8 +5,8 @@ import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.project.entity.ProjectStudentVo;
 import com.iecube.community.model.project.mapper.ProjectMapper;
 import com.iecube.community.model.project.service.ProjectService;
-import com.iecube.community.model.project_student_group.entity.GroupStudent;
-import com.iecube.community.model.project_student_group.mapper.ProjectStudentGroupMapper;
+import com.iecube.community.model.task_student_group.entity.GroupStudent;
+import com.iecube.community.model.task_student_group.mapper.TaskStudentGroupMapper;
 import com.iecube.community.model.pst_devicelog.dto.PSTDeviceLogParseDto;
 import com.iecube.community.model.pst_devicelog.dto.PSTOperations;
 import com.iecube.community.model.pst_devicelog.dto.StudentLogOverview;
@@ -45,7 +45,7 @@ public class PSTDeviceLogServiceImpl implements PSTDeviceLogService {
     private TaskMapper taskMapper;
 
     @Autowired
-    private ProjectStudentGroupMapper projectStudentGroupMapper;
+    private TaskStudentGroupMapper taskStudentGroupMapper;
 
     @Autowired
     private ProjectService projectService;
@@ -119,7 +119,7 @@ public class PSTDeviceLogServiceImpl implements PSTDeviceLogService {
         Integer studentId = projectStudentTask.getStudentId();
         Integer projectId = projectStudentTask.getProjectId();
         //获取组内所有人的studentId
-        List<GroupStudent> allGroupStudent = projectStudentGroupMapper.getGroupStudentByStudentId(studentId, projectId);
+        List<GroupStudent> allGroupStudent = taskStudentGroupMapper.getGroupStudentByStudentId(studentId, projectId);
         PSTDeviceLog pstDeviceLog = null;
         if(allGroupStudent.size()==0){
             pstDeviceLog = this.uploadPSTDeviceLog(pstId,resource);

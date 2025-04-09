@@ -1,6 +1,5 @@
-package com.iecube.community.model.project_student_group.vo;
+package com.iecube.community.model.task_student_group.vo;
 
-import com.iecube.community.model.project_student_group.entity.GroupCode;
 import com.iecube.community.model.student.entity.Student;
 import lombok.Data;
 
@@ -14,6 +13,7 @@ public class GroupVo {
     Integer limitNum;
     Integer creator;
     String code;
+    Integer submitted;
     Date codeUnableTime;
     List<Student> groupStudents;
 }

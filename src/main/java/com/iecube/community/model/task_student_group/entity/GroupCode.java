@@ -1,4 +1,4 @@
-package com.iecube.community.model.project_student_group.entity;
+package com.iecube.community.model.task_student_group.entity;
 
 import lombok.Data;
 

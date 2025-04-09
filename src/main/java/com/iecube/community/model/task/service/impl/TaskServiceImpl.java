@@ -12,10 +12,10 @@ import com.iecube.community.model.markdown.service.MarkdownService;
 import com.iecube.community.model.project.entity.Project;
 import com.iecube.community.model.project.entity.ProjectStudentVo;
 import com.iecube.community.model.project.mapper.ProjectMapper;
-import com.iecube.community.model.project_student_group.entity.Group;
-import com.iecube.community.model.project_student_group.entity.GroupStudent;
-import com.iecube.community.model.project_student_group.mapper.ProjectStudentGroupMapper;
-import com.iecube.community.model.project_student_group.service.ex.GroupLimitException;
+import com.iecube.community.model.task_student_group.entity.Group;
+import com.iecube.community.model.task_student_group.entity.GroupStudent;
+import com.iecube.community.model.task_student_group.mapper.TaskStudentGroupMapper;
+import com.iecube.community.model.task_student_group.service.ex.GroupLimitException;
 import com.iecube.community.model.pst_article.entity.PSTArticle;
 import com.iecube.community.model.pst_article.service.PSTArticleService;
 import com.iecube.community.model.pst_article_compose.entity.PSTArticleCompose;
@@ -71,11 +71,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -141,7 +139,7 @@ public class TaskServiceImpl implements TaskService {
     private QuestionBankService questionBankService;
 
     @Autowired
-    private ProjectStudentGroupMapper projectStudentGroupMapper;
+    private TaskStudentGroupMapper taskStudentGroupMapper;
 
     @Autowired
     private PSTArticleService pstArticleService;
@@ -515,7 +513,7 @@ public class TaskServiceImpl implements TaskService {
         ProjectStudentTask projectStudentTask = taskMapper.getProjectStudentTaskById(pstId);
         Integer studentId = projectStudentTask.getStudentId();
         Integer projectId = projectStudentTask.getProjectId();
-        List<GroupStudent> allGroupStudent = projectStudentGroupMapper.getGroupStudentByStudentId(studentId, projectId);
+        List<GroupStudent> allGroupStudent = taskStudentGroupMapper.getGroupStudentByStudentId(studentId, projectId);
         if(allGroupStudent.size()==0){
             this.teacherModifyPST(projectStudentTaskQo);
         }else {
@@ -608,7 +606,7 @@ public class TaskServiceImpl implements TaskService {
         ProjectStudentTask projectStudentTask = taskMapper.getProjectStudentTaskById(pstId);
         Integer studentId = projectStudentTask.getStudentId();
         Integer projectId = projectStudentTask.getProjectId();
-        List<GroupStudent> allGroupStudent = projectStudentGroupMapper.getGroupStudentByStudentId(studentId, projectId);
+        List<GroupStudent> allGroupStudent = taskStudentGroupMapper.getGroupStudentByStudentId(studentId, projectId);
         if(allGroupStudent.size()==0){
             this.teacherReadOverStudentSubmitPdf(file,pstRId, teacherId);
         }else {
@@ -785,7 +783,7 @@ public class TaskServiceImpl implements TaskService {
 //            }
 //        }
         if (project.getUseGroup() == 1 && project.getMdCourse() != null){
-            Group group = projectStudentGroupMapper.getGroupByProjectStudent(project.getId(), studentId);
+            Group group = taskStudentGroupMapper.getGroupByTaskStudent(project.getId(), studentId);
             if(group == null){
                 throw new GroupLimitException("本课程为分组实验进行， 请先创建小组或加入小组");
             }
@@ -807,7 +805,7 @@ public class TaskServiceImpl implements TaskService {
 
     public StudentTaskDetailVo mdGroupSubmit(StudentTaskDetailVo thisStudentTaskDetail,Group group){
         List<PSTArticleCompose> groupPstArticleComposeList = pstArticleComposeMapper.composeListByPstId(thisStudentTaskDetail.getPSTId());
-        List<Integer> pstIdList = projectStudentGroupMapper.getPstListByGroupAndTaskId(group.getId(), thisStudentTaskDetail.getTaskNum()); // 组内的pstId
+        List<Integer> pstIdList = taskStudentGroupMapper.getPstListByGroupAndTaskId(group.getId(), thisStudentTaskDetail.getTaskNum()); // 组内的pstId
         for(Integer pstId: pstIdList){
             taskMapper.updatePSTStatus(pstId, SUBMIT_CONTENT_STATUS);
             taskMapper.updatePSTResubmit(pstId,0);
@@ -854,10 +852,10 @@ public class TaskServiceImpl implements TaskService {
             e.printStackTrace();
             throw new SQLBatchProcessingException(e.getMessage());
         }
-        log.info("学生"+thisStudentTaskDetail.getStudentId()+"提交了小组实验报告: projectId: "+thisStudentTaskDetail.getProjectId()+ " PSTid: "+thisStudentTaskDetail.getPSTId());
+        log.info("学生"+thisStudentTaskDetail.getStudentId()+"提交了小组实验报告: taskId: "+thisStudentTaskDetail.getProjectId()+ " PSTid: "+thisStudentTaskDetail.getPSTId());
 
         StudentTaskDetailVo taskDetail = this.findStudentTaskByPSTId(thisStudentTaskDetail.getPSTId());
-        projectStudentGroupMapper.updateGroupSubmitted(group.getId());
+        taskStudentGroupMapper.updateGroupSubmitted(group.getId(), 2);
         return taskDetail;
     }
 
@@ -918,11 +916,11 @@ public class TaskServiceImpl implements TaskService {
         //3. 生成报告
         ProjectStudentTask PST = taskMapper.getProjectStudentTaskById(pstId);
         Integer studentId = PST.getStudentId();
-        Group group = projectStudentGroupMapper.getGroupByProjectStudent(projectId, studentId);
+        Group group = taskStudentGroupMapper.getGroupByTaskStudent(projectId, studentId);
         StudentTaskDetailVo thisStudentTaskDetail = this.findStudentTaskByPSTId(pstId);
         Double grade = pstArticleService.computeGrade(pstId);
         List<PSTArticleCompose> groupPstArticleComposeList = pstArticleComposeMapper.composeListByPstId(pstId); // 组内最终成绩的来源
-        List<Integer> pstIdList = projectStudentGroupMapper.getPstListByGroupAndTaskId(group.getId(), thisStudentTaskDetail.getTaskNum()); // 组内的pstId
+        List<Integer> pstIdList = taskStudentGroupMapper.getPstListByGroupAndTaskId(group.getId(), thisStudentTaskDetail.getTaskNum()); // 组内的pstId
         List<PSTArticleCompose> willUpdatePstArticleComposeList = new ArrayList<>();
         for(Integer p: pstIdList){
             taskMapper.updatePSTGrade(p, grade, grade);
@@ -971,9 +969,9 @@ public class TaskServiceImpl implements TaskService {
     public void genMdArticleReportGroup(Integer projectId, Integer pstId, Integer teacherId){
         ProjectStudentTask PST = taskMapper.getProjectStudentTaskById(pstId);
         Integer studentId = PST.getStudentId();
-        Group group = projectStudentGroupMapper.getGroupByProjectStudent(projectId, studentId);
+        Group group = taskStudentGroupMapper.getGroupByTaskStudent(projectId, studentId);
         StudentTaskDetailVo thisStudentTaskDetail = this.findStudentTaskByPSTId(pstId);
-        List<Integer> pstIdList = projectStudentGroupMapper.getPstListByGroupAndTaskId(group.getId(), thisStudentTaskDetail.getTaskNum()); // 组内的pstId
+        List<Integer> pstIdList = taskStudentGroupMapper.getPstListByGroupAndTaskId(group.getId(), thisStudentTaskDetail.getTaskNum()); // 组内的pstId
         for(Integer p:pstIdList){
             PSTBaseDetail pstBaseDetail = taskMapper.getPstBaseDetail(p);
             genMdArticleReport(pstId, pstBaseDetail, teacherId);
