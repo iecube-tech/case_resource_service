@@ -1,38 +1,42 @@
 package com.iecube.community.model.AI.aiServer.assistant;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.iecube.community.model.AI.aiClient.service.AiApiService;
-import com.iecube.community.model.AI.aiMiddlware.WebSocketSessionManage;
-import com.iecube.community.util.jwt.AuthUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.PingMessage;
 import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
 public class AiServerAssistantWebSocketHandler extends TextWebSocketHandler {
-    @Autowired
-    private WebSocketSessionManage webSocketSessionManage;
 
+    private final ConcurrentHashMap<String, WebSocketSession> W6ChatIdToSession;
+    private final ConcurrentHashMap<String, WebSocketSession> FrontChatIdToSession;
+    private final ConcurrentHashMap<String, String> FrontSessionIdToChatId;
+    private final BlockingQueue<String> FrontNewConnectChatId;
+    private final BlockingQueue<WebSocketSession> FrontClosedSession;
     @Autowired
-    private AiApiService aiApiService;
-
-//    private final StringRedisTemplate redisTemplate;
-//
-//    @Autowired
-//    public AiServerAssistantWebSocketHandler(StringRedisTemplate redisTemplate) {
-//        this.redisTemplate = redisTemplate;
-//    }
+    public AiServerAssistantWebSocketHandler(ConcurrentHashMap<String, WebSocketSession> W6ChatIdToSession,
+                                             ConcurrentHashMap<String, WebSocketSession> FrontChatIdToSession,
+                                             ConcurrentHashMap<String, String> FrontSessionIdToChatId,
+                                             BlockingQueue<String> FrontNewConnectChatId,
+                                             BlockingQueue<WebSocketSession> FrontClosedSession) {
+        this.W6ChatIdToSession = W6ChatIdToSession;
+        this.FrontChatIdToSession = FrontChatIdToSession;
+        this.FrontSessionIdToChatId = FrontSessionIdToChatId;
+        this.FrontNewConnectChatId = FrontNewConnectChatId;
+        this.FrontClosedSession = FrontClosedSession;
+    }
 
 
     @Override
@@ -42,16 +46,17 @@ public class AiServerAssistantWebSocketHandler extends TextWebSocketHandler {
         if (uri != null) {
             String path = uri.toString();
             String chatId = path.substring(path.lastIndexOf('/') + 1);
-//            redisTemplate.opsForValue().set(getSessionIdRedisKey(session), AuthUtils.getCurrentUserEmail());
             session.setTextMessageSizeLimit(10485760);
-            webSocketSessionManage.serverSessionManager.addSession(chatId, session); // manger 添加与前端的socket管理
-            // 建立与AI服务的链接
-            WebSocketSession aiSession = webSocketSessionManage.clientSessionManager.getSessionById(chatId);
-            if(aiSession == null) {
-                aiApiService.webSocketConnect(chatId);
-                aiSession = webSocketSessionManage.clientSessionManager.getSessionById(chatId);
+            // 判断之前有没有这个chatId的连接，有则关闭 并不许重连
+            WebSocketSession oldSession = FrontChatIdToSession.get(chatId);
+            if (oldSession != null) {
+                oldSession.close(CloseStatus.GOING_AWAY);
+                TimeUnit.MILLISECONDS.sleep(100);
             }
-            log.info("学生端ai对话已连接 {}, webS-->{}, aiS-->{} ",  chatId, session.getId(), aiSession.getId());
+            FrontChatIdToSession.put(chatId, session);
+            FrontSessionIdToChatId.put(session.getId(), chatId); // manger 添加与前端的socket管理
+            FrontNewConnectChatId.put(chatId);   // 建立与AI服务的连接 生产 chatId
+            log.info("online websocket: {}, webS-->{}, ",  chatId, session.getId());
         }else {
             session.close(CloseStatus.SERVER_ERROR);
         }
@@ -60,28 +65,24 @@ public class AiServerAssistantWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
-        String chatId = webSocketSessionManage.serverSessionManager.getIdBySession(session);
-//        String email = redisTemplate.opsForValue().get(getSessionIdRedisKey(session));
-//        redisTemplate.delete(getSessionIdRedisKey(session));
-        log.info("学生端对话已断开，{}, {}, {}, {}", chatId, session.getId(), status.getCode(), status.getReason());
-//        log.info("学生端对话已断开，{}, {}, {}, {}, {}",email, chatId, session.getId(), status.getCode(), status.getReason());
-        webSocketSessionManage.serverSessionManager.removeSession(session);
-        //断连AI端的对话连接
-        WebSocketSession toCloseSession = webSocketSessionManage.clientSessionManager.getSessionById(chatId);
-        if(toCloseSession!=null){
-            toCloseSession.close(CloseStatus.NORMAL);
-            webSocketSessionManage.clientSessionManager.removeSession(toCloseSession.getId());
+        String chatId = FrontSessionIdToChatId.get(session.getId());
+        // 判断chatId 是否为新session
+        if(FrontChatIdToSession.get(chatId) == session){
+            FrontChatIdToSession.remove(chatId);
         }
+        FrontSessionIdToChatId.remove(session.getId());
+        log.info("online websocket: {} closed，{}, {}, {}", chatId, session.getId(), status.getCode(), status.getReason());
+        FrontClosedSession.put(session); //学生端对话断开生产者
     }
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         super.handleTextMessage(session, message);
 //        log.info("消息长度:{}",message.getPayload().getBytes(StandardCharsets.UTF_8).length*8);
-        String chatId = webSocketSessionManage.serverSessionManager.getIdBySession(session);
-        WebSocketSession toSendSession = webSocketSessionManage.clientSessionManager.getSessionById(chatId);
+        String chatId = FrontSessionIdToChatId.get(session.getId());
+        WebSocketSession toSendSession = W6ChatIdToSession.get(chatId);
         if(toSendSession!=null){
-            toSendSession.sendMessage(message);
+            toSendSession.sendMessage(new PingMessage());
         }else {
             Msg msg = new Msg();
             msg.setMsg("AI服务异常");
@@ -89,7 +90,6 @@ public class AiServerAssistantWebSocketHandler extends TextWebSocketHandler {
             ObjectMapper objectMapper = new ObjectMapper();
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(msg)));
         }
-        //todo ai服务方websocket 重连
     }
 
     private String getSessionIdRedisKey(WebSocketSession session) {

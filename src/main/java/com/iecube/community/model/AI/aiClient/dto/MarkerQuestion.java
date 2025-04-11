@@ -7,11 +7,11 @@ import java.util.List;
 @Data
 public class MarkerQuestion {
     private String analysis;
-    private String answer;
+    private String answer; //* 必须
     private String hint_when_wrong;
-    private String id;
+    private String id; //* 必须
     private List<String> images;
-    private String question;
-    private String stage;
+    private String question; //* 必须
+    private String stage;  //* 必须
     private String tag;
 }

@@ -173,7 +173,7 @@ public class TaskStudentGroupServiceImpl implements TaskStudentGroupService {
 
         Group group = taskStudentGroupMapper.getGroupById(groupCodeList.get(0).getGroupId());
         if(!taskId.equals(group.getTaskId())){
-            throw new GroupCodeException("非同一课程");
+            throw new GroupCodeException("非同一实验");
         }
         if(group.getSubmitted() > 0){
             throw new GroupLimitException("该小组已开始实验");

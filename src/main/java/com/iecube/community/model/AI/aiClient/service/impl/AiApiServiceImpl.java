@@ -23,17 +23,13 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import javax.websocket.*;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @Service
-@ClientEndpoint
 public class AiApiServiceImpl implements AiApiService {
 
     @Value("${Ai.baseUrl}")
@@ -59,9 +55,6 @@ public class AiApiServiceImpl implements AiApiService {
 
     @Value("${Ai.module.name}")
     private String moduleName;
-
-    @Autowired
-    private AiClientWebSocketHandler webSocketHandler;
 
     @Autowired
     private WebSocketSessionManage webSocketSessionManage;
@@ -101,41 +94,44 @@ public class AiApiServiceImpl implements AiApiService {
 
     @Override
     public void webSocketConnect(String chatId) {
-        String url = wssBaseUrl+chatId;
-        WebSocketClient client = new StandardWebSocketClient();
-        WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
-        headers.add(headerFiled, headerVal);
-        if(webSocketSessionManage.clientSessionManager.getSessionById(chatId)!=null){
-            try{
-                webSocketSessionManage.clientSessionManager.getSessionById(chatId).close(CloseStatus.NORMAL);
-            }catch (Exception e){
-                log.warn("连接到ai服务前-->新建连接前关闭已有连接, {}",e.getMessage());
-            }
-            webSocketSessionManage.clientSessionManager.removeSession(chatId);
-        }
-        try {
-            URI uri = new URI(url);
-            WebSocketSession session = client.doHandshake(webSocketHandler,headers, uri).get();
-            session.setTextMessageSizeLimit(10485760);
-            webSocketSessionManage.clientSessionManager.addSession(chatId, session);
-        } catch (Exception e) {
-            throw new AiAPiResponseException("与AI服务建立消息通道错误："+e.getMessage());
-        }
+//        String url = wssBaseUrl+chatId;
+//        WebSocketClient client = new StandardWebSocketClient();
+//        WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
+//        headers.add(headerFiled, headerVal);
+//        if(webSocketSessionManage.clientSessionManager.getSessionById(chatId)!=null){
+//            try{
+//                webSocketSessionManage.clientSessionManager.getSessionById(chatId).close(CloseStatus.NORMAL);
+//            }catch (Exception e){
+//                log.warn("连接到ai服务前-->新建连接前关闭已有连接, {}",e.getMessage());
+//            }
+//            webSocketSessionManage.clientSessionManager.removeSession(chatId);
+//        }
+//        try {
+//            URI uri = new URI(url);
+//            WebSocketSession session = client.doHandshake(webSocketHandler,headers, uri).get();
+//            session.setTextMessageSizeLimit(10485760);
+//            webSocketSessionManage.clientSessionManager.addSession(chatId, session);
+//        } catch (Exception e) {
+//            throw new AiAPiResponseException("与AI服务建立消息通道错误："+e.getMessage());
+//        }
+        log.info("websocket-to-w6");
     }
 
     @Override
     public void webSocketDisConnect(String chatId) {
-        WebSocketSession session = webSocketSessionManage.clientSessionManager.getSessionById(chatId);
-        if(session != null){
-            if(session.isOpen()){
-                try{
-                    session.close(new CloseStatus(CloseStatus.NORMAL.getCode()));
-                }
-                catch (Exception e){
-                    throw new AiAPiResponseException("关闭对话连接异常");
-                }
-            }
-        }
+//        WebSocketSession session = webSocketSessionManage.clientSessionManager.getSessionById(chatId);
+//        if(session != null){
+//            if(session.isOpen()){
+//                try{
+//                    session.close(new CloseStatus(CloseStatus.NORMAL.getCode()));
+//                }
+//                catch (Exception e){
+//                    throw new AiAPiResponseException("关闭对话连接异常");
+//                }
+//            }
+//        }
+        log.info("websocket-disconnect-w6");
+        return;
     }
 
     // 助教

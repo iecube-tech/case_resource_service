@@ -1,6 +1,9 @@
 package com.iecube.community.model.elaborate_md_task.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iecube.community.basecontroller.BaseController;
+import com.iecube.community.model.elaborate_md_task.check.Check;
+import com.iecube.community.model.elaborate_md_task.check.CheckProcessingService;
 import com.iecube.community.model.elaborate_md_task.entity.EMDSTMSBlock;
 import com.iecube.community.model.elaborate_md_task.service.EMDTaskService;
 import com.iecube.community.model.elaborate_md_task.vo.EMDTaskDetailVo;
@@ -20,6 +23,9 @@ public class EMDTaskController extends BaseController {
 
     @Autowired
     private EMDTaskService emdTaskService;
+
+    @Autowired
+    private CheckProcessingService checkProcessingService;
 
     @GetMapping("/tasks")
     public JsonResult<List<EMDTaskVo>> getEMDTaskVoListByProjectId(Integer projectId) {
@@ -60,6 +66,12 @@ public class EMDTaskController extends BaseController {
     @PostMapping("/dlog/upload/{studentId}/{taskId}")
     public JsonResult<Void> uploadEMDLog(MultipartFile file, @PathVariable Integer studentId, @PathVariable Integer taskId) {
         emdTaskService.uploadDeviceLog(studentId, taskId, file);
+        return new JsonResult<>(OK);
+    }
+
+    @PostMapping("/check")
+    public JsonResult<Void> checkEMDTask(@RequestBody Check check) {
+        checkProcessingService.addTask(check);
         return new JsonResult<>(OK);
     }
 }

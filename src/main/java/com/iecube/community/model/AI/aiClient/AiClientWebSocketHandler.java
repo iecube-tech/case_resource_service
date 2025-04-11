@@ -1,58 +1,104 @@
 package com.iecube.community.model.AI.aiClient;
 
-import com.iecube.community.model.AI.aiMiddlware.WebSocketSessionManage;
-import com.iecube.community.model.AI.ex.AiAPiResponseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Timer;
+import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
-@Component
 @Slf4j
+@Component
 public class AiClientWebSocketHandler extends TextWebSocketHandler {
 
+    ConcurrentHashMap<String, WebSocketSession> W6ChatIdToSession;
+    ConcurrentHashMap<String, String> W6SessionIdToChatId;
+    ConcurrentHashMap<String, WebSocketSession> FrontChatIdToSession;
+
+    private AtomicLong lastSentTime;
+
     @Autowired
-    private WebSocketSessionManage webSocketSessionManage;
+    public AiClientWebSocketHandler(
+                                    ConcurrentHashMap<String, WebSocketSession> W6ChatIdToSession,
+                                    ConcurrentHashMap<String, String> W6SessionIdToChatId,
+                                    ConcurrentHashMap<String, WebSocketSession> FrontChatIdToSession){
+        super();
+        this.W6ChatIdToSession = W6ChatIdToSession;
+        this.W6SessionIdToChatId = W6SessionIdToChatId;
+        this.FrontChatIdToSession = FrontChatIdToSession;
+    }
 
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         super.afterConnectionEstablished(session);
-        log.info("连接到AI服务方-->{}",session.getId());
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        long timeout = 44000; // 超时时间（毫秒）
+        this.lastSentTime = new AtomicLong(System.currentTimeMillis());
+        // 定时任务，每秒检查一次
+        scheduler.scheduleAtFixedRate(() -> {
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - this.lastSentTime.get() > timeout) {
+                if (session.isOpen()) {
+                    try {
+                        String chatId = W6SessionIdToChatId.get(session.getId());
+                        session.close(CloseStatus.NORMAL);
+                        log.info("w6 webSocket: {} long time no Msg closed",chatId);
+                    } catch (IOException e) {
+                        log.error("w6 webSocket: {} long time no Msg closed error",W6SessionIdToChatId.get(session.getId()),e);
+                    }
+                }
+                scheduler.shutdown(); // 关闭调度器
+            }
+        }, 0, 2, TimeUnit.SECONDS);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
-        String chatId = webSocketSessionManage.clientSessionManager.getIdBySession(session);
-        webSocketSessionManage.clientSessionManager.removeSession(session);
-        log.info("与AI服务方socket连接断开：{}, {}, {},{}", chatId, session.getId(),status.getCode() ,status.getReason());
+        String chatId = W6SessionIdToChatId.get(session.getId());
+        W6SessionIdToChatId.remove(session.getId());
+        if(W6ChatIdToSession.get(chatId) == session){
+            W6ChatIdToSession.remove(chatId);
+        }
+        if(FrontChatIdToSession.get(chatId)!=null){
+            // 判断前端是否有连接存在， 如果存在则断掉
+            FrontChatIdToSession.get(chatId).close(CloseStatus.GOING_AWAY);
+        }
+        log.info("w6 webSocket: {} closed：{}, {}, {}", chatId, session.getId(),status.getCode() ,status.getReason());
         if(status.getCode()!=CloseStatus.NORMAL.getCode()){
-            log.error("与AI服务连接异常断开：{}，{}",status.getCode(),status.getReason());
+            log.error("w6 webSocket: {} closed error：{}，{}",chatId,status.getCode(),status.getReason());
         }
     }
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         super.handleTextMessage(session, message);
+        this.lastSentTime = new AtomicLong(System.currentTimeMillis());
         try{
 //            log.info("消息长度:{}",message.getPayload().getBytes(StandardCharsets.UTF_8).length*8);
-            String chatId = webSocketSessionManage.clientSessionManager.getIdBySession(session);
-            WebSocketSession toSendSession = webSocketSessionManage.serverSessionManager.getSessionById(chatId);
+            String chatId = W6SessionIdToChatId.get(session.getId());
+            WebSocketSession toSendSession = FrontChatIdToSession.get(chatId);
             if(toSendSession != null) {
                 toSendSession.sendMessage(message);
+//                log.info("转发W6MSG:{}",chatId);
+            }else {
+                log.warn("无法转发W6MSG:{}",chatId);
             }
         }catch (Exception e){
             log.error(e.getMessage());
         }
-
     }
 
+    @Override
+    protected void handlePongMessage(WebSocketSession session, PongMessage message) throws Exception {
+        super.handlePongMessage(session, message);
+        this.lastSentTime = new AtomicLong(System.currentTimeMillis());
+    }
 }
