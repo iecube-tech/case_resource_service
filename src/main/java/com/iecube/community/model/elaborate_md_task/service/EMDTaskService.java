@@ -7,6 +7,7 @@ import com.iecube.community.model.elaborate_md_task.vo.EMDTaskModelVo;
 import com.iecube.community.model.elaborate_md_task.vo.EMDTaskRefVo;
 import com.iecube.community.model.elaborate_md_task.vo.EMDTaskVo;
 import com.iecube.community.model.student.entity.Student;
+import com.iecube.community.model.task.entity.StudentTaskVo;
 import com.iecube.community.model.task.entity.Task;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,4 +32,8 @@ public interface EMDTaskService {
     Boolean toNextSection(Long STMSId);
 
     EMDTaskModelVo upModelStatus(Long modelId, int status, int currAskNum);
+
+    void upTaskStatus(Integer studentId, Integer taskId, int status);
+
+    List<StudentTaskVo> emdCourseStudentTaskVoList(Integer projectId);
 }

@@ -39,7 +39,7 @@ public class AiClientWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         super.afterConnectionEstablished(session);
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-        long timeout = 44000; // 超时时间（毫秒）
+        long timeout = 63000; // 超时时间（毫秒）3个心跳的时间
         this.lastSentTime = new AtomicLong(System.currentTimeMillis());
         // 定时任务，每秒检查一次
         scheduler.scheduleAtFixedRate(() -> {

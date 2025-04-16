@@ -16,10 +16,13 @@ import com.iecube.community.model.elaborate_md_task.vo.*;
 import com.iecube.community.model.resource.entity.Resource;
 import com.iecube.community.model.resource.service.ResourceService;
 import com.iecube.community.model.student.entity.Student;
+import com.iecube.community.model.task.entity.StudentTaskVo;
 import com.iecube.community.model.task.entity.Task;
 import com.iecube.community.model.task.entity.TaskVo;
 import com.iecube.community.model.task.mapper.TaskMapper;
 import com.iecube.community.model.task_e_md_proc.mapper.TaskEMdProcMapper;
+import com.iecube.community.model.task_student_group.service.TaskStudentGroupService;
+import com.iecube.community.model.task_student_group.vo.GroupVo;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -63,6 +66,9 @@ public class EMDTaskServiceImpl implements EMDTaskService {
 
     @Autowired
     private ResourceService resourceService;
+
+    @Autowired
+    private TaskStudentGroupService taskStudentGroupService;
 
 
     @Override
@@ -210,11 +216,12 @@ public class EMDTaskServiceImpl implements EMDTaskService {
         if(taskId == null || studentId==null){
             throw new ParameterException("请求参数不能为空");
         }
+        GroupVo groupVo = taskStudentGroupService.getGroupVoByTaskStudent(taskId,studentId);
         // studentId taskId ==> STId ===> List<EMDSTModel> ==> forEach List<EMDSTMSection> ==> forEach List<EMDSTMSBlock>
         HashMap<Long, List<EMDTaskSectionVo>> modelSectionsMap = new HashMap<>();   // <modelId, List<EMDTaskSectionVo>>
 
         // 获取 modelList
-        List<EMDTaskModelVo> emdTaskModelVoList = emdstModelMapper.getTaskModelVoByST(taskId, studentId);
+        List<EMDTaskModelVo> emdTaskModelVoList = emdstModelMapper.getTaskModelVoByST(taskId, groupVo==null?studentId:groupVo.getCreator());
         for (EMDTaskModelVo emdTaskModelVo : emdTaskModelVoList) {
             // 获取sectionList
             List<EMDTaskSectionVo> emdTaskSectionVoList = EMDSTMSectionMapper.getBySTM(emdTaskModelVo.getId());
@@ -292,6 +299,10 @@ public class EMDTaskServiceImpl implements EMDTaskService {
 
     @Override
     public void uploadDeviceLog(Integer studentId, Integer taskId, MultipartFile file) {
+        GroupVo groupVo = taskStudentGroupService.getGroupVoByTaskStudent(taskId,studentId);
+        if(groupVo != null){
+            studentId = groupVo.getCreator();
+        }
         try{
             Resource resource = resourceService.UploadFile(file, studentId);
             EMDTaskRecord record = new EMDTaskRecord();
@@ -325,5 +336,28 @@ public class EMDTaskServiceImpl implements EMDTaskService {
             throw new UpdateException("更新数据异常");
         }
         return emdstModelMapper.getTaskModelVoByModelId(modelId);
+    }
+
+    @Override
+    public void upTaskStatus(Integer studentId, Integer taskId, int status) {
+        GroupVo groupVo = taskStudentGroupService.getGroupVoByTaskStudent(taskId,studentId);
+        if(groupVo == null){
+            int res = emdStudentTaskMapper.updateStatus(studentId, taskId, status);
+            if(res!= 1){
+                throw new UpdateException("更新数据异常");
+            }
+        }else {
+            groupVo.getGroupStudents().forEach(student -> {
+                int res = emdStudentTaskMapper.updateStatus(student.getId(), taskId, status);
+                if(res!= 1){
+                    throw new UpdateException("更新数据异常");
+                }
+            });
+        }
+    }
+
+    @Override
+    public List<StudentTaskVo> emdCourseStudentTaskVoList(Integer projectId) {
+        return emdStudentTaskMapper.emdCourseStudentTaskVo(projectId);
     }
 }

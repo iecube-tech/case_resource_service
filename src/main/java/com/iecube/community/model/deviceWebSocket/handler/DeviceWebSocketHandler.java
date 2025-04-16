@@ -57,7 +57,7 @@ public class DeviceWebSocketHandler extends TextWebSocketHandler {
                 }
                 break;
             case "ping":
-                log.info("设备:{}ping",data.getDeviceId());
+//                log.info("设备:{}ping",data.getDeviceId());
                 Message msg1 = new Message();
                 msg1.setType("PONG");
                 subscriptionMiddleware.sendMessage(session,msg1);

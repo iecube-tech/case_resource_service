@@ -24,11 +24,32 @@
         <result property="dataTemplate" column="data_template"></result>
     </resultMap>
 
+    <resultMap id="studentTaskVo" type="com.iecube.community.model.task.entity.StudentTaskVo">
+        <result column="student_id" property="studentId"></result>
+        <result column="task_id" property="taskId"></result>
+        <result column="task_num" property="taskNum"></result>
+        <result column="task_name" property="taskName"></result>
+        <result column="task_grade" property="taskGrade"></result>
+        <result column="task_status" property="taskStatus"></result>
+    </resultMap>
+
     <insert id="BatchAdd" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO e_md_student_task (id, student_id, task_id, status) VALUES
         <foreach collection="list" separator="," item="item">
             (NULL, #{item.studentId}, #{item.taskId}, #{item.status})
         </foreach>
     </insert>
+
+    <select id="emdCourseStudentTaskVo" resultMap="studentTaskVo">
+        SELECT e_md_student_task.student_id, e_md_student_task.task_id, task.task_name, task.num as task_num,
+               e_md_student_task.`status` as task_status, e_md_student_task.grade as task_grade
+        FROM task INNER JOIN e_md_student_task ON task.id=e_md_student_task.task_id
+        WHERE task.project_id=#{projectId}
+        ORDER BY student_id;
+    </select>
+
+    <update id="updateStatus">
+        UPDATE e_md_student_task SET status=#{status} WHERE student_id=#{studentId} AND task_id=#{taskId}
+    </update>
 
 </mapper>

@@ -8,7 +8,10 @@ import java.util.List;
 @Data
 public class StudentTaskVo {
     Integer PSTId;
+    Integer studentId;
+    Integer taskId;
     Integer taskNum;
+    String taskName;
     Double taskGrade;
     Integer taskStatus;
     List<Tag> tags;

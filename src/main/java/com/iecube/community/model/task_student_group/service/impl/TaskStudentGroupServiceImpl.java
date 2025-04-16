@@ -3,6 +3,7 @@ package com.iecube.community.model.task_student_group.service.impl;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
+import com.iecube.community.model.project.mapper.ProjectMapper;
 import com.iecube.community.model.project.service.ProjectService;
 import com.iecube.community.model.task_student_group.entity.Group;
 import com.iecube.community.model.task_student_group.entity.GroupCode;
@@ -33,7 +34,7 @@ public class TaskStudentGroupServiceImpl implements TaskStudentGroupService {
     private TaskStudentGroupMapper taskStudentGroupMapper;
 
     @Autowired
-    private ProjectService projectService;
+    private ProjectMapper projectMapper;
 
     @Override
     public int addGroup(Group group) {
@@ -297,7 +298,8 @@ public class TaskStudentGroupServiceImpl implements TaskStudentGroupService {
 
     @Override
     public List<TaskStudentsWithGroup> taskStudentsWithGroup(Integer projectId, Integer taskId) {
-        List<StudentDto> studentDtoList = projectService.getProjectStudents(projectId); // 需要ProjectId
+//        List<StudentDto> studentDtoList = projectService.getProjectStudents(projectId); // 需要ProjectId
+        List<StudentDto> studentDtoList = projectMapper.getProjectStudents(projectId);
         List<TaskStudentsWithGroup> studentsJoinedGroupList = taskStudentGroupMapper.getTaskStudentsWithGroup(taskId);
         List<Integer> JoinedStudentId = new ArrayList<>();
         for(TaskStudentsWithGroup P_swg:  studentsJoinedGroupList){

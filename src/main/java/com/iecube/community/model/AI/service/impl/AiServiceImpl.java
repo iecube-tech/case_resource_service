@@ -40,6 +40,17 @@ public class AiServiceImpl implements AiService {
     }
 
     @Override
+    public String getStudentTaskChatId(Integer studentId, Integer taskId) {
+        AiAssistant aiAssistant = aiAssistantMapper.getChatIdByStuTask(studentId, taskId);
+        if(aiAssistant != null) {
+            return aiAssistant.getChatId();
+        }
+        else {
+            return null;
+        }
+    }
+
+    @Override
     public Boolean chatIdExist(String chatId) {
         AiAssistant assistant = aiAssistantMapper.getAiAssistantByChatId(chatId);
         return assistant!=null;

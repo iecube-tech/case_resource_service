@@ -4,6 +4,7 @@ import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.content.entity.Content;
 import com.iecube.community.model.elaborate_md_task.entity.EMDStudentTask;
+import com.iecube.community.model.elaborate_md_task.mapper.EMDStudentTaskMapper;
 import com.iecube.community.model.elaborate_md_task.service.EMDTaskService;
 import com.iecube.community.model.markdown.entity.MDArticle;
 import com.iecube.community.model.markdown.service.MarkdownService;
@@ -59,10 +60,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.zip.ZipOutputStream;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -441,23 +439,42 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public List<ProjectStudentVo> projectStudentAndStudentTasks(Integer projectId) {
         //根据项目id 查询该项目的所有学生
+        Project project = projectMapper.findById(projectId);
         List<ProjectStudentVo> projectStudents = projectMapper.findStudentsByProjectId(projectId);
-        for (ProjectStudentVo student : projectStudents){
-            //通过项目id和学生id查询到学生的该项目的所有任务简要信息
-            List<StudentTaskVo> tasks = taskMapper.findTaskByProjectStudent(projectId ,student.getId());
-            //上面这一步查出来的结果中没有tag信息
-            List<String> studentSuggestions = new ArrayList<>();
-            for(StudentTaskVo task:tasks){
-                List<Tag> tags = tagMapper.getTagsByPSTId(task.getPSTId());
-                task.setTags(tags);
-                for(Tag tag:tags){
-                    studentSuggestions.add(tag.getSuggestion());
+        if(project.getEmdCourse() == null){
+            for (ProjectStudentVo student : projectStudents){
+                //通过项目id和学生id查询到学生的该项目的所有任务简要信息
+                List<StudentTaskVo> tasks = taskMapper.findTaskByProjectStudent(projectId ,student.getId());
+                //上面这一步查出来的结果中没有tag信息
+                List<String> studentSuggestions = new ArrayList<>();
+                for(StudentTaskVo task:tasks){
+                    List<Tag> tags = tagMapper.getTagsByPSTId(task.getPSTId());
+                    task.setTags(tags);
+                    for(Tag tag:tags){
+                        studentSuggestions.add(tag.getSuggestion());
+                    }
                 }
+                student.setStudentTasks(tasks);
+                student.setSuggestion(studentSuggestions);
             }
-            student.setStudentTasks(tasks);
-            student.setSuggestion(studentSuggestions);
+            return projectStudents;
+        }else {
+            // 学生列表
+            // 学生的task列表（taskNum, status, grade）
+            List<StudentTaskVo> studentTaskVoList =emdTaskService.emdCourseStudentTaskVoList(projectId);
+            Map<Integer, List<StudentTaskVo>> studentIdTOTaskVoList = new HashMap<>();
+            studentTaskVoList.forEach(studentTaskVo -> {
+                if(!studentIdTOTaskVoList.containsKey(studentTaskVo.getStudentId())){
+                    studentIdTOTaskVoList.put(studentTaskVo.getStudentId(), new ArrayList<>());
+                }
+                studentIdTOTaskVoList.get(studentTaskVo.getStudentId()).add(studentTaskVo);
+            });
+            projectStudents.forEach(projectStudentVo -> {
+                projectStudentVo.setStudentTasks(studentIdTOTaskVoList.get(projectStudentVo.getId()));
+            });
+            return projectStudents;
         }
-        return projectStudents;
+
     }
 
     @Override

@@ -54,7 +54,11 @@
     </update>
 
     <select id="findById" resultMap="ProjectEntity">
-        SELECT * FROM project WHERE id=#{id}
+        SELECT project.id,project.case_id, project.device_id, project.project_name, project.target,project.introduction,project.introduce,
+               project.cover,project.start_time,project.end_time, project.use_group, project.group_limit,  project.md_course,
+               project.use_remote,solution_or_case.emd_course
+        FROM project INNER JOIN solution_or_case ON project.case_id=solution_or_case.id
+        WHERE project.id=#{id}
     </select>
 
     <select id="findByPstId" resultMap="ProjectEntity">
@@ -84,7 +88,7 @@
     </insert>
 
     <select id="findStudentsByProjectId" resultMap="ProjectStudentVo">
-        SELECT Student.id,Student.student_id,Student.student_name,project_student.grade AS student_grade
+        SELECT Student.id,Student.student_id,Student.student_name,project_student.grade AS student_grade, project_student.id AS ps_id
         FROM project_student INNER JOIN Student ON project_student.student_id=Student.id
         WHERE project_student.project_id=#{projectId};
     </select>

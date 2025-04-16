@@ -40,6 +40,12 @@ public class EMDTaskController extends BaseController {
         return new JsonResult<>(OK, res);
     }
 
+    @PostMapping("/task")
+    public JsonResult<EMDTaskDetailVo> getEMDTaskDetailVoByStuIdTaskId(Integer studentId, Integer taskId) {
+        EMDTaskDetailVo res = emdTaskService.getTaskDetailVo(taskId, studentId);
+        return new JsonResult<>(OK, res);
+    }
+
     @GetMapping("/ref")
     public JsonResult<EMDTaskRefVo> getTaskEMDProcByTaskId(Integer taskId) {
         return new JsonResult<>(OK, emdTaskService.getTaskEMDProc(taskId));
@@ -63,6 +69,13 @@ public class EMDTaskController extends BaseController {
         return new JsonResult<>(OK, emdTaskModelVo);
     }
 
+    @PostMapping("/task/status/update")
+    public JsonResult<Void> updateTaskStatus(Integer taskId, Integer status) {
+        Integer studentId = currentUserId();
+        emdTaskService.upTaskStatus(studentId,taskId, status);
+        return new JsonResult<>(OK);
+    }
+
     @PostMapping("/dlog/upload/{studentId}/{taskId}")
     public JsonResult<Void> uploadEMDLog(MultipartFile file, @PathVariable Integer studentId, @PathVariable Integer taskId) {
         emdTaskService.uploadDeviceLog(studentId, taskId, file);
@@ -74,4 +87,6 @@ public class EMDTaskController extends BaseController {
         checkProcessingService.addTask(check);
         return new JsonResult<>(OK);
     }
+
+
 }

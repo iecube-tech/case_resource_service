@@ -31,6 +31,11 @@ public class aiController extends BaseController {
         return new JsonResult<>(OK, chatId);
     }
 
+    @GetMapping("/st/chat")
+    public JsonResult<String> stChat(Integer studentId, Integer taskId){
+        return new JsonResult<>(OK, aiService.getStudentTaskChatId(studentId, taskId));
+    }
+
     @PostMapping("/teaching_assistant")
     public JsonResult<Void> useTeachingAssistant(@RequestBody AgentQo agentQo){
 //        System.out.println(agentQo);
