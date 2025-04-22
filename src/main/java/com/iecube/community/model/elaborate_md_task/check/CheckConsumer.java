@@ -3,25 +3,18 @@ package com.iecube.community.model.elaborate_md_task.check;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iecube.community.model.AI.aiClient.dto.MarkerQuestion;
 import com.iecube.community.model.AI.ex.AiAPiResponseException;
-import com.iecube.community.model.elaborate_md_task.check.websocket.CheckWebSocketHandler;
 import com.iecube.community.util.xlsx.CheckHttpResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.socket.WebSocketHttpHeaders;
-import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.client.WebSocketClient;
-import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,9 +61,6 @@ public class CheckConsumer implements Runnable {
         this.taskQueue = taskQueue;
         this.chatIdQueue = chatIdQueue;
         this.waitingCheck = waitingCheck;
-        log.info("CheckConsumer taskQueue ==> {}", System.identityHashCode(taskQueue));
-        log.info("CheckConsumer chatIdQueue ==> {}", System.identityHashCode(chatIdQueue));
-        log.info("CheckConsumer waitingCheck ==> {}", System.identityHashCode(waitingCheck));
     }
 
     @Override
@@ -127,20 +117,6 @@ public class CheckConsumer implements Runnable {
             }
         }catch (Exception e){
             throw new AiAPiResponseException("访问AI资源失败："+e.getMessage());
-        }
-    }
-
-    private void webSocketConnect(String chatId) {
-        String url = wssBaseUrl+chatId;
-        WebSocketClient client = new StandardWebSocketClient();
-        WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
-        headers.add(headerFiled, headerVal);
-        try {
-            URI uri = new URI(url);
-            WebSocketSession session = client.doHandshake(new CheckWebSocketHandler() ,headers, uri).get();
-            session.setTextMessageSizeLimit(10485760);
-        } catch (Exception e) {
-            throw new AiAPiResponseException("与AI服务建立消息通道错误："+e.getMessage());
         }
     }
 

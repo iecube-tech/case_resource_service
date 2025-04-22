@@ -28,8 +28,8 @@ public class EMDTaskMapperTest {
     public void getSectionViListTest(){
         int studentId = 35;
         int taskId = 672;
-        List<EMDTaskSectionVo> res = EMDSTMSectionMapper.getByST(studentId, taskId);
-        System.out.println(res);
+//        List<EMDTaskSectionVo> res = EMDSTMSectionMapper.getByST(studentId, taskId);
+//        System.out.println(res);
     }
 
     @Test

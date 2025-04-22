@@ -1,6 +1,8 @@
 package com.iecube.community.model.elaborate_md_task.check;
 
-import com.iecube.community.model.elaborate_md_task.check.config.CheckConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,9 +13,9 @@ import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 
 import java.net.URI;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
 
 @Slf4j
 @Component
@@ -26,9 +28,6 @@ public class WaitingCheckWebSocketConsumer implements Runnable{
 
     @Value("${Ai.header.auth.val}")
     private String headerVal;
-
-//    @Autowired
-//    private CheckConfig checkConfig;
 
     private final BlockingQueue<String> chatIdQueue; //chatId 队列 缓冲
     private final ConcurrentHashMap<String, Check> waitingChecks;
@@ -56,6 +55,7 @@ public class WaitingCheckWebSocketConsumer implements Runnable{
 
     private void processWebSocket(String chatId) {
         log.info("WaitingCheckWebSocketConsumer-->  {}, {}", chatId, waitingChecks.get(chatId));
+        ObjectMapper objectMapper = new ObjectMapper();
         WebSocketClient client = new ReactorNettyWebSocketClient();
         HttpHeaders headers = new HttpHeaders();
         headers.add(headerFiled, headerVal);
@@ -65,6 +65,16 @@ public class WaitingCheckWebSocketConsumer implements Runnable{
                     .doOnNext(message -> {
                         // 处理接收到的消息
                         log.info("check--> 收到消息：{}",message);
+                        try{
+                            JsonNode msg = objectMapper.readTree(message);
+                            log.info(msg.toString());
+                            if(Objects.equals(msg.get("type").asText(), "message-ack")){
+                                String checkResId = msg.get("payload").get("artefacts").get(0).get("id").asText();
+                                log.info("check --> result id {}", checkResId);
+                            }
+                        } catch (JsonProcessingException e) {
+                            log.error("解析json错误:{}",e.getMessage());
+                        }
                     }).then();
         }).block();
     }
