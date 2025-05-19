@@ -1,6 +1,7 @@
 package com.iecube.community.model.elaborate_md_task.service.impl;
 
 import com.iecube.community.exception.ParameterException;
+import com.iecube.community.model.auth.service.AuthService;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.elaborate_md.block.service.BlockService;
@@ -23,6 +24,7 @@ import com.iecube.community.model.task.mapper.TaskMapper;
 import com.iecube.community.model.task_e_md_proc.mapper.TaskEMdProcMapper;
 import com.iecube.community.model.task_student_group.service.TaskStudentGroupService;
 import com.iecube.community.model.task_student_group.vo.GroupVo;
+import com.iecube.community.util.jwt.AuthUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -254,17 +256,20 @@ public class EMDTaskServiceImpl implements EMDTaskService {
                 }
             }
         });
+
+        EMDStudentTask emdStudentTask = emdStudentTaskMapper.getByStudentIdTaskId(groupVo==null?studentId:groupVo.getCreator(), taskId);
         EMDTaskDetailVo emdTaskDetailVo = new EMDTaskDetailVo();
-        emdTaskDetailVo.setTaskId(taskId);
+        emdTaskDetailVo.setEmdStudentTask(emdStudentTask);
         emdTaskDetailVo.setLabModelVoList(emdTaskModelVoList);
 
         // 记录
-        EMDTaskRecord record = new EMDTaskRecord();
-        record.setStudentId(studentId);
-        record.setTaskId(taskId);
-        record.setType("GET");
-        this.stsRecord(record);
-
+        if(AuthUtils.getCurrentUserType().equals("student")){
+            EMDTaskRecord record = new EMDTaskRecord();
+            record.setStudentId(studentId);
+            record.setTaskId(taskId);
+            record.setType("GET");
+            this.stsRecord(record);
+        }
         return emdTaskDetailVo;
     }
 
@@ -346,11 +351,21 @@ public class EMDTaskServiceImpl implements EMDTaskService {
             if(res!= 1){
                 throw new UpdateException("更新数据异常");
             }
+            if(status==1){
+                emdStudentTaskMapper.updateStartTime(studentId, taskId, new Date());
+            }
+            if(status==2){
+                emdStudentTaskMapper.updateEndTime(studentId, taskId, new Date());
+            }
         }else {
+            taskStudentGroupService.updateGroupSubmitted(groupVo.getGroupId(), 2, AuthUtils.getCurrentUserType(), studentId);
             groupVo.getGroupStudents().forEach(student -> {
-                int res = emdStudentTaskMapper.updateStatus(student.getId(), taskId, status);
-                if(res!= 1){
-                    throw new UpdateException("更新数据异常");
+                emdStudentTaskMapper.updateStatus(student.getId(), taskId, status);
+                if(status==1){
+                    emdStudentTaskMapper.updateStartTime(student.getId(), taskId, new Date());
+                }
+                if(status==2){
+                    emdStudentTaskMapper.updateEndTime(student.getId(), taskId, new Date());
                 }
             });
         }

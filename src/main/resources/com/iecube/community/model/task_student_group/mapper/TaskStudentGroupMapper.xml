@@ -68,7 +68,7 @@
     </delete>
 
     <update id="updateGroupSubmitted">
-        UPDATE tg_task_student_group SET submitted=1 WHERE id=#{groupId}
+        UPDATE tg_task_student_group SET submitted=#{submitted}, last_modified_user=#{userId} WHERE id=#{groupId}
     </update>
 
     <select id="getGroupById" resultMap="Group">

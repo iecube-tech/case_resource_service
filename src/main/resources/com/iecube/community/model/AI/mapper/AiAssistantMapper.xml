@@ -12,14 +12,14 @@
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO ai_client_assistant (id, student_id, task_id, chat_id)
-        VALUES (NULL, #{studentId}, #{taskId}, #{chatId})
+        INSERT INTO ai_client_assistant (id, student_id, task_id, chat_id, `type`)
+        VALUES (NULL, #{studentId}, #{taskId}, #{chatId}, #{type})
     </insert>
 
     <select id="getChatIdByStuTask" resultMap="AiAssistant">
-        SELECT id, student_id, task_id, chat_id
+        SELECT id, student_id, task_id, chat_id, type
         FROM ai_client_assistant
-        WHERE student_id=#{studentId} AND task_id=#{taskId}
+        WHERE student_id=#{studentId} AND task_id=#{taskId} AND type=#{type}
     </select>
 
     <select id="getAiAssistantByChatId" resultMap="AiAssistant">

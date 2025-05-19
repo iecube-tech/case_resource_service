@@ -346,7 +346,7 @@ public class TaskServiceImpl implements TaskService {
             // 设置实验的参考内容 md格式的文本 --> 用于ai包含文件
             LabProc labProc = labProcMapper.getLabProcById(task.getTaskEMdProc());
             LabProcRef labProcRef = labProcRefMapper.getByLabId(task.getTaskEMdProc());
-            taskEMdProc.setProcRef(labProcRef.getReference());
+            taskEMdProc.setProcRef(labProcRef==null?"":labProcRef.getReference());
             taskEMdProc.setSectionPrefix(labProc.getSectionPrefix());
             int re = taskEMdProcMapper.taskAddProc(taskEMdProc);
             if(re != 1){
@@ -855,7 +855,7 @@ public class TaskServiceImpl implements TaskService {
         log.info("学生"+thisStudentTaskDetail.getStudentId()+"提交了小组实验报告: taskId: "+thisStudentTaskDetail.getProjectId()+ " PSTid: "+thisStudentTaskDetail.getPSTId());
 
         StudentTaskDetailVo taskDetail = this.findStudentTaskByPSTId(thisStudentTaskDetail.getPSTId());
-        taskStudentGroupMapper.updateGroupSubmitted(group.getId(), 2);
+        taskStudentGroupMapper.updateGroupSubmitted(group.getId(), 2, thisStudentTaskDetail.getStudentId());
         return taskDetail;
     }
 

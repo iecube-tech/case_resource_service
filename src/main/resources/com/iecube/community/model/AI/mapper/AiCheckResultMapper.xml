@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.AI.mapper.AiCheckResultMapper">
+
+    <resultMap id="AiCheckResult" type="com.iecube.community.model.AI.dto.AiCheckResult">
+        <result column="student_id" property="studentId"></result>
+        <result column="task_id" property="taskId"></result>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_client_check_result (id, student_id, task_id, result) VALUES (NULL, #{studentId}, #{taskId}, #{result})
+    </insert>
+
+</mapper>

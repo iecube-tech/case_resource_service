@@ -1,7 +1,6 @@
 package com.iecube.community.model.AI.aiServer.assistant;
 
 import com.iecube.community.util.jwt.AuthUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.ServerHttpRequest;

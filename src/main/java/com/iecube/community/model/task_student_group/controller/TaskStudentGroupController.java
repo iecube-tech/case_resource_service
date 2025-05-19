@@ -20,9 +20,8 @@ public class TaskStudentGroupController extends ProjectStudentGroupBaseControlle
     private TaskStudentGroupService taskStudentGroupService;
 
     /**
-     * 分组有Project分组 改为 Task分组
+     * 分组由Project分组 改为 Task分组
      * */
-
     @PostMapping("/n")
     public JsonResult<GroupVo> addNewGroup(@RequestBody Group group){
         Integer studentId = currentUserId();

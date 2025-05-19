@@ -27,7 +27,14 @@ public class aiController extends BaseController {
     @PostMapping("/assistant/chat")
     public JsonResult<String> assistantChat(Integer taskId){
         Integer studentId = currentUserId();
-        String chatId = aiService.getAssistantChatId(studentId, taskId);
+        String chatId = aiService.getAssistantChatId(studentId, taskId, "chat");
+        return new JsonResult<>(OK, chatId);
+    }
+
+    @PostMapping("/check/chat")
+    public JsonResult<String> checkChat(Integer taskId){
+        Integer studentId = currentUserId();
+        String chatId = aiService.getAssistantChatId(studentId, taskId, "check");
         return new JsonResult<>(OK, chatId);
     }
 
@@ -97,8 +104,9 @@ public class aiController extends BaseController {
 
     // 获取消息的json格式
     @GetMapping("/artefact/{artefactId}")
-    public JsonResult<JsonNode> artefact(@PathVariable String artefactId){
-        JsonNode jsonNode = apiService.getJsonRes(artefactId);
+    public JsonResult<JsonNode> artefact(@PathVariable String artefactId, Integer taskId, String type){
+        Integer studentId = currentUserId();
+        JsonNode jsonNode = apiService.getJsonRes(artefactId, studentId, taskId, type);
         return new JsonResult<>(OK, jsonNode);
     }
 }

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.elaborate_md_json_question.mapper.emdQuestionMapper">
+    <resultMap id="emdQuestion" type="com.iecube.community.model.elaborate_md_json_question.question.emdQuestion">
+        <result column="hint_when_wrong" property="hintWhenWrong"></result>
+    </resultMap>
+
+    <insert id="addQuestion" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO e_md_question (id, stage, question, answer, flag, analysis, hint_when_wrong, difficulty, score)
+        VALUES (NULL, #{stage}, #{question}, #{answer}, #{flag}, #{analysis}, #{hint_when_wrong}, #{difficulty}, #{score})
+    </insert>
+
+    <select id="getAll" resultMap="emdQuestion">
+        SELECT id, stage, question, answer, flag, analysis, hint_when_wrong, difficulty, score FROM e_md_question
+    </select>
+
+
+
+</mapper>

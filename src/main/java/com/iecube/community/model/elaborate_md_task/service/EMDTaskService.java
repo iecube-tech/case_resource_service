@@ -1,6 +1,7 @@
 package com.iecube.community.model.elaborate_md_task.service;
 
 import com.iecube.community.model.elaborate_md_task.entity.EMDSTMSBlock;
+import com.iecube.community.model.elaborate_md_task.entity.EMDStudentTask;
 import com.iecube.community.model.elaborate_md_task.entity.EMDTaskRecord;
 import com.iecube.community.model.elaborate_md_task.vo.EMDTaskDetailVo;
 import com.iecube.community.model.elaborate_md_task.vo.EMDTaskModelVo;

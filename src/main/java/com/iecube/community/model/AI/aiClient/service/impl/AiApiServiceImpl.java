@@ -6,7 +6,9 @@ import com.iecube.community.model.AI.aiClient.AiClientWebSocketHandler;
 import com.iecube.community.model.AI.aiClient.dto.MarkerQuestion;
 import com.iecube.community.model.AI.aiClient.service.AiApiService;
 import com.iecube.community.model.AI.aiMiddlware.WebSocketSessionManage;
+import com.iecube.community.model.AI.dto.AiCheckResult;
 import com.iecube.community.model.AI.ex.AiAPiResponseException;
+import com.iecube.community.model.AI.mapper.AiCheckResultMapper;
 import com.iecube.community.util.xlsx.CheckHttpResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +60,9 @@ public class AiApiServiceImpl implements AiApiService {
 
     @Autowired
     private WebSocketSessionManage webSocketSessionManage;
+
+    @Autowired
+    private AiCheckResultMapper aiCheckResultMapper;
 
     @Override
     public String genChat() {
@@ -262,7 +267,7 @@ public class AiApiServiceImpl implements AiApiService {
 
     // json内容
     @Override
-    public JsonNode getJsonRes(String artefactId) {
+    public JsonNode getJsonRes(String artefactId, Integer studentId, Integer taskId, String type) {
         String uri = UriComponentsBuilder.fromHttpUrl(baseUrl + "/interact/artefact/"+artefactId)
                     .queryParam("include_content", true)
                     .toUriString();
@@ -276,7 +281,15 @@ public class AiApiServiceImpl implements AiApiService {
             CheckHttpResponse.CheckResult checkResult = new CheckHttpResponse().responseNormal(response);
             if(checkResult.isNormal()){
                 log.info("获取ai message json格式 {}", artefactId);
-                return checkResult.getBodyData();
+                JsonNode res = checkResult.getBodyData();
+                if(type.equals("marker")){
+                    AiCheckResult aiCheckResult = new AiCheckResult();
+                    aiCheckResult.setStudentId(studentId);
+                    aiCheckResult.setTaskId(taskId);
+                    aiCheckResult.setResult(new ObjectMapper().writeValueAsString(res));
+                    aiCheckResultMapper.insert(aiCheckResult);
+                }
+                return res;
             }else {
                 log.warn("获取ai message json格式 {}", artefactId);
                 throw new AiAPiResponseException("访问AI资源失败："+checkResult.getErrorReason());

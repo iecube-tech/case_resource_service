@@ -18,7 +18,7 @@ public interface TaskStudentGroupMapper {
     Integer GroupRemoveStudent(Integer groupId, Integer studentId);
     Integer GroupAddCode(GroupCode groupCode);
 
-    Integer updateGroupSubmitted(Integer groupId, Integer submitted);
+    Integer updateGroupSubmitted(Integer groupId, Integer submitted, Integer userId);
 
     Group getGroupById(Integer id);
 

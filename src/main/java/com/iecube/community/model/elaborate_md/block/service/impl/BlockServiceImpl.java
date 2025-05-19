@@ -36,6 +36,7 @@ public class BlockServiceImpl implements BlockService {
         BlockDetail blockDetail = new BlockDetail();
         blockDetail.setParentId(block.getId());
         blockDetail.setType(blockQo.getType());
+        blockDetail.setPayload(blockQo.getPayload());
         blockDetail.setTitle("");
         blockDetail.setContent("");
         int res2 = blockMapper.createBlockDetail(blockDetail);

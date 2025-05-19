@@ -7,6 +7,8 @@
     <resultMap id="EMDStudentTask" type="com.iecube.community.model.elaborate_md_task.entity.EMDStudentTask">
         <result property="studentId" column="student_id"></result>
         <result property="taskId" column="task_id"></result>
+        <result property="startTime" column="start_time"></result>
+        <result property="endTime" column="end_time"></result>
     </resultMap>
 
     <resultMap id="EMDStuTaskDetailDto" type="com.iecube.community.model.elaborate_md_task.dto.EMDStuTaskDetailDto">
@@ -51,5 +53,17 @@
     <update id="updateStatus">
         UPDATE e_md_student_task SET status=#{status} WHERE student_id=#{studentId} AND task_id=#{taskId}
     </update>
+
+    <update id="updateStartTime">
+        UPDATE e_md_student_task SET start_time=#{startTime} WHERE student_id=#{studentId} AND task_id=#{taskId}
+    </update>
+
+    <update id="updateEndTime">
+        UPDATE e_md_student_task SET end_time=#{endTime} WHERE student_id=#{studentId} AND task_id=#{taskId}
+    </update>
+
+    <select id="getByStudentIdTaskId" resultMap="EMDStudentTask">
+        SELECT * FROM e_md_student_task WHERE student_id=#{studentId} AND task_id=#{taskId}
+    </select>
 
 </mapper>

@@ -283,13 +283,13 @@ public class TaskStudentGroupServiceImpl implements TaskStudentGroupService {
 
     @Override
     public GroupVo updateGroupSubmitted(Integer groupId, Integer submitted, String type, Integer userId) {
-        Group group = taskStudentGroupMapper.getGroupById(groupId);
-        if(type.equals("student")){
-            if(!group.getCreator().equals(userId)){
-                throw new UpdateException("没有权限");
-            }
-        }
-        int row = taskStudentGroupMapper.updateGroupSubmitted(groupId, submitted);
+//        Group group = taskStudentGroupMapper.getGroupById(groupId);
+//        if(type.equals("student")){
+//            if(!group.getCreator().equals(userId)){
+//                throw new UpdateException("没有权限");
+//            }
+//        }
+        int row = taskStudentGroupMapper.updateGroupSubmitted(groupId, submitted, userId);
         if(row != 1){
             throw new UpdateException("更新数据异常");
         }

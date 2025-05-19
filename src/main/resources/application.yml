@@ -123,3 +123,11 @@ Ai:
     llm_short: "DoubaoPro"
   module:
     name: "w6.agent.third_party.iecube"
+
+AI2830:
+  server:
+    url: "http://115.190.32.35"
+  reconnect:
+    enabled: true
+    delay: 3000
+    max-attempts: 10

@@ -45,7 +45,7 @@ public class WaitingCheckWebSocketConsumer implements Runnable{
         while (true) {
             try {
                 String chatId = chatIdQueue.take();
-                processWebSocket(chatId);
+                processWebSocket(chatId);  //todo 测试并发
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 log.error("Interrupted while taking chatId from queue: {}", e.getMessage(), e);
@@ -65,16 +65,16 @@ public class WaitingCheckWebSocketConsumer implements Runnable{
                     .doOnNext(message -> {
                         // 处理接收到的消息
                         log.info("check--> 收到消息：{}",message);
-                        try{
-                            JsonNode msg = objectMapper.readTree(message);
-                            log.info(msg.toString());
-                            if(Objects.equals(msg.get("type").asText(), "message-ack")){
-                                String checkResId = msg.get("payload").get("artefacts").get(0).get("id").asText();
-                                log.info("check --> result id {}", checkResId);
-                            }
-                        } catch (JsonProcessingException e) {
-                            log.error("解析json错误:{}",e.getMessage());
-                        }
+//                        try{
+//                            JsonNode msg = objectMapper.readTree(message);
+//                            log.info(msg.toString());
+//                            if(Objects.equals(msg.get("type").asText(), "message-ack")){
+//                                String checkResId = msg.get("payload").get("artefacts").get(0).get("id").asText();
+//                                log.info("check --> result id {}", checkResId);
+//                            }
+//                        } catch (JsonProcessingException e) {
+//                            log.error("解析json错误:{}",e.getMessage());
+//                        }
                     }).then();
         }).block();
     }

@@ -8,4 +8,5 @@ public class AiAssistant {
     private Integer studentId;
     private Integer taskId;
     private String chatId;
+    private String type;
 }

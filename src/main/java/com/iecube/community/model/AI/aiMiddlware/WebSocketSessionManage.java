@@ -2,12 +2,9 @@ package com.iecube.community.model.AI.aiMiddlware;
 
 import com.iecube.community.model.AI.consumer.CloseConnectOfW6;
 import com.iecube.community.model.AI.consumer.ConnectToW6;
-import com.iecube.community.util.SessionManager;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.concurrent.BlockingQueue;

@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 public interface AiAssistantMapper {
     int insert(AiAssistant aiAssistant);
 
-    AiAssistant getChatIdByStuTask(Integer studentId, Integer taskId);
+    AiAssistant getChatIdByStuTask(Integer studentId, Integer taskId, String type);
 
     AiAssistant getAiAssistantByChatId(String chatId);
 }

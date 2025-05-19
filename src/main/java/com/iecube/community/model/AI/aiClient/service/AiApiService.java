@@ -22,5 +22,5 @@ public interface AiApiService {
     // 校验
     void useMarker(String chatId, String bookId, MarkerQuestion question, String stuAnswer, String sectionPrefix, List<String> imgList);
 
-    JsonNode getJsonRes(String artefactId);
+    JsonNode getJsonRes(String artefactId, Integer studentId, Integer taskId, String type);
 }

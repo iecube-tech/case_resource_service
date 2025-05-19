@@ -159,7 +159,7 @@ public class DeviceDetailDataServiceImpl implements DeviceDetailDataService {
             this.submit(oneOfProjectStudentTask.getId(),oneOfProjectStudentTask.getStudentId());
         }
         // group 设置submitted
-        taskStudentGroupMapper.updateGroupSubmitted(groupId, 2);
+        taskStudentGroupMapper.updateGroupSubmitted(groupId, 2, studentId);
         PSTDetailDevice rePSTDetailDevice = pstDetailsDeviceMapper.getByPSTId(pstId);
         return rePSTDetailDevice;
     }
