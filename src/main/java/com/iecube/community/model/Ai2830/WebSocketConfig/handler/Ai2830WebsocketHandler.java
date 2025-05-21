@@ -13,12 +13,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.io.DataInput;
 import java.io.IOException;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,14 +64,15 @@ public class Ai2830WebsocketHandler extends TextWebSocketHandler {
             // 判断之前有没有这个chatId的连接，有则关闭旧连接 并不许重连
             WebSocketSession oldSession = Ai2830ChatIdToSession.get(chatId);
             if (oldSession != null) {
+                log.warn("新的Websocket连接，重复的chatId:{},关闭之前连接",chatId);
                 oldSession.close(CloseStatus.GOING_AWAY);
-                TimeUnit.MILLISECONDS.sleep(100);
+                TimeUnit.MILLISECONDS.sleep(1000);
             }
             Ai2830ChatIdToSession.put(chatId, session);
             SessionIdToAi2830ChatId.put(session.getId(), chatId);
-            FrontNewAi2830ConnectChatId.put(chatId); //队列
-            log.info("online websocket: {}, webS-->{}, ",  chatId, session.getId());
-            // todo current
+            log.info("新的 websocket 连接: {}, webS-->{}, 准备连接AI2830",  chatId, session.getId());
+            FrontNewAi2830ConnectChatId.put(chatId); //队列 todo 处理新的 和 AI2830对话 socketIo
+            // todo current 获取chatId 的历史消息
             int maxPage = 100;
             for(int page=1; page<maxPage; page++){
                 try{
@@ -100,18 +99,19 @@ public class Ai2830WebsocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
         String chatId = SessionIdToAi2830ChatId.get(session.getId());
-
+        log.warn("2830前端session，断开前端连接，{}",chatId);
         if(Ai2830ChatIdToSession.get(chatId) == session){
             Ai2830ChatIdToSession.remove(chatId); // web chtId session
         }
+        log.warn("准备断开对应的 2830SocketIo");
         Socket socketIo2830 = Ai2830ChatIdToSocket.get(chatId);
-        System.out.println(socketIo2830);
         if(socketIo2830!=null){
-            FrontClosedAi2830ConnectSession.put(socketIo2830);
-            Ai2830ChatIdToSocket.remove(chatId);// chatId ai2830Socket
+            log.warn("断开对应的 2830SocketIo，{}",socketIo2830.id());
+            FrontClosedAi2830ConnectSession.put(socketIo2830); //队列 todo 处理和 AI2830对话 socketIo 的断开连接
         }
+        Ai2830ChatIdToSocket.remove(chatId);// chatId ai2830Socket
         SessionIdToAi2830ChatId.remove(session.getId());
-        log.info("online websocket: {} closed，{}, {}, {}", chatId, session.getId(), status.getCode(), status.getReason());
+        log.warn("前端-2830 websocket: {} closed，{}, {}, {}", chatId, session.getId(), status.getCode(), status.getReason());
     }
 
     @Override
@@ -124,6 +124,13 @@ public class Ai2830WebsocketHandler extends TextWebSocketHandler {
             //message-ack
             String chatId = SessionIdToAi2830ChatId.get(session.getId());
             Socket socket = Ai2830ChatIdToSocket.get(chatId);
+            if(socket == null || !socket.connected()){
+                log.warn("收到前端消息，但是AI2830对话未连接，断开");
+                session.close(CloseStatus.SERVER_ERROR);
+                this.SessionIdToAi2830ChatId.remove(session.getId());
+                this.Ai2830ChatIdToSession.remove(chatId);
+                return;
+            }
             msg.setDirection("user");
             msg.setTimestamp(LocalDateTime.now().format(formatter));
             StreamAi2830Msg ackMsg = new StreamAi2830Msg();

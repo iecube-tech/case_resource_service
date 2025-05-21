@@ -28,7 +28,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        log.warn("ip:{} ==> {}", request.getHeader("X-Forwarded-For"), request.getHeader("User-Agent"));
+//        log.warn("ip:{} ==> {}", request.getHeader("X-Forwarded-For"), request.getHeader("User-Agent"));
         if (request.getMethod().equals(HttpMethod.OPTIONS.name())) {
             return true;
         }

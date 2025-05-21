@@ -261,7 +261,9 @@ public class AiApiServiceImpl implements AiApiService {
             }
         }catch (Exception e){
             log.error("校验(marker):{};{};{}",chatId,sectionPrefix,question.getQuestion());
-            throw new AiAPiResponseException("访问AI资源失败："+e.getMessage());
+            throw new AiAPiResponseException("访问AI资源失败："+e.getMessage());  // todo 这里会抛出502异常 访问AI资源失败：502 Bad Gateway: [no body]
+//            java.lang.NullPointerException: Cannot invoke "java.lang.Throwable.getMessage()" because the return value of "java.lang.Throwable.getCause()" is null
+//            at com.iecube.community.basecontroller.BaseController.handleException(BaseController.java:49) ~[classes!/:0.0.1-SNAPSHOT]
         }
     }
 

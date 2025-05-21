@@ -115,7 +115,7 @@ public class ConnectToAi2830 implements Runnable {
         });
 
         socket.on(Socket.EVENT_CONNECT_ERROR, args -> {// 连接错误
-            log.error("连接2830AI服务错误: {}" , args[0]);
+            log.error("连接2830AI服务错误: {}, 断开前端连接" , args[0]);
             this.Ai2830ChatIdToSocket.remove(chatId);
             this.SocketIdToChatId.remove(socket.id());
             try {
@@ -126,7 +126,7 @@ public class ConnectToAi2830 implements Runnable {
         });
 
         socket.on(Socket.EVENT_DISCONNECT, args -> {  // 断开连接
-            log.info("AI2830服务连接已断开");
+            log.info("AI2830服务连接已断开:{}",chatId);
             this.Ai2830ChatIdToSocket.remove(chatId);
             if ( socket.id()!=null && this.SocketIdToChatId.contains(socket.id())) {
                 this.SocketIdToChatId.remove(socket.id());
