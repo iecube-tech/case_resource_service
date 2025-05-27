@@ -79,6 +79,7 @@ public class ConnectToAi2830 implements Runnable {
                 log.info("there are {} in (2830sokIo)SocketIdToChatId, {} in Ai2830ChatIdToSocket",SocketIdToChatId.size(),Ai2830ChatIdToSocket.size());
                 log.info("try new Ai2830 SocketIo:{}", chatId);
                 this.session = Ai2830ChatIdToSession.get(chatId);  // 对应的前端websocket
+                log.info("对饮的前端session：{}", this.session.getId());
                 socketIoConnect(chatId);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -88,8 +89,16 @@ public class ConnectToAi2830 implements Runnable {
 
     public void socketIoConnect(String chatId) {
         try {
-            if (isConnected()) {
-                return;
+//            if (isConnected()) {
+//                log.warn("Ai2830 SocketIo原连接在线");
+//                this.Ai2830ChatIdToSocket.put(chatId, socket);  // chatId 对应的socketIo
+//                this.SocketIdToChatId.put(socket.id(), chatId); // socket 对应的 chatId
+//                return;
+//            }
+            Socket oldSocket = Ai2830ChatIdToSocket.get(chatId);
+            if(oldSocket!=null && oldSocket.connected()){
+                log.info("未关闭的ai2830 socketIo");
+                oldSocket.close();
             }
             // 创建 Socket 实例并配置
             IO.Options options = new IO.Options();
@@ -127,10 +136,6 @@ public class ConnectToAi2830 implements Runnable {
 
         socket.on(Socket.EVENT_DISCONNECT, args -> {  // 断开连接
             log.info("AI2830服务连接已断开:{}",chatId);
-            this.Ai2830ChatIdToSocket.remove(chatId);
-            if ( socket.id()!=null && this.SocketIdToChatId.contains(socket.id())) {
-                this.SocketIdToChatId.remove(socket.id());
-            }
             try {
                 session.close(CloseStatus.SERVER_ERROR);
             } catch (IOException e) {

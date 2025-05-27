@@ -36,15 +36,15 @@ public class CloseConnectOfAi2830 implements Runnable{
             try{
                 Socket socket = FrontClosedAi2830ConnectSession.take();  // 新的需要断开的socketIo连接
                 String chatId = this.SocketIdToChatId.get(socket.id());
-                log.info("close-2830-connect: closing:{},{}",chatId,socket.id());
+                log.info("关闭2830AI对话-connect: closing:{},{}",chatId,socket.id());
+                this.Ai2830ChatIdToSocket.remove(chatId);
+                this.SocketIdToChatId.remove(socket.id());
 //                WebSocketSession w6Session = FrontSessionIdToW6Session.get(session.getId());
 //                SocketIdToChatId.remove(socket.id());
                 if(socket.connected()){
                     socket.disconnect();
                 }
-                this.Ai2830ChatIdToSocket.remove(chatId);
-                this.SocketIdToChatId.remove(socket.id());
-                log.info("前端2830AI连接断开，断开AI2830SocketIo：{}",socket.id());
+                log.info("2830AI连接断开，断开AI2830SocketIo：{}",socket.id());
 //                log.info("there are {} in W6ChatIdToSession, {} in W6SessionIdToChatId, {} in FrontSessionIdToW6Session", W6ChatIdToSession.size(), W6SessionIdToChatId.size(), FrontSessionIdToW6Session.size());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
