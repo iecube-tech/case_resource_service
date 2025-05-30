@@ -10,16 +10,16 @@ spring:
 #    url: jdbc:mysql://47.108.137.115:7999/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    url: jdbc:mysql://192.168.1.93:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    西安数据库穿透
-    url: jdbc:mysql://192.168.1.252:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+#    url: jdbc:mysql://192.168.1.252:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    url: jdbc:mysql://47.108.137.115:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
 #    url: jdbc:mysql://172.27.107.237:3306/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
-#    url: jdbc:mysql://47.94.161.154:8001/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+    url: jdbc:mysql://47.94.161.154:7603/community?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
     username: root
 #    password: 11223366zxl
 #    password: Root@123
     # 线上数据库密码
 #    password: 123456
-    password: 12345678
+    password: IECUBE202410081126zxl
     # 办公室服务器sql密码
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:

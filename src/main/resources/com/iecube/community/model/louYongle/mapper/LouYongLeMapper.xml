@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.louYongle.mapper.LouYongLeMapper">
+
+    <resultMap id="XiDianGrade" type="com.iecube.community.model.louYongle.entity.XiDianGrade">
+
+    </resultMap>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO xidian_grade (id,stuId,studentName,studentId,yuxiTwo,yuxiThree,yuxiOne,kehouOne,kehouTwo,
+                                  kehouThree,choiceOne,choiceTwo,choiceThree,choiceFour,tableOneCol1,tableOneCol2,
+                                  tableOneCol3,tableTwoCol1,tableTwoCol2,tableTwoCol3,tableTwoCol4,tableThreeCol1,
+                                  tableThreeCol2,tableThreeCol3,tableThreeCol4,tableThreeCol5,tableThreeCol6,
+                                  tableFourCol1,tableFourCol2)
+        VALUES (NULL,#{stuId},#{studentName},#{studentId},#{yuxiTwo},#{yuxiThree},#{yuxiOne},#{kehouOne},#{kehouTwo},
+                #{kehouThree},#{choiceOne},#{choiceTwo},#{choiceThree},#{choiceFour},#{tableOneCol1},#{tableOneCol2},
+                #{tableOneCol3},#{tableTwoCol1},#{tableTwoCol2},#{tableTwoCol3},#{tableTwoCol4},#{tableThreeCol1},
+                #{tableThreeCol2},#{tableThreeCol3},#{tableThreeCol4},#{tableThreeCol5},#{tableThreeCol6},
+                #{tableFourCol1},#{tableFourCol2})
+    </insert>
+
+    <select id="getAll" resultMap="XiDianGrade">
+        SELECT * FROM xidian_grade
+    </select>
+</mapper>
