@@ -44,7 +44,7 @@ public class LoginInterceptorConfigurer implements WebMvcConfigurer {
         patterns.add("/video/m3u8/**/**");
 //        patterns.add("/elaborate/md/**/**");
         patterns.add("/emd_task/dlog/upload/**/**");
-        patterns.add("/device-connect");
+        patterns.add("/device/connect");
         patterns.add("/dashboard");
 //        patterns.add("/ai/**/**");
 

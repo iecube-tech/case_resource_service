@@ -524,7 +524,7 @@ public class DeviceServiceImpl implements DeviceService {
     public String connectOnlineBoxTest(String ip, Integer port){
         TcpMessageDto tcpMessageDto = new TcpMessageDto();
         DeviceDetail deviceDetail = new DeviceDetail();
-        deviceDetail.setLocalIp("192.168.1.41");
+        deviceDetail.setLocalIp("192.168.1.80");
         deviceDetail.setLocalPort(5900);
         deviceDetail.setFrpServerPort(7000);
         deviceDetail.setFrpServerIp("47.108.137.115");
