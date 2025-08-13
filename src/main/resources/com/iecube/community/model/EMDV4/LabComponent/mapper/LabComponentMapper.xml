@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.EMDV4.LabComponent.mapper.LabComponentMapper">
+
+    <resultMap id="LabComponent" type="com.iecube.community.model.EMDV4.LabComponent.entity.LabComponent">
+        <result property="needCalculate" column="need_calculate"></result>
+        <result property="totalScore" column="total_score"></result>
+        <result property="scoreProportion" column="score_proportion"></result>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO BL_component (id,name,icon,type,need_calculate,tag,total_score,score,score_proportion,style,config,payload)
+        VALUES (#{id}, #{name}, #{icon}, #{type}, #{needCalculate}, #{tag}, #{totalScore}, #{score}, #{scoreProportion}, #{style}, #{config}, #{payload})
+    </insert>
+
+    <select id="getById" resultMap="LabComponent">
+        SELECT id,name,icon,type,need_calculate,tag,total_score,score,score_proportion,style,config,payload
+        FROM BL_component
+        WHERE id=#{id}
+    </select>
+
+    <update id="update" >
+        UPDATE BL_component
+        SET name=#{name},
+            icon=#{icon},
+            type=#{type},
+            need_calculate=#{needCalculate},
+            tag=#{tag},
+            total_score=#{totalScore},
+            score=#{score},
+            score_proportion=#{scoreProportion},
+            style=#{style},
+            config=#{config},
+            payload=#{payload}
+        WHERE id=#{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM BL_component WHERE id=#{id}
+    </delete>
+
+</mapper>

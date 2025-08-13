@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.EMDV4.TopMajorField.mapper.TopMajorFieldMapper">
+    <resultMap id="MajorField" type="com.iecube.community.model.EMDV4.TopMajorField.entity.MajorField">
+        <result property="pId" column="p_id"></result>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO TOP_Major_Field (id, p_id, `level`, `name`) VALUES (NULL, #{pId}, NULL, #{name});
+    </insert>
+
+    <delete id="deleteById">
+        DELETE FROM TOP_Major_Field WHERE id=#{id}
+    </delete>
+
+    <update id="updateNameById">
+        UPDATE TOP_Major_Field SET name=#{name} WHERE id=#{id}
+    </update>
+
+    <select id="getAll" resultMap="MajorField">
+        SELECT id, p_id, `level`, `name` FROM TOP_Major_Field
+    </select>
+
+    <select id="getById" resultMap="MajorField">
+        SELECT id, p_id, `level`, `name` FROM TOP_Major_Field WHERE id=#{id}
+    </select>
+</mapper>

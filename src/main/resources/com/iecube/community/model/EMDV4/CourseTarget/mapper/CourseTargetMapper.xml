@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.EMDV4.CourseTarget.mapper.CourseTargetMapper">
+
+    <resultMap id="CourseTarget" type="com.iecube.community.model.EMDV4.CourseTarget.entity.CourseTarget">
+        <result property="pId" column="p_id"></result>
+    </resultMap>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO CT_Graduation_Requirement_Point_target (id,`MF`,p_id,`level`,`name`,description,style,config, payload)
+        VALUES (NULL,#{MF},#{pId}, NULL, #{name}, #{description}, #{style},  #{config},  #{payload});
+    </insert>
+
+
+    <select id="getAllTargetByMF" resultMap="CourseTarget">
+        -- 递归查询指定MF值且pId为null的根节点及其所有子节点
+        WITH RECURSIVE course_target_tree AS (
+            -- 锚点查询：找到符合条件的根节点（pId为null且MF为特定值）
+            SELECT
+                `id`,
+                `MF`,
+                `p_id`,
+                `level`,
+                `name`,
+                `description`,
+                `order`,
+                `style`,
+                `config`,
+                `payload`,
+                -- 记录节点深度，根节点为1
+                0 AS depth,
+                -- 记录路径，方便查看节点层级关系
+                CAST(id AS CHAR(255)) AS path
+            FROM
+                CT_Graduation_Requirement_Point_target
+            WHERE
+                `p_id` IS NULL
+              AND `MF` = #{MF}  -- 替换为你的目标MF值
+
+            UNION ALL
+
+            -- 递归查询：找到子节点
+            SELECT
+                ct.`id`,
+                ct.`MF`,
+                ct.`p_id`,
+                ct.`level`,
+                ct.`name`,
+                ct.`description`,
+                ct.`order`,
+                ct.`style`,
+                ct.`config`,
+                ct.`payload`,
+                -- 子节点深度 = 父节点深度 + 1
+                ctt.depth + 1 AS depth,
+                -- 子节点路径 = 父节点路径 + 当前节点ID
+                CONCAT(ctt.path, ',', ct.id) AS path
+            FROM
+                CT_Graduation_Requirement_Point_target ct
+                    INNER JOIN
+                course_target_tree ctt ON ct.`p_id` = ctt.`id`
+        )
+
+        -- 最终查询结果
+        SELECT * FROM course_target_tree ORDER BY path;
+
+    </select>
+
+
+    <select id="getById" resultMap="CourseTarget">
+        SELECT * FROM CT_Graduation_Requirement_Point_target WHERE id=#{id};
+    </select>
+
+    <select id="getCourseTargetByBookId" resultMap="CourseTarget">
+        SELECT ct.* FROM CT_Graduation_Requirement_Point_target ct LEFT JOIN BL_target blt ON ct.id=blt.target_id WHERE blt.book_id=#{bookId};
+    </select>
+</mapper>

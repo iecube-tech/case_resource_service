@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.EMDV4.BookTarget.mapper.BookTargetMapper">
+
+    <resultMap id="BookTarget" type="com.iecube.community.model.EMDV4.BookTarget.entity.BookTarget">
+        <result property="bookId" column="book_id"></result>
+        <result property="targetId" column="target_id"></result>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO BL_target (id, book_id, target_id) VALUES (NUll, #{bookId}, #{targetId})
+    </insert>
+
+    <select id="getById" resultMap="BookTarget">
+        SELECT id, book_id, target_id FROM BL_target WHERE id=#{id}
+    </select>
+
+    <select id="selectByBookIdAndTargetId" resultMap="BookTarget">
+        SELECT id, book_id, target_id FROM BL_target WHERE book_id=#{bookId} AND target_id=#{targetId}
+    </select>
+
+</mapper>

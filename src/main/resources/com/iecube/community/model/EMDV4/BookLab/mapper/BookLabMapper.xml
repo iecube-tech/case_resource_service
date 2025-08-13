@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.EMDV4.BookLab.mapper.BookLabMapper">
+
+    <resultMap id="BookLabCatalog" type="com.iecube.community.model.EMDV4.BookLab.entity.BookLabCatalog">
+        <result property="pId" column="p_id"></result>
+        <result property="deviceType" column="device_type"></result>
+        <result property="stepByStep" column="step_by_step"></result>
+        <result property="sectionPrefix" column="section_prefix"></result>
+        <result property="createdAt" column="created_at"></result>
+        <result property="updatedAt" column="updated_at"></result>
+        <result property="hasChildren" column="has_children"></result>
+    </resultMap>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO BL_book_lab (`id`, `p_id`, `level`, `name`, `version`, `order`, `section_prefix`, `device_type`, `icon` ,
+            `step_by_step`, `style`, `config`, `payload`, `created_at`, `updated_at`)
+        VALUES (NULL, #{pId}, NUll, #{name}, #{version}, #{order}, #{sectionPrefix}, #{deviceType}, #{icon},
+                #{stepByStep}, #{style}, #{config}, #{payload}, NULL,NULL)
+    </insert>
+
+
+    <update id="update">
+        UPDATE BL_book_lab SET name=#{name},
+                               section_prefix=#{sectionPrefix},
+                               device_type=#{deviceType},
+                               icon=#{icon},
+                               step_by_step=#{stepByStep},
+                               style=#{style},
+                               config=#{config},
+                               payload=#{payload},
+                               updated_at=now()
+                           WHERE id=#{id}
+    </update>
+
+
+    <delete id="delete">
+        DELETE FROM BL_book_lab WHERE id=#{id}
+    </delete>
+
+
+    <select id="getById" resultMap="BookLabCatalog">
+        SELECT
+            t.*,
+            (SELECT COUNT(1) FROM BL_book_lab WHERE p_id = t.id) > 0 AS has_children
+        FROM
+            BL_book_lab t
+        WHERE
+            t.p_id=#{id}
+    </select>
+
+    <!-- 查询根节点 -->
+    <select id="selectRootNodes" resultMap="BookLabCatalog">
+        SELECT
+            t.*,
+            (SELECT COUNT(1) FROM BL_book_lab WHERE p_id = t.id) > 0 AS has_children
+        FROM
+            BL_book_lab t
+        WHERE
+            t.p_id IS NULL OR t.p_id = 0
+        ORDER BY
+            t.`order` ASC
+    </select>
+
+    <!-- 根据父节点ID查询子节点 -->
+    <select id="selectChildrenByParentId" parameterType="java.lang.Long" resultMap="BookLabCatalog">
+        SELECT
+            t.*,
+            (SELECT COUNT(1) FROM BL_book_lab WHERE p_id = t.id) > 0 AS has_children
+        FROM
+            BL_book_lab t
+        WHERE
+            t.p_id = #{parentId}
+        ORDER BY
+            t.`order` ASC
+    </select>
+
+    <!-- 检查节点是否有子节点 -->
+    <select id="hasChildren" parameterType="java.lang.Long" resultType="java.lang.Boolean">
+        SELECT COUNT(1) > 0
+        FROM BL_book_lab
+        WHERE p_id = #{nodeId}
+    </select>
+
+    <select id="BookLabCatalog" resultMap="BookLabCatalog">
+        SELECT
+            t.*,
+            (SELECT COUNT(1) FROM BL_book_lab WHERE p_id = t.id) > 0 AS has_children
+        FROM
+            BL_book_lab t
+        WHERE
+            t.id=#{id}
+    </select>
+</mapper>

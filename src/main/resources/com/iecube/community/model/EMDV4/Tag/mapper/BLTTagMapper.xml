@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.EMDV4.Tag.mapper.BLTTagMapper">
+
+    <resultMap id="BLTTag" type="com.iecube.community.model.EMDV4.Tag.entity.BLTTag">
+        <result property="BLTId" column="BLT_id"></result>
+    </resultMap>
+
+    <resultMap id="BLTTagVo" type="com.iecube.community.model.EMDV4.Tag.vo.BLTTagVo">
+        <result property="BLTId" column="BLT_id"></result>
+        <result property="targetId" column="target_id"></result>
+        <result property="targetName" column="target_name"></result>
+    </resultMap>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO BLT_tag (`id`,`BLT_id`,`name`,`ability`,`description`,`style`,`config`,`payload`)
+            VALUES (#{id}, #{BLTId}, #{name}, #{ability}, #{description}, #{style}, #{config}, #{payload})
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM BLT_tag WHERE id=#{id}
+    </delete>
+
+    <update id="update">
+        UPDATE BLT_tag SET BLT_id=#{BLTId},
+                           name=#{name},
+                           ability=#{ability},
+                           description=#{description},
+                           style=#{style},
+                           config=#{config},
+                           payload#{payload}
+        WHERE id=#{id}
+    </update>
+
+    <select id="getById" resultMap="BLTTag">
+        SELETC `id`,`BLT_id`,`name`,`ability`,`description`,`style`,`config`,`payload` FROM BLT_tag WHERE id=#{id}
+    </select>
+
+    <select id="getVoById" resultMap="BLTTagVo">
+        SELECT tag.*, ct.`name` AS target_name, ct.`id` AS target_id
+        FROM BLT_tag tag
+                 LEFT JOIN BL_target blt ON tag.BLT_id=blt.id
+                 LEFT JOIN CT_Graduation_Requirement_Point_target ct ON blt.target_id=ct.id
+        WHERE tag.id=#{id}
+    </select>
+
+    <select id="getTagById" resultMap="BLTTag">
+        SELECT tag.*
+        FROM BLT_tag tag
+                 LEFT JOIN BL_target blt ON tag.BLT_id=blt.id
+        WHERE blt.book_id=#{bookId}
+    </select>
+
+    <select id="getTagVoByBookId" resultMap="BLTTagVo">
+        SELECT tag.*, ct.`name` AS target_name, ct.`id` AS target_id
+               FROM BLT_tag tag
+                   LEFT JOIN BL_target blt ON tag.BLT_id=blt.id
+                   LEFT JOIN CT_Graduation_Requirement_Point_target ct ON blt.target_id=ct.id
+               WHERE blt.book_id=#{bookId}
+    </select>
+
+</mapper>

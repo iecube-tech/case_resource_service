@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.EMDV4.LabComponentTemplate.mapper.LabComponentTemplateMapper">
+
+    <resultMap id="LabComponentTemplate" type="com.iecube.community.model.EMDV4.LabComponentTemplate.entity.LabComponentTemplate">
+        <result property="labId" column="lab_id"></result>
+    </resultMap>
+
+
+    <resultMap id="LabComponentVo" type="com.iecube.community.model.EMDV4.LabComponent.vo.LabComponentVo">
+        <result property="needCalculate" column="need_calculate"></result>
+        <result property="totalScore" column="total_score"></result>
+        <result property="scoreProportion" column="score_proportion"></result>
+    </resultMap>
+
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO BL_template (id, lab_id, component) VALUES (NULl, #{labId}, #{component})
+    </insert>
+
+    <select id="selectByLabIdAndComponent" resultMap="LabComponentVo">
+        SELECT blc.* FROM BL_component blc LEFT JOIN BL_template blt ON blc.id=blt.component WHERE blt.lab_id=#{labId} AND blt.component=#{component}
+    </select>
+
+    <select id="selectByLabId" resultMap="LabComponentVo">
+        SELECT blc.* FROM BL_component blc LEFT JOIN BL_template blt ON blc.id=blt.component WHERE blt.lab_id=#{labId};
+    </select>
+
+    <select id="selectByLabIdAndType" resultMap="LabComponentVo">
+        SELECT blc.* FROM BL_component blc LEFT JOIN BL_template blt ON blc.id=blt.component WHERE blt.lab_id=#{labId} AND blc.type=#{type}
+    </select>
+
+    <delete id="deleteByLabIdAndComponent" >
+        DELETE FROM BL_component WHERE lab_id=#{labId} AND component=#{component}
+    </delete>
+
+</mapper>
