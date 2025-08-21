@@ -28,6 +28,8 @@ public class Content extends BaseEntity {
     private Integer isPrivate;
     private Integer mdCourse; // md_course的id
     private Long emdCourse;  // emd_course
+    private Integer version;
+    private Long emdv4Course;
 }
 
 /**

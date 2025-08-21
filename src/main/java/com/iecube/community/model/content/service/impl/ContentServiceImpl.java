@@ -462,4 +462,9 @@ public class ContentServiceImpl implements ContentService {
         return contentList;
     }
 
+    @Override
+    public List<Content> getEMDV4CourseCreated(Integer user) {
+        return contentMapper.getEMDV4CourseCreated(user);
+    }
+
 }

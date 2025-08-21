@@ -11,13 +11,14 @@
 
     <resultMap id="BLTTagVo" type="com.iecube.community.model.EMDV4.Tag.vo.BLTTagVo">
         <result property="BLTId" column="BLT_id"></result>
+        <result property="bookId" column="book_id"></result>
         <result property="targetId" column="target_id"></result>
         <result property="targetName" column="target_name"></result>
     </resultMap>
 
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
-        INSERT INTO BLT_tag (`id`,`BLT_id`,`name`,`ability`,`description`,`style`,`config`,`payload`)
-            VALUES (#{id}, #{BLTId}, #{name}, #{ability}, #{description}, #{style}, #{config}, #{payload})
+        INSERT INTO BLT_tag (`id`,`BLT_id`,`name`,`ability`,`description`,`style`,`config`,`payload`, `key_node`)
+            VALUES (#{id}, #{BLTId}, #{name}, #{ability}, #{description}, #{style}, #{config}, #{payload}, #{keyNode})
     </insert>
 
     <delete id="delete">
@@ -31,16 +32,17 @@
                            description=#{description},
                            style=#{style},
                            config=#{config},
-                           payload#{payload}
+                           payload=#{payload},
+                           key_node=#{keyNode}
         WHERE id=#{id}
     </update>
 
     <select id="getById" resultMap="BLTTag">
-        SELETC `id`,`BLT_id`,`name`,`ability`,`description`,`style`,`config`,`payload` FROM BLT_tag WHERE id=#{id}
+        SELECT `id`,`BLT_id`,`name`,`ability`,`description`,`style`,`config`,`payload`, `key_node` FROM BLT_tag WHERE id=#{id}
     </select>
 
     <select id="getVoById" resultMap="BLTTagVo">
-        SELECT tag.*, ct.`name` AS target_name, ct.`id` AS target_id
+        SELECT tag.*, ct.`name` AS target_name, ct.`id` AS target_id, blt.book_id AS book_id
         FROM BLT_tag tag
                  LEFT JOIN BL_target blt ON tag.BLT_id=blt.id
                  LEFT JOIN CT_Graduation_Requirement_Point_target ct ON blt.target_id=ct.id
@@ -55,7 +57,7 @@
     </select>
 
     <select id="getTagVoByBookId" resultMap="BLTTagVo">
-        SELECT tag.*, ct.`name` AS target_name, ct.`id` AS target_id
+        SELECT tag.*, ct.`name` AS target_name, ct.`id` AS target_id, blt.book_id AS book_id
                FROM BLT_tag tag
                    LEFT JOIN BL_target blt ON tag.BLT_id=blt.id
                    LEFT JOIN CT_Graduation_Requirement_Point_target ct ON blt.target_id=ct.id

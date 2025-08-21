@@ -1,12 +1,12 @@
 package com.iecube.community.model.EMDV4.LabComponent.vo;
 
-import com.iecube.community.model.EMDV4.Tag.vo.BLTTagVo;
 import lombok.Data;
 
 @Data
 public class LabComponentVo {
-    private Long id;
+    private Long componentId;
     private Long tag;
+    private Integer stage; // 实验阶段 前中后 012
     private String name;
     private String icon;
     private String type;
@@ -17,5 +17,5 @@ public class LabComponentVo {
     private String style;
     private String config;
     private String payload;
-    private BLTTagVo componentTag;
+    private String tagName;
 }

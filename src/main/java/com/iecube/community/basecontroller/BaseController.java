@@ -4,6 +4,9 @@ import com.iecube.community.baseservice.ex.ServiceException;
 import com.iecube.community.exception.NotFoundException;
 import com.iecube.community.exception.ParameterException;
 import com.iecube.community.model.auth.service.ex.AuthException;
+import com.iecube.community.model.auth.service.ex.InsertException;
+import com.iecube.community.model.auth.service.ex.UpdateException;
+import com.iecube.community.model.direction.service.ex.DeleteException;
 import com.iecube.community.util.JsonResult;
 
 import com.iecube.community.util.ex.SystemException;
@@ -43,13 +46,25 @@ public class BaseController {
             result.setState(8001);
             result.setMessage(e.getMessage());
         }
+        else if (e instanceof NotFoundException) {
+            result.setState(8002);
+            result.setMessage(e.getMessage());
+        } else if (e instanceof UpdateException) {
+            result.setState(8003);
+            result.setMessage(e.getMessage());
+        }
+        else if (e instanceof DeleteException) {
+            result.setState(8004);
+            result.setMessage(e.getMessage());
+        }
+        else if (e instanceof InsertException) {
+            result.setState(8005);
+            result.setMessage(e.getMessage());
+        }
         else if (e instanceof ServiceException) {
             result.setState(8000);
             result.setMessage(e.getMessage());
             result.setCause(e.getCause().getMessage());
-        } else if (e instanceof NotFoundException) {
-            result.setState(8002);
-            result.setMessage(e.getMessage());
         }
         return result;
     }

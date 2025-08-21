@@ -11,9 +11,11 @@
 
 
     <resultMap id="LabComponentVo" type="com.iecube.community.model.EMDV4.LabComponent.vo.LabComponentVo">
+        <result property="componentId" column="id"></result>
         <result property="needCalculate" column="need_calculate"></result>
         <result property="totalScore" column="total_score"></result>
         <result property="scoreProportion" column="score_proportion"></result>
+        <result property="tagName" column="tag_name"></result>
     </resultMap>
 
 
@@ -22,19 +24,31 @@
     </insert>
 
     <select id="selectByLabIdAndComponent" resultMap="LabComponentVo">
-        SELECT blc.* FROM BL_component blc LEFT JOIN BL_template blt ON blc.id=blt.component WHERE blt.lab_id=#{labId} AND blt.component=#{component}
+        SELECT blc.*, tag.name AS tag_name
+        FROM BL_component blc
+            LEFT JOIN BL_template blt ON blc.id=blt.component
+            LEFT JOIN BLT_tag tag ON blc.tag=tag.id
+        WHERE blt.lab_id=#{labId} AND blt.component=#{component}
     </select>
 
     <select id="selectByLabId" resultMap="LabComponentVo">
-        SELECT blc.* FROM BL_component blc LEFT JOIN BL_template blt ON blc.id=blt.component WHERE blt.lab_id=#{labId};
+        SELECT blc.*, tag.name AS tag_name
+        FROM BL_component blc
+            LEFT JOIN BL_template blt ON blc.id=blt.component
+            LEFT JOIN BLT_tag tag ON blc.tag=tag.id
+        WHERE blt.lab_id=#{labId};
     </select>
 
     <select id="selectByLabIdAndType" resultMap="LabComponentVo">
-        SELECT blc.* FROM BL_component blc LEFT JOIN BL_template blt ON blc.id=blt.component WHERE blt.lab_id=#{labId} AND blc.type=#{type}
+        SELECT blc.*, tag.name AS tag_name
+        FROM BL_component blc
+            LEFT JOIN BL_template blt ON blc.id=blt.component
+            LEFT JOIN BLT_tag tag ON blc.tag=tag.id
+        WHERE blt.lab_id=#{labId} AND blc.type=#{type}
     </select>
 
     <delete id="deleteByLabIdAndComponent" >
-        DELETE FROM BL_component WHERE lab_id=#{labId} AND component=#{component}
+        DELETE FROM BL_template WHERE lab_id=#{labId} AND component=#{component}
     </delete>
 
 </mapper>

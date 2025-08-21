@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.EMDV4.LabStageBlockComponent.mapper.LabStageBlockCompMapper">
+
+    <resultMap id="LabStageBlockComp" type="com.iecube.community.model.EMDV4.LabStageBlockComponent.entity.LabStageBlockComp">
+        <result property="blockId" column="block_id"></result>
+    </resultMap>
+    
+    <resultMap id="LabStageBlockCompVo" type="com.iecube.community.model.EMDV4.LabStageBlockComponent.vo.LabStageBlockCompVo">
+        <result property="id" column="id"></result>
+        <result property="blockId" column="block_id"></result>
+        <result property="componentId" column="component_id"></result>
+        <result property="order" column="order"></result>
+        <association property="labComponentVo" javaType="com.iecube.community.model.EMDV4.LabComponent.vo.LabComponentVo">
+            <result property="componentId" column="component_id"></result>
+            <result property="needCalculate" column="need_calculate"></result>
+            <result property="totalScore" column="total_score"></result>
+            <result property="scoreProportion" column="score_proportion"></result>
+            <result property="tagName" column="tag_name"></result>
+            <result property="tag" column="tag"></result>
+            <result property="stage" column="stage"></result>
+            <result property="name" column="name"></result>
+            <result property="icon" column="icon"></result>
+            <result property="type" column="type"></result>
+            <result property="score" column="score"></result>
+            <result property="style" column="style"></result>
+            <result property="config" column="config"></result>
+            <result property="payload" column="payload"></result>
+        </association>
+    </resultMap>
+
+    <select id="getBlockCompVos" resultMap="LabStageBlockCompVo" >
+        SELECT blsbc.id, blsbc.block_id, blsbc.component, blsbc.`order`,
+               blc.`id` AS component_id, blc.`name`,blc.`icon`,blc.`type`, blc.`stage`, blc.`need_calculate`,blc.`tag`,
+               blc.`total_score`, blc.`score`,blc.`score_proportion`,blc.`style`,blc.`config`,blc.`payload`,
+               tag.name AS tag_name
+        FROM BL_stage_block_componet blsbc
+            LEFT JOIN BL_component blc ON blsbc.component=blc.id
+            LEFT JOIN BLT_tag tag ON blc.tag=tag.id
+        WHERE blsbc.block_id=#{blockId}
+        ORDER BY blsbc.`order` ASC
+    </select>
+
+    <select id="getById" resultMap="LabStageBlockCompVo" >
+        SELECT blsbc.id, blsbc.block_id, blsbc.component, blsbc.`order`,
+               blc.`id` AS component_id, blc.`name`,blc.`icon`,blc.`type`, blc.`stage`, blc.`need_calculate`,blc.`tag`,
+               blc.`total_score`, blc.`score`,blc.`score_proportion`,blc.`style`,blc.`config`,blc.`payload`,
+               tag.name AS tag_name
+        FROM BL_stage_block_componet blsbc
+                 LEFT JOIN BL_component blc ON blsbc.component=blc.id
+                 LEFT JOIN BLT_tag tag ON blc.tag=tag.id
+        WHERE blsbc.id=#{id}
+    </select>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO BL_stage_block_componet (id, block_id, component, `order`)
+        VALUES (NUll, #{blockId}, #{component}, #{order})
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM BL_stage_block_componet WHERE id=#{id}
+    </delete>
+
+    <update id="updateOrderBatch" parameterType="java.util.List">
+        UPDATE BL_stage_block_componet
+        SET `order` = CASE
+        <foreach collection="list" item="item" index="index">
+            WHEN id = #{item.id} THEN #{item.order}
+        </foreach>
+        END
+        WHERE id IN
+        <foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </update>
+
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

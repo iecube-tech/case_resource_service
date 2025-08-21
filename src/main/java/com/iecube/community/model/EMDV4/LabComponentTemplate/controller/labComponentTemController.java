@@ -27,8 +27,8 @@ public class labComponentTemController extends BaseController {
         return new JsonResult<>(OK, labComponentTemplateService.getBLCTemplateByType(labId,type));
     }
 
-    @PostMapping("/create")
-    public JsonResult<List<LabComponentVo>> createLabComponentTemp(@RequestBody Long labId, @RequestBody LabComponent labComponent){
+    @PostMapping("/{labId}/create")
+    public JsonResult<List<LabComponentVo>> createLabComponentTemp(@PathVariable Long labId, @RequestBody LabComponent labComponent){
         return new JsonResult<>(OK, labComponentTemplateService.createBLCTemplate(labId, labComponent));
     }
 
@@ -37,8 +37,8 @@ public class labComponentTemController extends BaseController {
         return new JsonResult<>(OK, labComponentTemplateService.deleteBLCTemplate(labId, componentId));
     }
 
-    @PostMapping("/update")
-    public JsonResult<LabComponentVo> updateLabComponent(@RequestBody Long labId, @RequestBody LabComponent labComponent){
+    @PostMapping("/{labId}/update")
+    public JsonResult<LabComponentVo> updateLabComponent(@PathVariable Long labId, @RequestBody LabComponent labComponent){
         return new JsonResult<>(OK, labComponentTemplateService.updateBLCTemplate(labId, labComponent));
     }
 }

@@ -12,12 +12,12 @@
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO BL_component (id,name,icon,type,need_calculate,tag,total_score,score,score_proportion,style,config,payload)
-        VALUES (#{id}, #{name}, #{icon}, #{type}, #{needCalculate}, #{tag}, #{totalScore}, #{score}, #{scoreProportion}, #{style}, #{config}, #{payload})
+        INSERT INTO BL_component (id,name,icon,type, stage, need_calculate,tag,total_score,score,score_proportion,style,config,payload)
+        VALUES (#{id}, #{name}, #{icon}, #{type}, #{stage}, #{needCalculate}, #{tag}, #{totalScore}, #{score}, #{scoreProportion}, #{style}, #{config}, #{payload})
     </insert>
 
     <select id="getById" resultMap="LabComponent">
-        SELECT id,name,icon,type,need_calculate,tag,total_score,score,score_proportion,style,config,payload
+        SELECT id,name,icon,type, stage, need_calculate,tag,total_score,score,score_proportion,style,config,payload
         FROM BL_component
         WHERE id=#{id}
     </select>
@@ -27,6 +27,7 @@
         SET name=#{name},
             icon=#{icon},
             type=#{type},
+            stage=#{stage},
             need_calculate=#{needCalculate},
             tag=#{tag},
             total_score=#{totalScore},

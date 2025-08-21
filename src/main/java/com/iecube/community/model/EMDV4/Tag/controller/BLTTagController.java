@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/emdv4/book_tag/")
-public class TagController extends BaseController {
+public class BLTTagController extends BaseController {
 
     @Autowired
     private BLTTagService tagService;

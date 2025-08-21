@@ -16,15 +16,18 @@
     </resultMap>
 
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
-        INSERT INTO BL_book_lab (`id`, `p_id`, `level`, `name`, `version`, `order`, `section_prefix`, `device_type`, `icon` ,
+        INSERT INTO BL_book_lab (`id`, `p_id`, `level`, `name`, `version`, `order`,`type`, `description`, `stage`, `section_prefix`, `device_type`, `icon` ,
             `step_by_step`, `style`, `config`, `payload`, `created_at`, `updated_at`)
-        VALUES (NULL, #{pId}, NUll, #{name}, #{version}, #{order}, #{sectionPrefix}, #{deviceType}, #{icon},
+        VALUES (NULL, #{pId}, NUll, #{name}, #{version}, #{order}, #{type},#{description}, #{stage}, #{sectionPrefix}, #{deviceType}, #{icon},
                 #{stepByStep}, #{style}, #{config}, #{payload}, NULL,NULL)
     </insert>
 
 
     <update id="update">
         UPDATE BL_book_lab SET name=#{name},
+                               type=#{type},
+                               description=#{description},
+                               stage=#{stage},
                                section_prefix=#{sectionPrefix},
                                device_type=#{deviceType},
                                icon=#{icon},
@@ -49,7 +52,7 @@
         FROM
             BL_book_lab t
         WHERE
-            t.p_id=#{id}
+            t.id=#{id}
     </select>
 
     <!-- 查询根节点 -->

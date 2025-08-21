@@ -1,5 +1,6 @@
 package com.iecube.community.model.EMDV4.BookLab.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.time.Instant;
@@ -8,10 +9,14 @@ import java.util.List;
 @Data
 public class BookLabCatalog {
     private Long id;
+    @JsonProperty("pId")
     private Long pId;
     private Integer level;
     private Integer version;
     private Integer order;
+    private String type;
+    private String description;
+    private Integer stage;
     private Long deviceType;
     private Boolean stepByStep;
     private String name;

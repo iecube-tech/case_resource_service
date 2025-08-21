@@ -20,6 +20,7 @@
         <result column="is_private" property="isPrivate"></result>
         <result column="md_course" property="mdCourse"></result>
         <result column="emd_course" property="emdCourse"></result>
+        <result column="emdv4_course" property="emdv4Course"></result>
     </resultMap>
 
     <resultMap id="taskTemplates" type="com.iecube.community.model.content.entity.taskTemplates">
@@ -42,10 +43,10 @@
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO solution_or_case
-            (id, name, md_course,emd_course, device_id, is_private, parent_id, cover, introduction, introduce, target, guidance, third, fourth, key_word,completion,
+            (id, name,emdv4_course, version, md_course,emd_course, device_id, is_private, parent_id, cover, introduction, introduce, target, guidance, third, fourth, key_word,completion,
              is_delete,creator_type, creator, create_time, last_modified_user, last_modified_time)
         VALUES
-            (NULL, #{name}, #{mdCourse}, #{emdCourse}, #{deviceId}, 0, #{parentId}, #{cover}, #{introduction}, #{introduce}, #{target}, #{guidance}, #{third}, #{fourth},
+            (NULL, #{name},#{emdv4Course}, #{version}, #{mdCourse}, #{emdCourse}, #{deviceId}, 0, #{parentId}, #{cover}, #{introduction}, #{introduce}, #{target}, #{guidance}, #{third}, #{fourth},
              #{keyWord}, #{completion},#{isDelete},#{creatorType}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
     </insert>
 
@@ -254,5 +255,15 @@
           AND solution_or_case.third=1
           AND solution_or_case.is_delete=0
           AND solution_or_case.emd_course
+    </select>
+
+    <select id="getEMDV4CourseCreated" resultMap="ContentEntity">
+        SELECT * FROM solution_or_case
+        WHERE solution_or_case.creator=#{user}
+          AND creator_type='teacher'
+          AND solution_or_case.third=1
+          AND solution_or_case.is_delete=0
+          AND solution_or_case.version=4
+          AND solution_or_case.emdv4_course
     </select>
 </mapper>

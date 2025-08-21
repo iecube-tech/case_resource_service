@@ -13,4 +13,5 @@ public class BLTTagQo {
     private String style;
     private String config;
     private String payload;
+    private Boolean keyNode;
 }

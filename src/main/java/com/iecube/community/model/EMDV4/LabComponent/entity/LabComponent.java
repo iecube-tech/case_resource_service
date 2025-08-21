@@ -6,6 +6,7 @@ import lombok.Data;
 public class LabComponent {
     private Long id;
     private Long tag;
+    private Integer stage; // 实验阶段  前中后 012
     private String name;
     private String icon;
     private String type;

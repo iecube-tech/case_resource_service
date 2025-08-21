@@ -76,13 +76,14 @@ public class BLTTagServiceImpl implements BLTTagService {
 
     private BLTTag qoToTag(BLTTagQo qo) {
         BLTTag tag = new BLTTag();
-        tag.setBLTId(qo.getId()==null?null:qo.getId());
+        tag.setId(qo.getId()==null?null:qo.getId());
         tag.setName(qo.getName());
         tag.setAbility(qo.getAbility());
         tag.setDescription(qo.getDescription());
         tag.setStyle(qo.getStyle());
         tag.setConfig(qo.getConfig());
         tag.setPayload(qo.getPayload());
+        tag.setKeyNode(qo.getKeyNode());
         return tag;
     }
 }

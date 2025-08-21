@@ -81,4 +81,6 @@ public interface ContentMapper {
     List<Content> getMdCourseCreated(Integer user);
 
     List<Content> getEMdCourseCreated(Integer user);
+
+    List<Content> getEMDV4CourseCreated(Integer user);
 }

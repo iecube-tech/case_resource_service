@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class BLTTagVo extends BLTTag {
+   private long bookId;
    private long targetId;
    private String targetName;
 }

@@ -6,8 +6,6 @@ import com.iecube.community.model.EMDV4.LabComponentTemplate.entity.LabComponent
 import com.iecube.community.model.EMDV4.LabComponentTemplate.mapper.LabComponentTemplateMapper;
 import com.iecube.community.model.EMDV4.LabComponentTemplate.service.LabComponentTemplateService;
 import com.iecube.community.model.EMDV4.LabComponent.vo.LabComponentVo;
-import com.iecube.community.model.EMDV4.Tag.mapper.BLTTagMapper;
-import com.iecube.community.model.EMDV4.Tag.vo.BLTTagVo;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,28 +21,15 @@ public class LabComponentTemplateServiceImpl implements LabComponentTemplateServ
     @Autowired
     private LabComponentService BLCService;
 
-    @Autowired
-    private BLTTagMapper bltTagMapper;
-
 
     @Override
     public List<LabComponentVo> getBLCTemplate(Long labId) {
-        List<LabComponentVo> labComponentVoList = BLCTemplateMapper.selectByLabId(labId);
-        for(LabComponentVo lc : labComponentVoList){
-            BLTTagVo bltTag = bltTagMapper.getVoById(lc.getTag());
-            lc.setComponentTag(bltTag);
-        }
-        return labComponentVoList;
+        return BLCTemplateMapper.selectByLabId(labId);
     }
 
     @Override
     public List<LabComponentVo> getBLCTemplateByType(Long labId, String type) {
-        List<LabComponentVo> labComponentVoList = BLCTemplateMapper.selectByLabIdAndType(labId, type);
-        for(LabComponentVo lc : labComponentVoList){
-            BLTTagVo bltTag = bltTagMapper.getVoById(lc.getTag());
-            lc.setComponentTag(bltTag);
-        }
-        return labComponentVoList;
+        return BLCTemplateMapper.selectByLabIdAndType(labId, type);
     }
 
     @Override
