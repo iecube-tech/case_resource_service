@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.mapper.EMDV4ProjectStudentMapper">
+
+    <resultMap id="EMDV4ProjectStudent" type="com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.entity.EMDV4ProjectStudent">
+        <result column="grade_class" property="gradeClass"></result>
+        <result column="project_id" property="projectId"></result>
+        <result column="student_id" property="studentId"></result>
+        <result column="total_num_of_labs" property="totalNumOfLabs"></result>
+        <result column="done_num_of_labs" property="doneNumOfLabs"></result>
+        <result column="total_num_of_tags" property="totalNumOfTags"></result>
+        <result column="achieved_num_of_tags" property="achievedNumOfTags"></result>
+        <result column="start_time" property="startTime"></result>
+        <result column="done_time" property="doneTime"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO EMDV4_projectStudent
+            (id, grade_class, project_id, student_id, score, total_num_of_labs, done_num_of_labs,
+                total_num_of_tags, achieved_num_of_tags, start_time, status, done_time, creator, create_time,
+                    last_modified_user, last_modified_time)
+        VALUES
+            (NULL, #{gradeClass}, #{projectId}, #{studentId}, #{score}, #{totalNumOfLabs}, #{doneNumOfLabs},
+             #{totalNumOfTags}, #{achievedNumOfTags}, #{startTime}, #{status}, #{doneTime}, #{creator}, #{createTime},
+             #{lastModifiedUser}, #{lastModifiedTime})
+    </insert>
+
+    <insert id="batchInsert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO EMDV4_projectStudent
+            (id, grade_class, project_id, student_id, score, total_num_of_labs, done_num_of_labs,
+            total_num_of_tags, achieved_num_of_tags, start_time, status, done_time, creator, create_time,
+            last_modified_user, last_modified_time)
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (NULL, #{item.gradeClass}, #{item.projectId}, #{item.studentId}, #{item.score}, #{item.totalNumOfLabs}, #{item.doneNumOfLabs},
+            #{item.totalNumOfTags}, #{item.achievedNumOfTags}, #{item.startTime}, #{item.status}, #{item.doneTime}, #{item.creator}, #{item.createTime},
+            #{item.lastModifiedUser}, #{item.lastModifiedTime})
+        </foreach>
+    </insert>
+
+    <select id="getByProjectId" resultMap="EMDV4ProjectStudent">
+        SELECT
+            `id`, `grade_class`, `project_id`, `student_id`, `score`, `total_num_of_labs`, `done_num_of_labs`,
+            `total_num_of_tags`, `achieved_num_of_tags`, `start_time`, `status`, `done_time`, `creator`, `create_time`,
+            `last_modified_user`, `last_modified_time`
+        FROM EMDV4_projectStudent
+        WHERE `project_id`=#{projectId}
+        ORDER BY `status` DESC, `student_id` ASC
+    </select>
+
+    <update id="updateProjectTotalNum">
+        UPDATE EMDV4_projectStudent
+        SET total_num_of_labs=#{totalNumOfLabs},
+            total_num_of_tags=#{totalNumOfTags}
+        WHERE project_id=#{projectId}
+    </update>
+
+</mapper>

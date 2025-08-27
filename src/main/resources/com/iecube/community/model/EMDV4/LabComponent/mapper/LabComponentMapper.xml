@@ -43,4 +43,12 @@
         DELETE FROM BL_component WHERE id=#{id}
     </delete>
 
+    <select id="getByBlockId" resultMap="LabComponent">
+        SELECT c.id, c.name, c.icon, c.type, c.stage, c.need_calculate, c.tag, c.total_score,
+               c.score, c.score_proportion, c.style, c.config, c.payload, bc.`order`
+        FROM BL_component c
+            LEFT JOIN BL_stage_block_componet bc ON c.id=bc.component
+        WHERE bc.block_id=#{blockId}
+        ORDER BY `order`
+    </select>
 </mapper>

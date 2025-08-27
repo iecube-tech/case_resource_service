@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.EMDV4Project.EMDV4_projectTask.mapper.EMDV4ProjectTaskMapper">
+
+    <resultMap id="EMDV4ProjectTask" type="com.iecube.community.model.EMDV4Project.EMDV4_projectTask.entity.EMDV4ProjectTask">
+        <result column="project_id" property="projectId"></result>
+        <result column="labId" property="labId"></result>
+        <result column="coefficient_of_difficulty" property="coefficientOfDifficulty"></result>
+        <result column="start_time" property="startTime"></result>
+        <result column="end_time" property="endTime"></result>
+        <result column="done_time" property="doneTime"></result>
+        <result column="total_num_of_student" property="totalNumOfStudent"></result>
+        <result column="done_num_of_student" property="doneNumOfStudent"></result>
+        <result column="average_score" property="averageScore"></result>
+        <result column="average_use_time" property="averageUseTime"></result>
+        <result column="average_error_rate" property="averageErrorRate"></result>
+    </resultMap>
+
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO  EMDV4_projectTask
+            (id, project_id, labId, num, name, classhour, weighting, coefficient_of_difficulty,
+             start_time, end_time, status, done_time, total_num_of_student, done_num_of_student,
+             average_score, average_use_time, average_error_rate)
+        VALUES
+            (NULL, #{projectId}, #{labId}, #{num}, #{name}, #{classhour}, #{weighting}, #{coefficientOfDifficulty},
+             #{startTime}, #{endTime}, #{status}, #{doneTime}, #{totalNumOfStudent}, #{doneNumOfStudent},
+             #{averageScore}, #{averageUseTime}, #{averageErrorRate})
+    </insert>
+
+    <insert id="batchInsert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO EMDV4_projectTask
+            (id, project_id, labId, num, name, classhour, weighting, coefficient_of_difficulty,
+             start_time, end_time, status, done_time, total_num_of_student, done_num_of_student,
+             average_score, average_use_time, average_error_rate)
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (NULL, #{item.projectId}, #{item.labId}, #{item.num}, #{item.name}, #{item.classhour}, #{item.weighting}, #{item.coefficientOfDifficulty},
+            #{item.startTime}, #{item.endTime}, #{item.status}, #{item.doneTime}, #{item.totalNumOfStudent}, #{item.doneNumOfStudent},
+            #{item.averageScore}, #{item.averageUseTime}, #{item.averageErrorRate})
+        </foreach>
+    </insert>
+
+    <select id="getByProjectId" resultMap="EMDV4ProjectTask">
+        SELECT
+            `id`, `project_id`, `labId`, `num`, `name`, `classhour`, `weighting`, `coefficient_of_difficulty`,
+                `start_time`, `end_time`, `status`, `done_time`, `total_num_of_student`, `done_num_of_student`,
+                `average_score`, `average_use_time`, `average_error_rate`
+        FROM EMDV4_projectTask
+        WHERE `project_id`=#{projectId}
+        ORDER BY `num` ASC
+    </select>
+
+    <update id="updateProjectStudentNums">
+        UPDATE EMDV4_projectTask SET total_num_of_student=#{studentNum} WHERE project_id=#{projectId}
+    </update>
+</mapper>

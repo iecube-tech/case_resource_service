@@ -27,4 +27,7 @@ public class Project extends BaseEntity {
     private String fourth;
     private String fourthType;
     private Long emdCourse;
+    private Integer version;
+    private String semester;
+    private Integer gradeClass;
 }

@@ -1,0 +1,12 @@
+package com.iecube.community.model.EMDV4Project.EMDV4_student_task_book.mapper;
+
+import com.iecube.community.model.EMDV4Project.EMDV4_student_task_book.entity.EMDV4StudentTaskBook;
+import org.apache.ibatis.annotations.Mapper;
+
+import java.util.List;
+
+@Mapper
+public interface EMDV4StudentTaskBookMapper {
+    int insert(EMDV4StudentTaskBook record);
+    int batchInsert(List<EMDV4StudentTaskBook> records);
+}

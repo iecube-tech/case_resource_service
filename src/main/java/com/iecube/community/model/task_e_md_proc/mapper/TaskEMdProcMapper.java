@@ -16,4 +16,6 @@ public interface TaskEMdProcMapper {
     LabProc getLabProcByTaskId(int taskId);
     int deleteLabProcByTaskId(int taskId);
     EMDTaskRefVo getTaskProcByTaskId(int taskId);
+
+    TaskTemplateEMdProc getByTaskTemplateId(Integer taskTemplateId);
 }

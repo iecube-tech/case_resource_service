@@ -41,4 +41,5 @@ public class Task extends BaseEntity {
     private MDChapter mdChapter;
     private Long taskEMdProc;
     private LabProc labProc;
+    private Long labProcId;
 }

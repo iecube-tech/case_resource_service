@@ -1,6 +1,7 @@
 package com.iecube.community.model.EMDV4.BookLab.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.iecube.community.model.EMDV4.LabComponent.entity.LabComponent;
 import lombok.Data;
 
 import java.time.Instant;
@@ -28,5 +29,6 @@ public class BookLabCatalog {
     private Boolean hasChildren;
     private Instant createdAt;
     private Instant updatedAt;
+    private List<LabComponent> componentList;
     private List<BookLabCatalog> children;
 }

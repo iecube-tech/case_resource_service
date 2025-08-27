@@ -13,6 +13,11 @@
         <result column="section_prefix" property="sectionPrefix"></result>
     </resultMap>
 
+    <resultMap id="TaskTemplateEMdProc" type="com.iecube.community.model.task_e_md_proc.entity.TaskTemplateEMdProc">
+        <result column="task_template_id" property="taskTemplateId"></result>
+        <result column="proc_id" property="procId"></result>
+    </resultMap>
+
     <insert id="taskTemplateAddProc" keyProperty="id" useGeneratedKeys="true">
         INSERT INTO e_md_task_template_proc (id, task_template_id, proc_id) VALUES (NULL, #{taskTemplateId}, #{procId})
     </insert>
@@ -46,6 +51,10 @@
 
     <select id="getTaskProcByTaskId" resultMap="EMDTaskRefVo">
         SELECT proc_ref as ref, section_prefix from e_md_task_proc WHERE task_id=#{taskId}
+    </select>
+    
+    <select id="getByTaskTemplateId" resultMap="TaskTemplateEMdProc">
+        SELECT id, task_template_id, proc_id FROM e_md_task_template_proc WHERE task_template_id=#{taskTemplateId}
     </select>
 
 </mapper>

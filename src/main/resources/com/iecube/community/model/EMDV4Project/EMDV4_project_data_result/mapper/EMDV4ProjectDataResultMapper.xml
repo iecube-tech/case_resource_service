@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.EMDV4Project.EMDV4_project_data_result.mapper.EMDV4ProjectDataResultMapper">
+    <resultMap id="EMDV4ProjectDataResult" type="com.iecube.community.model.EMDV4Project.EMDV4_project_data_result.entity.EMDV4ProjectDataResult">
+        <result column="project_id" property="projectId"></result>
+        <result column="task_completion_rate" property="taskCompletionRate"></result>
+        <result column="tag_achievement_rate" property="tagAchievementRate"></result>
+        <result column="average_score" property="averageScore"></result>
+        <result column="pass_rate" property="passRate"></result>
+        <result column="ai_use_rate" property="aiUseRate"></result>
+        <result column="degree_of_achievement_of_course_target" property="degreeOfAchievementOfCourseTarget"></result>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO EMDV4_project_data_result 
+            (id,  project_id, progress, task_completion_rate, tag_achievement_rate, 
+             average_score, pass_rate, ai_use_rate, degree_of_achievement_of_course_target)
+        VALUES
+            (NULL, #{projectId}, #{progress}, #{taskCompletionRate}, #{tagAchievementRate},
+             #{averageScore}, #{passRate}, #{aiUseRate}, #{degreeOfAchievementOfCourseTarget})
+    </insert>
+
+</mapper>

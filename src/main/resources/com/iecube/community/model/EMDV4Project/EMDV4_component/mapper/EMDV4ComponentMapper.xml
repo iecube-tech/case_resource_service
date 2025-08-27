@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.EMDV4Project.EMDV4_component.mapper.EMDV4ComponentMapper">
+    <resultMap id="EMDV4Component" type="com.iecube.community.model.EMDV4Project.EMDV4_component.entity.EMDV4Component">
+        <result column="block_id" property="blockId"></result>
+        <result column="need_calculate" property="needCalculate"></result>
+        <result column="total_score" property="totalScore"></result>
+        <result column="score_proportion" property="scoreProportion"></result>
+    </resultMap>
+    
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO EMDV4_component
+            (`id`, `block_id`, `tag`, `stage`, `name`, `icon`, `type`, `need_calculate`, `total_score`, `score`,
+             `score_proportion`, `style`, `config`, `payload`, `status`, `order`)
+        VALUES
+            (#{id}, #{blockId}, #{tag}, #{stage}, #{name}, #{icon}, #{type}, #{needCalculate}, #{totalScore}, #{score},
+             #{scoreProportion}, #{style}, #{config}, #{payload}, #{status}, #{order})
+    </insert>
+
+    <insert id="batchInsert">
+        INSERT INTO EMDV4_component
+        (`id`, `block_id`, `tag`, `stage`, `name`, `icon`, `type`, `need_calculate`, `total_score`, `score`,
+        `score_proportion`, `style`, `config`, `payload`, `status`, `order`)
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (#{item.id}, #{item.blockId}, #{item.tag}, #{item.stage}, #{item.name}, #{item.icon}, #{item.type}, #{item.needCalculate}, #{item.totalScore}, #{item.score},
+            #{item.scoreProportion}, #{item.style}, #{item.config}, #{item.payload}, #{item.status}, #{item.order})
+        </foreach>
+    </insert>
+</mapper>

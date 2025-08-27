@@ -3,6 +3,8 @@ package com.iecube.community.model.EMDV4.BookLab.service.impl;
 import com.iecube.community.model.EMDV4.BookLab.entity.BookLabCatalog;
 import com.iecube.community.model.EMDV4.BookLab.mapper.BookLabMapper;
 import com.iecube.community.model.EMDV4.BookLab.service.BookLabService;
+import com.iecube.community.model.EMDV4.LabComponent.entity.LabComponent;
+import com.iecube.community.model.EMDV4.LabComponent.mapper.LabComponentMapper;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -19,6 +22,8 @@ public class BookLabServiceImpl implements BookLabService {
     @Autowired
     private BookLabMapper bookLabMapper;
 
+    @Autowired
+    private LabComponentMapper labComponentMapper;
     /**
      * 获取所有根节点
      */
@@ -108,5 +113,28 @@ public class BookLabServiceImpl implements BookLabService {
         }else {
             return bookLabMapper.selectRootNodes();
         }
+    }
+
+    @Override
+    public BookLabCatalog wholeBookLabCatalogById(Long id) {
+        BookLabCatalog bookLabCatalog = bookLabMapper.getById(id);
+        return this.buildTreeWithComponents(bookLabCatalog);
+    }
+
+    private BookLabCatalog buildTreeWithComponents(BookLabCatalog node){
+        if (node == null) {
+            return null;
+        }
+        // 设置node的componentList
+        List<LabComponent> labComponentList =labComponentMapper.getByBlockId(node.getId());
+        node.setComponentList(labComponentList);
+        List<BookLabCatalog> children = this.getChildrenByParentId(node.getId());
+        // 递归处理子节点
+        List<BookLabCatalog> processedChildren = children.stream()
+                .map(this::buildTreeWithComponents)
+                .toList();
+        node.setChildren(processedChildren);
+        node.setHasChildren(!processedChildren.isEmpty());
+        return node;
     }
 }

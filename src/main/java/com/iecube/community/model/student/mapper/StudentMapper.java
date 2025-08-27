@@ -34,4 +34,6 @@ public interface StudentMapper {
     List<StudentDto> findAllStudentLimit(Integer page, Integer pageSize);
 
     List<StudentDto> findAllStudent();
+
+    List<StudentDto> findByGradeClass(Integer gradeClass);
 }

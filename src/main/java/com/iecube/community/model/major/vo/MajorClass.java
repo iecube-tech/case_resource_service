@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 public class MajorClass {
-    Integer majorId;
-    String majorName;
-    List<ClassAndGrade> majorClasses;
+    private Integer majorId;
+    private String majorName;
+    private List<ClassAndGrade> majorClasses;
 }

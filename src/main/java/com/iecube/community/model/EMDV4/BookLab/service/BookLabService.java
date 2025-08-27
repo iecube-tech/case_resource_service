@@ -23,4 +23,11 @@ public interface BookLabService {
     BookLabCatalog updateBookLabCatalog(BookLabCatalog record);
 
     List<BookLabCatalog> deleteById(Long id);
+
+    /**
+     * 获取一个完整的实验指导书
+     * @param id  实验指导书的ID
+     * @return BookLabCatalog
+     */
+    BookLabCatalog wholeBookLabCatalogById(Long id);
 }

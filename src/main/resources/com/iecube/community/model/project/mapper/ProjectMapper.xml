@@ -16,6 +16,7 @@
         <result column="md_course" property="mdCourse"></result>
         <result column="use_remote" property="useRemote"></result>
         <result column="emd_course" property="emdCourse"></result>
+        <result column="grade_class" property="gradeClass"></result>
     </resultMap>
 
     <resultMap id="ProjectStudentVo" type="com.iecube.community.model.project.entity.ProjectStudentVo">
@@ -35,10 +36,10 @@
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO project (id, case_id,device_id, project_name, introduction, introduce, cover, target,
                              start_time, end_time, creator, create_time, last_modified_user, last_modified_time,
-                             use_group, group_limit, md_course, use_remote)
+                             use_group, group_limit, md_course, use_remote, version, semester, grade_class)
         VALUES (NULL,#{caseId},#{deviceId}, #{projectName}, #{introduction}, #{introduce}, #{cover}, #{target},
                    #{startTime}, #{endTime}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime},
-                #{useGroup}, #{groupLimit}, #{mdCourse}, #{useRemote})
+                #{useGroup}, #{groupLimit}, #{mdCourse}, #{useRemote},#{version},#{semester},#{gradeClass})
     </insert>
 
     <update id="delete">
@@ -56,7 +57,7 @@
     <select id="findById" resultMap="ProjectEntity">
         SELECT project.id,project.case_id, project.device_id, project.project_name, project.target,project.introduction,project.introduce,
                project.cover,project.start_time,project.end_time, project.use_group, project.group_limit,  project.md_course,
-               project.use_remote,solution_or_case.emd_course
+               project.use_remote,solution_or_case.emd_course, project.version,project.semester,project.grade_class
         FROM project INNER JOIN solution_or_case ON project.case_id=solution_or_case.id
         WHERE project.id=#{id}
     </select>
@@ -64,7 +65,7 @@
     <select id="findByPstId" resultMap="ProjectEntity">
         SELECT p.id, p.case_id,device_id, p.project_name, p.introduction, p.introduce, p.cover, p.target,
                p.start_time, p.end_time, p.creator, p.create_time, p.last_modified_user, p.last_modified_time,
-               p.use_group, p.group_limit, p.md_course, p.use_remote
+               p.use_group, p.group_limit, p.md_course, p.use_remote,p.version,p.semester,p.grade_class
         FROM project p INNER JOIN project_task_student pst ON p.id=pst.project_id WHERE pst.id=#{pstId};
     </select>
 
@@ -102,7 +103,7 @@
     <select id="findByStudentId" resultMap="ProjectEntity">
         SELECT project.id, project.project_name,project.target,project.introduction,project.introduce,
                project.cover,project.start_time,project.end_time,project_student.grade, project.use_group, project.md_course,
-               project.use_remote,solution_or_case.emd_course
+               project.use_remote,solution_or_case.emd_course,project.version,project.semester,project.grade_class
         FROM (project_student INNER JOIN project ON project_student.project_id=project.id) INNER JOIN solution_or_case
             ON project.case_id=solution_or_case.id
         WHERE project_student.student_id=#{id} AND project.is_delete=0 AND solution_or_case.third=0
@@ -111,7 +112,7 @@
     <select id="findCourseByStudentId" resultMap="ProjectEntity">
         SELECT project.id, project.project_name,project.target,project.introduction,project.introduce,
                project.cover,project.start_time,project.end_time,project_student.grade, project.use_group, project.md_course,
-               project.use_remote, solution_or_case.emd_course
+               project.use_remote, solution_or_case.emd_course,project.version,project.semester,project.grade_class
         FROM (project_student INNER JOIN project ON project_student.project_id=project.id) INNER JOIN solution_or_case
                                                                                                       ON project.case_id=solution_or_case.id
         WHERE project_student.student_id=#{id} AND project.is_delete=0 AND solution_or_case.third=1

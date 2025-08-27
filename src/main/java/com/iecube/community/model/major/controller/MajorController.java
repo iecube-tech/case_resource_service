@@ -21,7 +21,7 @@ public class MajorController extends MajorBaseController {
     private MajorService majorService;
 
     @GetMapping("/classes")
-    public JsonResult<List> teacherMajorClasses(){
+    public JsonResult<List<MajorClass>> teacherMajorClasses(){
         Integer teacherId = currentUserId();
         List<MajorClass> majorClasses = majorService.teacherMajorClasses(teacherId);
         return new JsonResult<>(OK, majorClasses);

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.EMDV4Project.EMDV4_project_studentTask.mapper.EMDV4ProjectStudentTaskMapper">
+
+    <resultMap id="EMDV4ProjectStudentTask" type="com.iecube.community.model.EMDV4Project.EMDV4_project_studentTask.entity.EMDV4ProjectStudentTask">
+        <result column="project_student" property="projectStudent"></result>
+        <result column="project_task" property="projectTask"></result>
+        <result column="task_book_id" property="taskBookId"></result>
+        <result column="start_time" property="startTime"></result>
+        <result column="done_time" property="doneTime"></result>
+        <result column="use_time" property="useTime"></result>
+        <result column="total_num_of_tags" property="totalNumOfTags"></result>
+        <result column="achieved_num_of_tags" property="achievedNumOfTags"></result>
+        <result column="average_error_rate" property="averageErrorRate"></result>
+    </resultMap>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO EMDV4_project_studentTask
+            (id, project_student, project_task, task_book_id, score, status, start_time, done_time,
+             use_time, total_num_of_tags, achieved_num_of_tags, average_error_rate)
+        VALUES (NULL, #{projectStudent}, #{projectTask}, #{taskBookId}, #{score}, #{status}, #{startTime}, #{doneTime},
+             #{useTime}, #{totalNumOfTags}, #{achievedNumOfTags}, #{averageErrorRate})
+    </insert>
+
+    <insert id="batchInsert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO EMDV4_project_studentTask
+        (id, project_student, project_task, task_book_id, score, status, start_time, done_time,
+         use_time, total_num_of_tags, achieved_num_of_tags, average_error_rate)
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (NULL, #{item.projectStudent}, #{item.projectTask}, #{item.taskBookId}, #{item.score}, #{item.status}, #{item.startTime}, #{item.doneTime},
+            #{item.useTime}, #{item.totalNumOfTags}, #{item.achievedNumOfTags}, #{item.averageErrorRate})
+        </foreach>
+    </insert>
+</mapper>

@@ -303,6 +303,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             Details details = taskDetailsMapper.getDetailsByTaskTemplateId(taskTemplateDto.getId());
             TaskMdDoc taskMdDoc = taskMdDocMapper.getTaskMdDocByTaskTemplateId(taskTemplateDto.getId());
             LabProc labProc = taskEMdProcMapper.getLabProcByTaskTemplateId(taskTemplateDto.getId());
+            TaskTemplateEMdProc taskTemplateEMdProc = taskEMdProcMapper.getByTaskTemplateId(taskTemplateDto.getId());
             taskTemplateDto.setBackDropList(backDropList);
             taskTemplateDto.setRequirementList(requirementList);
             taskTemplateDto.setDeliverableRequirementList(deliverableRequirementList);
@@ -310,6 +311,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             taskTemplateDto.setReferenceFileList(referenceFileList);
             taskTemplateDto.setAttentionList(attentionList);
             taskTemplateDto.setExperimentalSubjectList(experimentalSubjectList);
+            taskTemplateDto.setLabProcId(taskTemplateEMdProc.getProcId());
             if(details != null){
                 taskTemplateDto.setTaskDetails(details.getName());
             }

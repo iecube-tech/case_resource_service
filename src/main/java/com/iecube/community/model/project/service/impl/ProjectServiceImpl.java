@@ -178,51 +178,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     private void createRoutineTask(ProjectDto projectDto, Project project, Integer teacherId) {
         // 开启远程实验
-        if(Objects.equals(project.getUseRemote(), 1)){
-            // 检查数据是否合理
-            RemoteQo remoteQo = projectDto.getRemoteQo();
-            if(remoteQo.getRemoteDeviceIdList().isEmpty()){
-                projectMapper.delete(project.getId());
-                throw new InsertException("没有添加远程设备");
-            }
-            if(remoteQo.getEndTime() == null || remoteQo.getStartTime()== null || remoteQo.getStartDate()== null || remoteQo.getEndDate()== null){
-                projectMapper.delete(project.getId());
-                throw new InsertException("没有添加远程实验时间信息");
-            }
-            if(remoteQo.getAppointmentCount() == null|| remoteQo.getAppointmentDuration() == null){
-                projectMapper.delete(project.getId());
-                throw new InsertException("没有添加远程实验学生限制");
-            }
-            // 定义日期时间格式化器，根据日期字符串的格式定义
-            DateTimeFormatter formatterDate = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            DateTimeFormatter formatterTime = DateTimeFormatter.ofPattern("HH:mm:ss");
-
-            LocalDate startLocalDate = LocalDate.parse(remoteQo.getStartDate(), formatterDate);
-            LocalDate endLocalDate = LocalDate.parse(remoteQo.getEndDate(), formatterDate);
-            LocalTime startLocalTime = LocalTime.parse(remoteQo.getStartTime(), formatterTime);
-            LocalTime endLocalTime = LocalTime.parse(remoteQo.getEndTime(), formatterTime);
-            RemoteProject remoteProject = new RemoteProject();
-            remoteProject.setProjectId(project.getId());
-            remoteProject.setStartDate(startLocalDate);
-            remoteProject.setEndDate(endLocalDate);
-            remoteProject.setStartTime(startLocalTime);
-            remoteProject.setEndTime(endLocalTime);
-            remoteProject.setAppointmentCount(remoteQo.getAppointmentCount());
-            remoteProject.setAppointmentDuration(remoteQo.getAppointmentDuration());
-            remoteProject.setDayLimit(remoteQo.getDayLimit());
-            List<RemoteProjectDevice> remoteDeviceList = new ArrayList<>();
-            remoteQo.getRemoteDeviceIdList().forEach(item -> {
-                RemoteProjectDevice remoteProjectDevice = new RemoteProjectDevice();
-                remoteProjectDevice.setDeviceId(item);
-                remoteProjectDevice.setProjectId(project.getId());
-                remoteDeviceList.add(remoteProjectDevice);
-            });
-            RemoteProjectQo remoteProjectQo = new RemoteProjectQo();
-            remoteProjectQo.setRemoteProjectDeviceList(remoteDeviceList);
-            remoteProjectQo.setRemoteProject(remoteProject);
-
-            remoteProjectService.addRemoteProject(remoteProjectQo);
-        }
+        this.createRemote(project, projectDto.getRemoteQo());
 
         // 有了项目之后创建项目的任务
         List<PSTArticle> willAddPSTArticle = new ArrayList<>();
@@ -275,6 +231,53 @@ public class ProjectServiceImpl implements ProjectService {
         }
         //创建项目tag
         tagService.tagTemplateToTag(projectDto.getCaseId(),project.getId(),teacherId);
+    }
+
+    public void createRemote(Project project, RemoteQo remoteQo){
+        if(Objects.equals(project.getUseRemote(), 0)){
+            return;
+        }
+        // 检查数据是否合理
+//            RemoteQo remoteQo = projectDto.getRemoteQo();
+        if(remoteQo.getRemoteDeviceIdList().isEmpty()){
+            projectMapper.delete(project.getId());
+            throw new InsertException("没有添加远程设备");
+        }
+        if(remoteQo.getEndTime() == null || remoteQo.getStartTime()== null || remoteQo.getStartDate()== null || remoteQo.getEndDate()== null){
+            projectMapper.delete(project.getId());
+            throw new InsertException("没有添加远程实验时间信息");
+        }
+        if(remoteQo.getAppointmentCount() == null|| remoteQo.getAppointmentDuration() == null){
+            projectMapper.delete(project.getId());
+            throw new InsertException("没有添加远程实验学生限制");
+        }
+        // 定义日期时间格式化器，根据日期字符串的格式定义
+        DateTimeFormatter formatterDate = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter formatterTime = DateTimeFormatter.ofPattern("HH:mm:ss");
+        LocalDate startLocalDate = LocalDate.parse(remoteQo.getStartDate(), formatterDate);
+        LocalDate endLocalDate = LocalDate.parse(remoteQo.getEndDate(), formatterDate);
+        LocalTime startLocalTime = LocalTime.parse(remoteQo.getStartTime(), formatterTime);
+        LocalTime endLocalTime = LocalTime.parse(remoteQo.getEndTime(), formatterTime);
+        RemoteProject remoteProject = new RemoteProject();
+        remoteProject.setProjectId(project.getId());
+        remoteProject.setStartDate(startLocalDate);
+        remoteProject.setEndDate(endLocalDate);
+        remoteProject.setStartTime(startLocalTime);
+        remoteProject.setEndTime(endLocalTime);
+        remoteProject.setAppointmentCount(remoteQo.getAppointmentCount());
+        remoteProject.setAppointmentDuration(remoteQo.getAppointmentDuration());
+        remoteProject.setDayLimit(remoteQo.getDayLimit());
+        List<RemoteProjectDevice> remoteDeviceList = new ArrayList<>();
+        remoteQo.getRemoteDeviceIdList().forEach(item -> {
+            RemoteProjectDevice remoteProjectDevice = new RemoteProjectDevice();
+            remoteProjectDevice.setDeviceId(item);
+            remoteProjectDevice.setProjectId(project.getId());
+            remoteDeviceList.add(remoteProjectDevice);
+        });
+        RemoteProjectQo remoteProjectQo = new RemoteProjectQo();
+        remoteProjectQo.setRemoteProjectDeviceList(remoteDeviceList);
+        remoteProjectQo.setRemoteProject(remoteProject);
+        remoteProjectService.addRemoteProject(remoteProjectQo);
     }
 
     private void createEMDTask(ProjectDto projectDto, Project project, Integer teacherId) {
