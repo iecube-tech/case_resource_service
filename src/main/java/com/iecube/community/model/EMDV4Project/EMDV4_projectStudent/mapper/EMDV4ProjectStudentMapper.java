@@ -11,5 +11,5 @@ public interface EMDV4ProjectStudentMapper {
     int batchInsert(List<EMDV4ProjectStudent> list);
     List<EMDV4ProjectStudent> getByProjectId(Integer projectId);
     void updateProjectTotalNum(Integer projectId, int totalNumOfLabs, int totalNumOfTags);
-
+    EMDV4ProjectStudent getByStudentIdAndProjectId(Integer studentId, Integer projectId);
 }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.EMDV4Project.project.mapper.EMDV4ProjectMapper">
+    <resultMap id="ProjectEntity" type="com.iecube.community.model.project.entity.Project">
+        <result column="start_time" property="startTime"></result>
+        <result column="end_time" property="endTime"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+        <result column="use_group" property="useGroup"></result>
+        <result column="group_limit" property="groupLimit"></result>
+        <result column="md_course" property="mdCourse"></result>
+        <result column="use_remote" property="useRemote"></result>
+        <result column="emd_course" property="emdCourse"></result>
+        <result column="grade_class" property="gradeClass"></result>
+    </resultMap>
+
+    <select id="getProjectByEMDV4Task" resultMap="ProjectEntity">
+        SELECT p.* FROM project p LEFT JOIN EMDV4_projectTask t ON p.id=t.project_id WHERE t.id=#{taskId}
+    </select>
+
+</mapper>

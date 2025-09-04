@@ -33,4 +33,12 @@
             #{item.useTime}, #{item.totalNumOfTags}, #{item.achievedNumOfTags}, #{item.averageErrorRate})
         </foreach>
     </insert>
+
+    <select id="getByPTIdAndPSId" resultMap="EMDV4ProjectStudentTask">
+        SELECT
+            id, project_student, project_task, task_book_id, score, status, start_time, done_time,
+               use_time, total_num_of_tags, achieved_num_of_tags, average_error_rate
+        FROM EMDV4_project_studentTask
+        WHERE project_student=#{projectStudentId} AND project_task=#{projectTaskId}
+    </select>
 </mapper>

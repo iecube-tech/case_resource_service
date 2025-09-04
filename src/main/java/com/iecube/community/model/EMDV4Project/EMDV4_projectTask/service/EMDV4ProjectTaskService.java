@@ -11,4 +11,8 @@ public interface EMDV4ProjectTaskService {
     List<EMDV4ProjectTask> projectTaskListCreate(Project project, EMDV4ProjectQo emdv4ProjectQo, List<StudentDto> studentDtoList);
 
     void updateProjectTaskStudentNum(Integer projectId, Integer studentNum);
+
+    EMDV4ProjectTask getById(Long projectTaskId);
+
+    List<EMDV4ProjectTask> getProjectTaskList(Integer projectId);
 }

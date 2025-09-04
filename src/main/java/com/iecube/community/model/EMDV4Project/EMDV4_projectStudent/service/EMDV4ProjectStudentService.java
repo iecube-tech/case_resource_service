@@ -10,4 +10,5 @@ import java.util.List;
 public interface EMDV4ProjectStudentService {
     List<EMDV4ProjectStudent> createProjectStudents(Project project, EMDV4ProjectQo emdv4ProjectQo, List<StudentDto> studentDtoList);
     void updateProjectStudentTotalNum(Integer projectId, int totalNumOfLabs, int totalNumOfTags);
+    EMDV4ProjectStudent getByStuProject(int studentId, int projectId);
 }

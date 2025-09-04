@@ -9,4 +9,5 @@ import java.util.List;
 public interface EMDV4ProjectStudentTaskMapper {
     int insert(EMDV4ProjectStudentTask record);
     int batchInsert(List<EMDV4ProjectStudentTask> records);
+    EMDV4ProjectStudentTask getByPTIdAndPSId(Long projectTaskId, Long projectStudentId);
 }

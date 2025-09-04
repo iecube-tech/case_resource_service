@@ -55,4 +55,13 @@
     <update id="updateProjectStudentNums">
         UPDATE EMDV4_projectTask SET total_num_of_student=#{studentNum} WHERE project_id=#{projectId}
     </update>
+
+    <select id="getById" resultMap="EMDV4ProjectTask">
+        SELECT
+            `id`, `project_id`, `labId`, `num`, `name`, `classhour`, `weighting`, `coefficient_of_difficulty`,
+            `start_time`, `end_time`, `status`, `done_time`, `total_num_of_student`, `done_num_of_student`,
+            `average_score`, `average_use_time`, `average_error_rate`
+        FROM EMDV4_projectTask
+        WHERE `id`=#{projectTaskId}
+    </select>
 </mapper>

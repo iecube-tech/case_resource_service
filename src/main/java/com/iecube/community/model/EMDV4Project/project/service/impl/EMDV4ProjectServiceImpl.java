@@ -99,6 +99,21 @@ public class EMDV4ProjectServiceImpl implements EMDV4ProjectService {
         return project.getId();
     }
 
+    @Override
+    public List<Project> stuProject(Integer studentId) {
+        return projectMapper.findStuEMDV4Course(studentId);
+    }
+
+    @Override
+    public Project getProject(Integer projectId) {
+        return projectService.findProjectById(projectId);
+    }
+
+
+    public Project getProjectByTask(Long taskId){
+        return null;
+    }
+
     private Project emdv4ProjectQoToProject(EMDV4ProjectQo emdv4ProjectQo, Integer teacherId) {
         Content content = contentService.findById(emdv4ProjectQo.getCaseId());
         Project project = new Project();

@@ -55,4 +55,14 @@ public class EMDV4ProjectTaskImpl implements EMDV4ProjectTaskService {
     public void updateProjectTaskStudentNum(Integer projectId, Integer studentNum) {
         emdV4ProjectTaskMapper.updateProjectStudentNums(projectId, studentNum);
     }
+
+    @Override
+    public EMDV4ProjectTask getById(Long projectTaskId) {
+        return emdV4ProjectTaskMapper.getById(projectTaskId);
+    }
+
+    @Override
+    public List<EMDV4ProjectTask> getProjectTaskList(Integer projectId) {
+        return emdV4ProjectTaskMapper.getByProjectId(projectId);
+    }
 }

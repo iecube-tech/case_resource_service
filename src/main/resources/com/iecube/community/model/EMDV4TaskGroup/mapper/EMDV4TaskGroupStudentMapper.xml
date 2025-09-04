@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.EMDV4Project.EMDV4TaskGroup.mapper.EMDV4TaskGroupStudentMapper">
+    <resultMap id="EMDV4GroupStudent" type="com.iecube.community.model.EMDV4Project.EMDV4TaskGroup.entity.EMDV4GroupStudent">
+        <result column="group_id" property="groupId"></result>
+        <result column="student_id" property="studentId"></result>
+    </resultMap>
+
+    <resultMap id="Student" type="com.iecube.community.model.student.entity.Student">
+        <result column="student_id" property="studentId"></result>
+        <result column="student_name" property="studentName"></result>
+    </resultMap>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO EMDV4_TG_groupStudent (id, group_id, student_id) VALUES (NULL, #{groupId}, #{studentId})
+    </insert>
+
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO EMDV4_TG_groupStudent
+            (`id`, group_id, student_id)
+        VALUES
+            <foreach collection="list" separator="," item="item">
+                (NULL, #{item.groupId}, #{item.studentId})
+            </foreach>
+    </insert>
+
+    <select id="getByGroupAndStudentId" resultMap="EMDV4GroupStudent">
+        SELECT `id`, group_id, student_id FROM EMDV4_TG_groupStudent WHERE group_id=#{groupId} AND studnet_id=#{studentId}
+    </select>
+
+    <delete id="deleteById" >
+        DELETE FROM EMDV4_TG_groupStudent WHERE id=#{id}
+    </delete>
+
+    <select id="getStudentsByGroupId" resultMap="Student">
+        SELECT s.id, s.email, s.student_id, s.student_name FROM Student s LEFT JOIN EMDV4_TG_groupStudent gs ON s.id=gs.student_id WHERE gs.group_id=#{groupId};
+    </select>
+
+    <select id="getStudentsByEMDV4TaskId" resultMap="Student">
+        SELECT  s.id, s.email, s.student_id, s.student_name
+        FROM EMDV4_project_studentTask pst
+            LEFT JOIN EMDV4_projectStudent ps ON pst.project_student=ps.id
+            LEFT JOIN Student s ON ps.student_id=s.id
+        WHERE pst.project_task=#{taskId}
+    </select>
+
+    <select id="getStudentJoinedTaskGroup" resultMap="Student">
+        SELECT s.id, s.email, s.student_id, s.student_name
+        FROM EMDV4_TG_groupStudent gs
+            LEFT JOIN EMDV4_TG_group g ON gs.group_id=g.id
+            LEFT JOIN Student s ON gs.student_id=s.id
+        WHERE g.emdv4_task_id=#{taskId}
+    </select>
+
+
+</mapper>

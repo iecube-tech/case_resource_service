@@ -43,4 +43,6 @@ public interface ProjectMapper {
     Integer updateProjectStudentGrade(Integer id, Double grade);
 
     List<StudentDto> getProjectStudents(Integer projectId);
+
+    List<Project> findStuEMDV4Course(Integer studentId);
 }

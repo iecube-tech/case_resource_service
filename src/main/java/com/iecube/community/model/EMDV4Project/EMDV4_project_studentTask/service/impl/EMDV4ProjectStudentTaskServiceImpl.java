@@ -68,4 +68,11 @@ public class EMDV4ProjectStudentTaskServiceImpl implements EMDV4ProjectStudentTa
         return projectStudentTask;
     }
 
+    @Override
+    public EMDV4ProjectStudentTask getByProjectTaskAndProjectStudent(Long projectTaskId, Long projectStudentId){
+        EMDV4ProjectStudentTask res = emdV4ProjectStudentTaskMapper.getByPTIdAndPSId(projectTaskId, projectStudentId);
+        EMDV4StudentTaskBook book = emdV4StudentTaskBookService.getByBookId(res.getTaskBookId());
+        res.setStudentTaskBook(book);
+        return res;
+    }
 }

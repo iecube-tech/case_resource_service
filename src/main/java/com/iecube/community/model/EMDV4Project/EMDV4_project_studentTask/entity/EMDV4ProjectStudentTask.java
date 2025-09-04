@@ -1,5 +1,6 @@
 package com.iecube.community.model.EMDV4Project.EMDV4_project_studentTask.entity;
 
+import com.iecube.community.model.EMDV4Project.EMDV4_student_task_book.entity.EMDV4StudentTaskBook;
 import lombok.Data;
 
 import java.util.Date;
@@ -18,4 +19,5 @@ public class EMDV4ProjectStudentTask {
     private Integer totalNumOfTags;
     private Integer achievedNumOfTags;
     private Double averageErrorRate;
+    private EMDV4StudentTaskBook studentTaskBook;
 }

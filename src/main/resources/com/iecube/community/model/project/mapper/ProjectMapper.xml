@@ -146,4 +146,8 @@
         WHERE project_student.project_id=#{projectId};
     </select>
 
+    <select id="findStuEMDV4Course" resultMap="ProjectEntity">
+        SELECT p.* FROM `EMDV4_projectStudent` ps LEFT JOIN project  p ON ps.project_id=p.id WHERE ps.student_id=#{studentId}
+    </select>
+
 </mapper>

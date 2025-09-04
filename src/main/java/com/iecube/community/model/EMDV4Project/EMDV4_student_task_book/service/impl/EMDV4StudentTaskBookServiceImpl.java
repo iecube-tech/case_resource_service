@@ -8,6 +8,7 @@ import com.iecube.community.model.EMDV4Project.EMDV4_student_task_book.entity.EM
 import com.iecube.community.model.EMDV4Project.EMDV4_student_task_book.mapper.EMDV4StudentTaskBookMapper;
 import com.iecube.community.model.EMDV4Project.EMDV4_student_task_book.service.EMDV4StudentTaskBookService;
 import com.iecube.community.model.auth.service.ex.InsertException;
+import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.util.uuid.UUIDGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,15 +33,19 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
         Map<Long, String> booklabIdMap = new HashMap<>(); // 原BookLabCatalog.id -> 新id
         List<EMDV4StudentTaskBook> allNodes = new ArrayList<>();
         List<EMDV4Component> allComponents = new ArrayList<>();
-        EMDV4StudentTaskBook res = this.copyFromBookLabCatalog(labProc, allNodes,allComponents, booklabIdMap);
+        EMDV4StudentTaskBook res = this.copyFromBookLabCatalog(labProc, allNodes, allComponents, booklabIdMap);
         //todo 入库 allNodes  allComponents
-        int re1 = emdV4StudentTaskBookMapper.batchInsert(allNodes);
-        if(re1!= allNodes.size()){
-            throw new InsertException("分配学生实验指导书异常");
+        if(!allNodes.isEmpty()){
+            int re1 = emdV4StudentTaskBookMapper.batchInsert(allNodes);
+            if(re1!= allNodes.size()){
+                throw new InsertException("分配学生实验指导书异常");
+            }
         }
-        int re2 = emdv4ComponentMapper.batchInsert(allComponents);
-        if(re2!= allComponents.size()){
-            throw new InsertException("分配学生实验指导书组件异常");
+        if(!allComponents.isEmpty()){
+            int re2 = emdv4ComponentMapper.batchInsert(allComponents);
+            if(re2!= allComponents.size()){
+                throw new InsertException("分配学生实验指导书组件异常");
+            }
         }
         List<Long> taskBookTagList=new ArrayList<>();
         allComponents.forEach(c->{
@@ -50,6 +55,40 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
         });
         res.setTagList(taskBookTagList);
         return res;
+    }
+
+    @Override
+    public EMDV4StudentTaskBook getByBookId(String taskBookId) {
+        EMDV4StudentTaskBook res = emdV4StudentTaskBookMapper.getById(taskBookId);
+        return this.buildTreeWithComponents(res);
+    }
+
+    @Override
+    public EMDV4StudentTaskBook updateStatus(String taskBookId, Integer status) {
+        int res = emdV4StudentTaskBookMapper.updateStatus(taskBookId, status);
+        if(res!=1){
+            throw new UpdateException("更新数据异常");
+        }
+        EMDV4StudentTaskBook block= emdV4StudentTaskBookMapper.getById(taskBookId);
+        EMDV4StudentTaskBook wholeParentBlock=this.getByBookId(block.getPId());
+        List<EMDV4StudentTaskBook> brothBlockList = wholeParentBlock.getChildren();
+        int parentBlockCurrentChild = wholeParentBlock.getCurrentChild();
+        if(parentBlockCurrentChild < (brothBlockList.size()-1)){
+            emdV4StudentTaskBookMapper.updateCurrentChild(wholeParentBlock.getId(), parentBlockCurrentChild+1);
+        }
+        return this.getByBookId(taskBookId);
+    }
+
+    public List<EMDV4StudentTaskBook> getChildrenByPid(String pId){
+        if (pId == null || pId.isEmpty()) {
+            throw new IllegalArgumentException("父节点ID不能为空");
+        }
+
+        List<EMDV4StudentTaskBook> children = emdV4StudentTaskBookMapper.getByPId(pId);
+        children.forEach(child->{
+            child.setChildren(null);
+        });
+        return children;
     }
 
     private EMDV4StudentTaskBook copyFromBookLabCatalog(BookLabCatalog labProc,
@@ -84,7 +123,7 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
                 this.copyComponentFields(component, labComponent);
                 component.setId(UUIDGenerator.generateUUID());
                 if(booklabIdMap.get(labProc.getId())!=null){
-                    component.setBlockId(booklabIdMap.get(labProc.getPId()));
+                    component.setBlockId(booklabIdMap.get(labProc.getId()));
                 }else {
                     component.setBlockId(null);
                 }
@@ -112,6 +151,8 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
         taskBook.setLevel(labProc.getLevel());
         taskBook.setVersion(labProc.getVersion());
         taskBook.setName(labProc.getName());
+        taskBook.setType(labProc.getType());
+        taskBook.setDescription(labProc.getDescription());
         taskBook.setOrder(labProc.getOrder());
         taskBook.setSectionPrefix(labProc.getSectionPrefix());
         taskBook.setDeviceType(labProc.getDeviceType());
@@ -139,5 +180,23 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
         target.setPayload(source.getPayload());
         target.setStatus(0);
         target.setOrder(source.getOrder());
+    }
+
+    private EMDV4StudentTaskBook buildTreeWithComponents(EMDV4StudentTaskBook node){
+        if (node == null) {
+            return null;
+        }
+        List<EMDV4Component> componentList = emdv4ComponentMapper.getByBlockId(node.getId());
+        if(componentList!=null){
+            node.setComponents(componentList.isEmpty()?null:componentList);
+        }else {
+            node.setComponents(null);
+        }
+        List<EMDV4StudentTaskBook> children = this.getChildrenByPid(node.getId());
+        // 递归处理子节点
+        List<EMDV4StudentTaskBook> processedChildren = children.stream().map(this::buildTreeWithComponents).toList();
+        node.setChildren(processedChildren);
+        node.setHasChildren(!processedChildren.isEmpty());
+        return node;
     }
 }

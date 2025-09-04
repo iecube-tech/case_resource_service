@@ -28,4 +28,34 @@
             #{item.scoreProportion}, #{item.style}, #{item.config}, #{item.payload}, #{item.status}, #{item.order})
         </foreach>
     </insert>
+
+    <select id="getByBlockId" resultMap="EMDV4Component">
+        SELECT
+            `id`, `block_id`, `tag`, `stage`, `name`, `icon`, `type`, `need_calculate`, `total_score`, `score`,
+            `score_proportion`, `style`, `config`, `payload`, `status`, `order`
+        FROM EMDV4_component
+        WHERE `block_id`=#{blockId}
+    </select>
+
+    <select id="getById" resultMap="EMDV4Component">
+        SELECT
+            `id`, `block_id`, `tag`, `stage`, `name`, `icon`, `type`, `need_calculate`, `total_score`, `score`,
+            `score_proportion`, `style`, `config`, `payload`, `status`, `order`
+        FROM EMDV4_component
+        WHERE `id`=#{id}
+    </select>
+
+    <update id="updateStatus">
+        UPDATE EMDV4_component SET `status`=#{status} WHERE id=#{id}
+    </update>
+
+    <update id="updatePayload">
+        UPDATE EMDV4_component SET `payload`=#{payload} WHERE id=#{id}
+    </update>
+
+    <update id="updateScore">
+        UPDATE EMDV4_component SET `score`=#{score},
+                                   `score_proportion`=#{scoreProportion}
+                               WHERE id=#{id}
+    </update>
 </mapper>

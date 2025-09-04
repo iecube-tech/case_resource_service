@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.EMDV4Project.EMDV4TaskGroup.mapper.EMDV4TaskGroupMapper">
+    <resultMap id="EMDV4TaskGroup" type="com.iecube.community.model.EMDV4Project.EMDV4TaskGroup.entity.EMDV4TaskGroup">
+        <result column="emdv4_task_id" property="emdv4TaskId"></result>
+        <result column="limit_num" property="limitNum"></result>
+    </resultMap>
+
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO EMDV4_TG_group
+            (`id`,`name`,`emdv4_task_id`,`limit_num`,`status`,`code`,`creator`)
+        VALUES
+            (NULL, #{name}, #{emdv4TaskId}, #{limitNum}, #{status}, #{code}, #{creator} )
+    </insert>
+
+    <select id="getGroupByTaskIdAndStuId" resultMap="EMDV4TaskGroup">
+        SELECT g.* FROM EMDV4_TG_groupStudent gs LEFT JOIN EMDV4_TG_group g ON gs.group_id=g.id WHERE g.emdv4_task_id=#{taskId} AND gs.student_id=#{studentId};
+    </select>
+
+    <select id="getById" resultMap="EMDV4TaskGroup">
+        SELECT `id`,`name`,`emdv4_task_id`,`limit_num`,`status`,`code`,`creator` FROM EMDV4_TG_group WHERE id=#{id}
+    </select>
+
+    <update id="updateCode">
+        UPDATE EMDV4_TG_group SET `code`=#{code} WHERE id=#{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE EMDV4_TG_group SET `status`=#{status} WHERE id=#{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM EMDV4_TG_groupStudent WHERE id=#{id}
+    </delete>
+
+    <select id="getByTaskAndCode" resultMap="EMDV4TaskGroup">
+        SELECT `id`,`name`,`emdv4_task_id`,`limit_num`,`status`,`code`,`creator` FROM EMDV4_TG_group WHERE `emdv4_task_id`=#{taskId} AND `code`=#{code}
+    </select>
+
+</mapper>

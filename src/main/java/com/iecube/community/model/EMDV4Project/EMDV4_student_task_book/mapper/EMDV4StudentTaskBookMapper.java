@@ -9,4 +9,8 @@ import java.util.List;
 public interface EMDV4StudentTaskBookMapper {
     int insert(EMDV4StudentTaskBook record);
     int batchInsert(List<EMDV4StudentTaskBook> records);
+    EMDV4StudentTaskBook getById(String id);
+    List<EMDV4StudentTaskBook> getByPId(String pid);
+    int updateStatus(String id, Integer status);
+    int updateCurrentChild(String id, Integer currentChild);
 }

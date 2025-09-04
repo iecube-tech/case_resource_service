@@ -54,4 +54,10 @@ public class EMDV4ProjectStudentServiceImpl implements EMDV4ProjectStudentServic
     public void updateProjectStudentTotalNum(Integer projectId, int totalNumOfLabs, int totalNumOfTags){
         emdV4ProjectStudentMapper.updateProjectTotalNum(projectId, totalNumOfLabs, totalNumOfTags);
     }
+
+    @Override
+    public EMDV4ProjectStudent getByStuProject(int studentId, int projectId) {
+
+        return emdV4ProjectStudentMapper.getByStudentIdAndProjectId(studentId, projectId);
+    }
 }

@@ -10,5 +10,6 @@ public interface EMDV4ProjectTaskMapper {
     int insert(EMDV4ProjectTask record);
     int batchInsert(List<EMDV4ProjectTask> list);
     List<EMDV4ProjectTask> getByProjectId(Integer projectId);
+    EMDV4ProjectTask getById(Long projectTaskId);
     void updateProjectStudentNums(Integer projectId, Integer studentNum);
 }

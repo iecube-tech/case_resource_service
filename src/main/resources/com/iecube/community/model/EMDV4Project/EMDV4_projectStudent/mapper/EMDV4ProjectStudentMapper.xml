@@ -60,4 +60,13 @@
         WHERE project_id=#{projectId}
     </update>
 
+    <select id="getByStudentIdAndProjectId" resultMap="EMDV4ProjectStudent">
+        SELECT
+            `id`, `grade_class`, `project_id`, `student_id`, `score`, `total_num_of_labs`, `done_num_of_labs`,
+            `total_num_of_tags`, `achieved_num_of_tags`, `start_time`, `status`, `done_time`, `creator`, `create_time`,
+            `last_modified_user`, `last_modified_time`
+        FROM EMDV4_projectStudent
+        WHERE `project_id`=#{projectId} AND student_id=#{studentId}
+    </select>
+
 </mapper>

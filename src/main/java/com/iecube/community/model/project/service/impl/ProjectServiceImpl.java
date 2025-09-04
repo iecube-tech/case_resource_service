@@ -492,6 +492,8 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public List<Project> findCourseByStudentId(Integer id) {
         List<Project> courseList = projectMapper.findCourseByStudentId(id);
+        List<Project> emdv4CourseList = projectMapper.findStuEMDV4Course(id);
+        courseList.addAll(emdv4CourseList);
         return courseList;
     }
 

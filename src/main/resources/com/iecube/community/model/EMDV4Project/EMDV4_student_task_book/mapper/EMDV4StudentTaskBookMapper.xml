@@ -9,25 +9,56 @@
         <result column="device_type" property="deviceType"></result>
         <result column="step_by_step" property="stepByStep"></result>
         <result column="current_child" property="currentChild"></result>
+        <result column="has_children" property="hasChildren"></result>
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO EMDV4_student_task_book
-        (`id`, `p_id`, `source_id`, `stage`, `level`, `version`, `name`, `order`, `section_prefix`, `device_type`,
+        (`id`, `p_id`, `source_id`, `stage`, `level`, `version`, `name`, `type`, `description`, `order`, `section_prefix`, `device_type`,
          `icon`, `step_by_step`, `style`, `config`, `payload`, `status`, `current_child`)
         VALUES
-            (#{id}, #{pId}, #{sourceId}, #{stage}, #{level}, #{version}, #{name}, #{order}, #{sectionPrefix}, #{deviceType},
+            (#{id}, #{pId}, #{sourceId}, #{stage}, #{level}, #{version}, #{name}, #{type}, #{description}, #{order}, #{sectionPrefix}, #{deviceType},
              #{icon}, #{stepByStep}, #{style}, #{config}, #{payload}, #{status}, #{currentChild})
     </insert>
 
     <insert id="batchInsert">
         INSERT INTO EMDV4_student_task_book
-        (`id`, `p_id`, `source_id`, `stage`, `level`, `version`, `name`, `order`, `section_prefix`, `device_type`,
+        (`id`, `p_id`, `source_id`, `stage`, `level`, `version`, `name`,`type`, `description`, `order`, `section_prefix`, `device_type`,
         `icon`, `step_by_step`, `style`, `config`, `payload`, `status`, `current_child`)
         VALUES
         <foreach collection="list" separator="," item="item">
-            (#{item.id}, #{item.pId}, #{item.sourceId}, #{item.stage}, #{item.level}, #{item.version}, #{item.name}, #{item.order}, #{item.sectionPrefix}, #{item.deviceType},
+            (#{item.id}, #{item.pId}, #{item.sourceId}, #{item.stage}, #{item.level}, #{item.version}, #{item.name}, #{item.type}, #{item.description}, #{item.order}, #{item.sectionPrefix}, #{item.deviceType},
             #{item.icon}, #{item.stepByStep}, #{item.style}, #{item.config}, #{item.payload}, #{item.status}, #{item.currentChild})
         </foreach>
     </insert>
+
+    <select id="getById" resultMap="EMDV4StudentTaskBook">
+        SELECT
+            t.*,
+            (SELECT COUNT(1) FROM EMDV4_student_task_book WHERE p_id = t.id) > 0 AS has_children
+        FROM
+            EMDV4_student_task_book t
+        WHERE
+            t.id=#{id}
+    </select>
+
+    <select id="getByPId" resultMap="EMDV4StudentTaskBook">
+        SELECT
+            t.*,
+            (SELECT COUNT(1) FROM EMDV4_student_task_book WHERE p_id = t.id) > 0 AS has_children
+        FROM
+            EMDV4_student_task_book t
+        WHERE
+            t.p_id = #{parentId}
+        ORDER BY
+            t.`order` ASC
+    </select>
+
+    <update id="updateStatus">
+        UPDATE EMDV4_student_task_book SET status=#{status} WHERE id=#{id}
+    </update>
+
+    <update id="updateCurrentChild">
+        UPDATE EMDV4_student_task_book SET current_child=#{currentChild} WHERE id=#{id}
+    </update>
 </mapper>
