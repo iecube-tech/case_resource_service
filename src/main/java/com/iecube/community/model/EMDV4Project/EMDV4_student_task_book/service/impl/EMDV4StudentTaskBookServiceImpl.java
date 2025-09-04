@@ -79,6 +79,20 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
         return this.getByBookId(taskBookId);
     }
 
+    @Override
+    public EMDV4StudentTaskBook updateScore(String taskBookId, Double score) {
+        EMDV4StudentTaskBook taskBook = emdV4StudentTaskBookMapper.getById(taskBookId);
+        try{
+            int res = emdV4StudentTaskBookMapper.updateScore(taskBookId, score, score>taskBook.getPassScore());
+            if(res!=1){
+                throw new UpdateException();
+            }
+        }catch(Exception e){
+            throw new UpdateException("更新数据异常，"+e.getCause());
+        }
+        return this.getByBookId(taskBookId);
+    }
+
     public List<EMDV4StudentTaskBook> getChildrenByPid(String pId){
         if (pId == null || pId.isEmpty()) {
             throw new IllegalArgumentException("父节点ID不能为空");
@@ -161,6 +175,10 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
         taskBook.setStyle(labProc.getStyle());
         taskBook.setConfig(labProc.getConfig());
         taskBook.setPayload(labProc.getPayload());
+        taskBook.setNeedPassScore(labProc.getNeedPassScore());
+        taskBook.setPassScore(labProc.getPassScore());
+        taskBook.setScore(0.0);
+        taskBook.setPassStatus(labProc.getPassScore()==null||labProc.getPassScore()<=0);
         taskBook.setStatus(0);
         taskBook.setCurrentChild(0);
     }

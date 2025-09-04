@@ -10,25 +10,32 @@
         <result column="step_by_step" property="stepByStep"></result>
         <result column="current_child" property="currentChild"></result>
         <result column="has_children" property="hasChildren"></result>
+        <result column="need_pass_score" property="needPassScore"></result>
+        <result column="pass_score" property="passScore"></result>
+        <result column="pass_status" property="passStatus"></result>
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO EMDV4_student_task_book
         (`id`, `p_id`, `source_id`, `stage`, `level`, `version`, `name`, `type`, `description`, `order`, `section_prefix`, `device_type`,
-         `icon`, `step_by_step`, `style`, `config`, `payload`, `status`, `current_child`)
+         `icon`, `step_by_step`, `style`, `config`, `payload`, `score`, `need_pass_score`, `pass_score`, `pass_status`, `status`, `current_child`)
         VALUES
             (#{id}, #{pId}, #{sourceId}, #{stage}, #{level}, #{version}, #{name}, #{type}, #{description}, #{order}, #{sectionPrefix}, #{deviceType},
-             #{icon}, #{stepByStep}, #{style}, #{config}, #{payload}, #{status}, #{currentChild})
+             #{icon}, #{stepByStep}, #{style}, #{config}, #{payload}, #{needPassScore}, #{score}, #{passScore}, #{passStatus}, #{status}, #{currentChild})
     </insert>
 
     <insert id="batchInsert">
         INSERT INTO EMDV4_student_task_book
         (`id`, `p_id`, `source_id`, `stage`, `level`, `version`, `name`,`type`, `description`, `order`, `section_prefix`, `device_type`,
-        `icon`, `step_by_step`, `style`, `config`, `payload`, `status`, `current_child`)
+        `icon`, `step_by_step`, `style`, `config`, `payload`,
+         `need_pass_score`, `score`, `pass_score`, `pass_status`,
+         `status`, `current_child`)
         VALUES
         <foreach collection="list" separator="," item="item">
             (#{item.id}, #{item.pId}, #{item.sourceId}, #{item.stage}, #{item.level}, #{item.version}, #{item.name}, #{item.type}, #{item.description}, #{item.order}, #{item.sectionPrefix}, #{item.deviceType},
-            #{item.icon}, #{item.stepByStep}, #{item.style}, #{item.config}, #{item.payload}, #{item.status}, #{item.currentChild})
+             #{item.icon}, #{item.stepByStep}, #{item.style}, #{item.config}, #{item.payload},
+             #{item.needPassScore}, #{item.score}, #{item.passScore}, #{item.passStatus},
+             #{item.status}, #{item.currentChild})
         </foreach>
     </insert>
 
@@ -60,5 +67,11 @@
 
     <update id="updateCurrentChild">
         UPDATE EMDV4_student_task_book SET current_child=#{currentChild} WHERE id=#{id}
+    </update>
+
+    <update id="updateScore">
+        UPDATE EMDV4_student_task_book SET score=#{score},
+                                           pass_status=#{passStatus}
+                                       WHERE id=#{id}
     </update>
 </mapper>

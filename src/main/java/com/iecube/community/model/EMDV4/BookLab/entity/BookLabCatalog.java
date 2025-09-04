@@ -26,6 +26,8 @@ public class BookLabCatalog {
     private String style;
     private String config;
     private String payload;
+    private Boolean needPassScore;
+    private Double passScore;
     private Boolean hasChildren;
     private Instant createdAt;
     private Instant updatedAt;

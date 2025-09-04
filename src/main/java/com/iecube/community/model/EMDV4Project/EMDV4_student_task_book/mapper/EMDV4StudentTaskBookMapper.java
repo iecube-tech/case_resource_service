@@ -12,5 +12,6 @@ public interface EMDV4StudentTaskBookMapper {
     EMDV4StudentTaskBook getById(String id);
     List<EMDV4StudentTaskBook> getByPId(String pid);
     int updateStatus(String id, Integer status);
+    int updateScore(String id, Double score, Boolean passStatus);
     int updateCurrentChild(String id, Integer currentChild);
 }

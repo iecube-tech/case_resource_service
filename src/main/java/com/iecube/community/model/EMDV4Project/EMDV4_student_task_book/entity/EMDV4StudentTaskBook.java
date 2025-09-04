@@ -24,6 +24,10 @@ public class EMDV4StudentTaskBook {
     private String style;
     private String config;
     private String payload;
+    private Boolean needPassScore;
+    private Double score;
+    private Double passScore;
+    private Boolean passStatus;
     private Integer status;
     private Boolean hasChildren;
     private Integer currentChild;

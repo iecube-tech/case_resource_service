@@ -21,4 +21,9 @@ public class EMDV4StudentTaskBookController extends BaseController {
     public JsonResult<EMDV4StudentTaskBook> upStatus(@PathVariable String id, Integer status) {
         return new JsonResult<>(OK, emdV4StudentTaskBookService.updateStatus(id, status));
     }
+
+    @PostMapping("/up/score/{id}")
+    public JsonResult<EMDV4StudentTaskBook> upScore(@PathVariable String id, Double score) {
+        return new JsonResult<>(OK, emdV4StudentTaskBookService.updateScore(id, score));
+    }
 }

@@ -13,13 +13,15 @@
         <result property="createdAt" column="created_at"></result>
         <result property="updatedAt" column="updated_at"></result>
         <result property="hasChildren" column="has_children"></result>
+        <result property="needPassScore" column="need_pass_score"></result>
+        <result property="passScore" column="pass_score"></result>
     </resultMap>
 
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
         INSERT INTO BL_book_lab (`id`, `p_id`, `level`, `name`, `version`, `order`,`type`, `description`, `stage`, `section_prefix`, `device_type`, `icon` ,
-            `step_by_step`, `style`, `config`, `payload`, `created_at`, `updated_at`)
+            `step_by_step`, `style`, `config`, `payload`, `need_pass_score`, `pass_score`, `created_at`, `updated_at`)
         VALUES (NULL, #{pId}, NUll, #{name}, #{version}, #{order}, #{type},#{description}, #{stage}, #{sectionPrefix}, #{deviceType}, #{icon},
-                #{stepByStep}, #{style}, #{config}, #{payload}, NULL,NULL)
+                #{stepByStep}, #{style}, #{config}, #{payload},#{needPassScore}, #{passScore}, NOW() ,NOW())
     </insert>
 
 
@@ -35,6 +37,8 @@
                                style=#{style},
                                config=#{config},
                                payload=#{payload},
+                               need_pass_score=#{needPassScore},
+                               pass_score=#{passScore},
                                updated_at=now()
                            WHERE id=#{id}
     </update>

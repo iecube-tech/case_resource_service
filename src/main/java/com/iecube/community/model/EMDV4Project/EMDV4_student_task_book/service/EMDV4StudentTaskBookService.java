@@ -15,4 +15,6 @@ public interface EMDV4StudentTaskBookService {
     EMDV4StudentTaskBook getByBookId(String taskBookId);
 
     EMDV4StudentTaskBook updateStatus(String taskBookId, Integer status);
+
+    EMDV4StudentTaskBook updateScore(String taskBookId, Double score);
 }
