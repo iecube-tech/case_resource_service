@@ -44,4 +44,9 @@ public class BookLabController extends BaseController {
         return new JsonResult<>(OK, bookLabService.deleteById(id));
     }
 
+    @GetMapping("/whole")
+    public JsonResult<BookLabCatalog> wholeTree(Long labId) {
+        return new JsonResult<>(OK, bookLabService.wholeBookLabCatalogById(labId));
+    }
+
 }

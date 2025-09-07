@@ -21,7 +21,7 @@
         INSERT INTO BL_book_lab (`id`, `p_id`, `level`, `name`, `version`, `order`,`type`, `description`, `stage`, `section_prefix`, `device_type`, `icon` ,
             `step_by_step`, `style`, `config`, `payload`, `need_pass_score`, `pass_score`, `created_at`, `updated_at`)
         VALUES (NULL, #{pId}, NUll, #{name}, #{version}, #{order}, #{type},#{description}, #{stage}, #{sectionPrefix}, #{deviceType}, #{icon},
-                #{stepByStep}, #{style}, #{config}, #{payload},#{needPassScore}, #{passScore}, NOW() ,NOW())
+                #{stepByStep}, #{style}, #{config}, #{payload}, #{needPassScore}, #{passScore}, NOW() ,NOW())
     </insert>
 
 
