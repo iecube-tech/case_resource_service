@@ -269,7 +269,7 @@ public class AiApiServiceImpl implements AiApiService {
 
     // json内容
     @Override
-    public JsonNode getJsonRes(String artefactId, Integer studentId, Integer taskId, String type) {
+    public JsonNode getJsonRes(String artefactId, Integer studentId, Long taskId, String type) {
         String uri = UriComponentsBuilder.fromHttpUrl(baseUrl + "/interact/artefact/"+artefactId)
                     .queryParam("include_content", true)
                     .toUriString();

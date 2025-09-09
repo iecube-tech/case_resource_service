@@ -1,9 +1,9 @@
 package com.iecube.community.model.AI.service;
 
 public interface AiService {
-    String getAssistantChatId(Integer studentId, Integer taskId, String type);
+    String getAssistantChatId(Integer studentId, Long taskId, String type, Integer version);
 
-    String getStudentTaskChatId(Integer studentId, Integer taskId);
+    String getStudentTaskChatId(Integer studentId, Long taskId, Integer version);
 
     Boolean chatIdExist(String chatId);
 }

@@ -16,9 +16,9 @@ public class Ai2830Controller extends BaseController {
     private Ai2830Service ai2830Service;
 
     @GetMapping("/chat")
-    public JsonResult<String> getChatId(Integer taskId){
+    public JsonResult<String> getChatId(Long taskId, Integer version){
         Integer studentId = currentUserId();
-        String chatId = ai2830Service.getChatId(studentId,taskId,"chat");
+        String chatId = ai2830Service.getChatId(studentId,taskId,"chat", version);
         return new JsonResult<>(OK, chatId);
     }
 }

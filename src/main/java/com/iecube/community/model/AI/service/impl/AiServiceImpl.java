@@ -18,8 +18,8 @@ public class AiServiceImpl implements AiService {
     private AiApiService aiApiService;
 
     @Override
-    public String getAssistantChatId(Integer studentId, Integer taskId, String type) {
-        AiAssistant aiAssistant = aiAssistantMapper.getChatIdByStuTask(studentId, taskId, type);
+    public String getAssistantChatId(Integer studentId, Long taskId, String type, Integer version) {
+        AiAssistant aiAssistant = aiAssistantMapper.getChatIdByStuTask(studentId, taskId, type, version);
         if(aiAssistant != null) {
 //            aiApiService.webSocketConnect(aiAssistant.getChatId());
             return aiAssistant.getChatId();
@@ -31,6 +31,7 @@ public class AiServiceImpl implements AiService {
             assistant.setStudentId(studentId);
             assistant.setTaskId(taskId);
             assistant.setType(type);
+            assistant.setVersion(version);
             int res = aiAssistantMapper.insert(assistant);
             if(res!=1){
                 throw new InsertException("新增数据异常");
@@ -41,8 +42,8 @@ public class AiServiceImpl implements AiService {
     }
 
     @Override
-    public String getStudentTaskChatId(Integer studentId, Integer taskId) {
-        AiAssistant aiAssistant = aiAssistantMapper.getChatIdByStuTask(studentId, taskId, "chat");
+    public String getStudentTaskChatId(Integer studentId, Long taskId, Integer version) {
+        AiAssistant aiAssistant = aiAssistantMapper.getChatIdByStuTask(studentId, taskId, "chat", version);
         if(aiAssistant != null) {
             return aiAssistant.getChatId();
         }

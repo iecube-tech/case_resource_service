@@ -26,7 +26,7 @@
     </insert>
 
     <select id="getByGroupAndStudentId" resultMap="EMDV4GroupStudent">
-        SELECT `id`, group_id, student_id FROM EMDV4_TG_groupStudent WHERE group_id=#{groupId} AND studnet_id=#{studentId}
+        SELECT `id`, group_id, student_id FROM EMDV4_TG_groupStudent WHERE group_id=#{groupId} AND student_id=#{studentId}
     </select>
 
     <delete id="deleteById" >

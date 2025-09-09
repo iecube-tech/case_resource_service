@@ -20,8 +20,8 @@ public class AI2830ServiceImpl implements Ai2830Service {
     private Ai2830ApiService ai2830ApiService;
 
     @Override
-    public String getChatId(Integer studentId, Integer taskId, String type) {
-        AiAssistant aiAssistant = aiAssistantMapper.getChatIdByStuTask(studentId, taskId, type);
+    public String getChatId(Integer studentId, Long taskId, String type, Integer version) {
+        AiAssistant aiAssistant = aiAssistantMapper.getChatIdByStuTask(studentId, taskId, type, version);
         if(aiAssistant != null) {
             return aiAssistant.getChatId();
         }

@@ -56,6 +56,15 @@ public class EMDV4TaskGroupServiceImpl implements EMDV4TaskGroupService {
 
     @Override
     public EMDV4TaskGroup createTaskGroup(TaskGroupQo taskGroupQo, Integer studentId) {
+        // 判断学生是不是在小组中
+        List<Student> taskStudents = emdV4TaskGroupStudentMapper.getStudentJoinedTaskGroup(taskGroupQo.getTaskId());
+        if(taskStudents!=null && !taskStudents.isEmpty()){
+            taskStudents.forEach(student -> {
+                if(student.getId().equals(studentId)){
+                    throw new InsertException("学生该实验已加入小组");
+                }
+            });
+        }
         Project project = emdV4ProjectMapper.getProjectByEMDV4Task(taskGroupQo.getTaskId());
         if(project==null || project.getId()==null){
             throw new InsertException("未找到相关数据");
@@ -134,7 +143,8 @@ public class EMDV4TaskGroupServiceImpl implements EMDV4TaskGroupService {
         if(res!=1){
             throw new DeleteException("删除数据异常");
         }
-        return null;
+        Long taskId = taskGroup.getEmdv4TaskId();
+        return this.getTaskStudentGroup(taskId, studentId);
     }
 
     /**
@@ -146,6 +156,7 @@ public class EMDV4TaskGroupServiceImpl implements EMDV4TaskGroupService {
     @Override
     public EMDV4TaskGroup addStudentsToTaskGroup(TaskGroupQo taskGroupQo, Integer studentId) {
         EMDV4TaskGroup taskGroup = emdV4TaskGroupMapper.getById(taskGroupQo.getId());
+        List<Student> taskGroupStudents = emdV4TaskGroupStudentMapper.getStudentsByGroupId(taskGroupQo.getId());
         if(taskGroup == null ){
             throw new InsertException("未找到相关数据");
         }
@@ -154,6 +165,16 @@ public class EMDV4TaskGroupServiceImpl implements EMDV4TaskGroupService {
         }
         if(taskGroup.getStatus().equals(1)){
             throw new InsertException("小组已开始实验操作，不支持小组成员变更");
+        }
+        if(taskGroupStudents==null){
+            if(taskGroupQo.getStudents().size()>taskGroup.getLimitNum()){
+                throw new InsertException("小组人数超出限制人数,本实验小组限制人数："+taskGroup.getLimitNum());
+            }
+        }
+        if(taskGroupStudents!=null){
+            if((taskGroupStudents.size()+taskGroupQo.getStudents().size())>taskGroup.getLimitNum()){
+                throw new InsertException("小组人数超出限制人数,本实验小组限制人数："+taskGroup.getLimitNum());
+            }
         }
         List<Student> taskStudents = emdV4TaskGroupStudentMapper.getStudentsByEMDV4TaskId(taskGroup.getEmdv4TaskId());
         List<Integer> taskStudentIds = taskStudents.stream().map(Student::getId).toList();
@@ -197,20 +218,22 @@ public class EMDV4TaskGroupServiceImpl implements EMDV4TaskGroupService {
         if(res!=groupStudentList.size()){
             throw new InsertException("新增数据异常");
         }
-        return this.getTaskStudentGroup(taskGroupQo.getTaskId(), studentId);
+        return this.getTaskStudentGroup(taskGroup.getEmdv4TaskId(), studentId);
     }
 
     @Override
     public List<Student> hasNotJoinedGroupStudent(Long taskId){
         List<Student> taskStudents = emdV4TaskGroupStudentMapper.getStudentsByEMDV4TaskId(taskId);
         List<Student> studentsOfJoinedGroup = emdV4TaskGroupStudentMapper.getStudentJoinedTaskGroup(taskId);
-        List<Integer> joinedGroupId = studentsOfJoinedGroup.stream().map(Student::getId).toList();
-        taskStudents.forEach(student -> {
-            if(joinedGroupId.contains(student.getId())){
-                taskStudents.remove(student);
+        List<Student> result = new ArrayList<>();
+
+        for (Student student : taskStudents) {
+            if(!studentsOfJoinedGroup.contains(student)){
+                result.add(student);
             }
-        });
-        return taskStudents;
+        }
+
+        return result;
     }
 
     @Override

@@ -6,6 +6,6 @@ import lombok.Data;
 public class AiCheckResult {
     private Long id;
     private Integer studentId;
-    private Integer taskId;
+    private Long taskId;
     private String result;
 }

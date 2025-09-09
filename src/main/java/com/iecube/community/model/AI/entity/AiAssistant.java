@@ -6,7 +6,8 @@ import lombok.Data;
 public class AiAssistant {
     private Long id;
     private Integer studentId;
-    private Integer taskId;
+    private Long taskId;
     private String chatId;
     private String type;
+    private Integer version;
 }
