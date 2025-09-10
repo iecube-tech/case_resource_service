@@ -8,6 +8,7 @@ import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.content.service.ex.ContentNotFoundException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
+import com.iecube.community.model.project.service.ex.ProjectNotFoundException;
 import com.iecube.community.util.JsonResult;
 
 import com.iecube.community.util.ex.SystemException;
@@ -54,8 +55,10 @@ public class BaseController {
         else if (e instanceof ContentNotFoundException) {
             result.setState(8002);
             result.setMessage(e.getMessage());
-        }
-        else if (e instanceof UpdateException) {
+        } else if (e instanceof ProjectNotFoundException) {
+            result.setState(8002);
+            result.setMessage(e.getMessage());
+        } else if (e instanceof UpdateException) {
             result.setState(8003);
             result.setMessage(e.getMessage());
         }

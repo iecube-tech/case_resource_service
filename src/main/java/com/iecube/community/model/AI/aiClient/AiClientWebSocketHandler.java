@@ -1,5 +1,9 @@
 package com.iecube.community.model.AI.aiClient;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.iecube.community.model.aiMessage.entity.AiMessage;
+import com.iecube.community.model.aiMessage.mapper.AiMessageMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -7,6 +11,7 @@ import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -20,6 +25,8 @@ public class AiClientWebSocketHandler extends TextWebSocketHandler {
     ConcurrentHashMap<String, WebSocketSession> W6ChatIdToSession;
     ConcurrentHashMap<String, String> W6SessionIdToChatId;
     ConcurrentHashMap<String, WebSocketSession> FrontChatIdToSession;
+    ObjectMapper objectMapper;
+    AiMessageMapper aiMessageMapper;
 
     private AtomicLong lastSentTime;
 
@@ -27,11 +34,15 @@ public class AiClientWebSocketHandler extends TextWebSocketHandler {
     public AiClientWebSocketHandler(
                                     ConcurrentHashMap<String, WebSocketSession> W6ChatIdToSession,
                                     ConcurrentHashMap<String, String> W6SessionIdToChatId,
-                                    ConcurrentHashMap<String, WebSocketSession> FrontChatIdToSession){
+                                    ConcurrentHashMap<String, WebSocketSession> FrontChatIdToSession,
+                                    ObjectMapper objectMapper,
+                                    AiMessageMapper aiMessageMapper) {
         super();
         this.W6ChatIdToSession = W6ChatIdToSession;
         this.W6SessionIdToChatId = W6SessionIdToChatId;
         this.FrontChatIdToSession = FrontChatIdToSession;
+        this.objectMapper = objectMapper;
+        this.aiMessageMapper = aiMessageMapper;
     }
 
 
@@ -88,6 +99,18 @@ public class AiClientWebSocketHandler extends TextWebSocketHandler {
             if(toSendSession != null) {
                 toSendSession.sendMessage(message);
 //                log.info("转发W6MSG:{}",chatId);
+                //存储消息
+//                System.out.println(message.getPayload());
+                JsonNode msgNode = objectMapper.readTree(message.getPayload());
+                if(msgNode.get("type").asText().equals("message-ack")){
+                    AiMessage aiMessage = new AiMessage();
+                    aiMessage.setId(msgNode.get("payload").get("id").asText());
+                    aiMessage.setChatId(msgNode.get("payload").get("agent_request").get("chat_id").asText());
+                    aiMessage.setRole(msgNode.get("payload").get("role").asText());
+                    aiMessage.setContent(msgNode.get("payload").get("content").asText());
+                    aiMessage.setCreateTime(Instant.now());
+                    aiMessageMapper.insert(aiMessage);
+                }
             }else {
                 log.warn("无法转发W6MSG:{}",chatId);
             }
