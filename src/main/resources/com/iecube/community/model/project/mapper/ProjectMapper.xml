@@ -57,7 +57,8 @@
     <select id="findById" resultMap="ProjectEntity">
         SELECT project.id,project.case_id, project.device_id, project.project_name, project.target,project.introduction,project.introduce,
                project.cover,project.start_time,project.end_time, project.use_group, project.group_limit,  project.md_course,
-               project.use_remote,solution_or_case.emd_course, project.version,project.semester,project.grade_class
+               project.use_remote,solution_or_case.emd_course, project.version,project.semester,project.grade_class, project.create_time,
+               project.creator,project.last_modified_time,project.last_modified_user
         FROM project INNER JOIN solution_or_case ON project.case_id=solution_or_case.id
         WHERE project.id=#{id}
     </select>
@@ -147,7 +148,7 @@
     </select>
 
     <select id="findStuEMDV4Course" resultMap="ProjectEntity">
-        SELECT p.* FROM `EMDV4_projectStudent` ps LEFT JOIN project  p ON ps.project_id=p.id WHERE ps.student_id=#{studentId}
+        SELECT p.* FROM `EMDV4_projectStudent` ps LEFT JOIN project  p ON ps.project_id=p.id WHERE ps.student_id=#{studentId} AND p.is_delete=0
     </select>
 
 </mapper>

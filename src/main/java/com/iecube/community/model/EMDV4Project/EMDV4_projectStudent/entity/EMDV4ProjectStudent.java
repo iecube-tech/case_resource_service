@@ -1,8 +1,10 @@
 package com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.entity;
 
+import com.iecube.community.model.EMDV4Project.EMDV4_project_studentTask.entity.EMDV4ProjectStudentTask;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class EMDV4ProjectStudent {
@@ -22,4 +24,5 @@ public class EMDV4ProjectStudent {
     private Date createTime;
     private Integer lastModifiedUser;
     private Date lastModifiedTime;
+    private List<EMDV4ProjectStudentTask> studentTaskList;
 }

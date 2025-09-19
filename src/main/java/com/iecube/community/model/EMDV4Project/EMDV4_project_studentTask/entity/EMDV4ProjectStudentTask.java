@@ -19,5 +19,9 @@ public class EMDV4ProjectStudentTask {
     private Integer totalNumOfTags;
     private Integer achievedNumOfTags;
     private Double averageErrorRate;
+    private Double checkScore;
+    private Boolean hasChecked;
+    private Date aiScoreTime;
+    private Double aiScore;
     private EMDV4StudentTaskBook studentTaskBook;
 }

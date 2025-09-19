@@ -17,4 +17,18 @@ public interface EMDV4StudentTaskBookService {
     EMDV4StudentTaskBook updateStatus(String taskBookId, Integer status);
 
     EMDV4StudentTaskBook updateScore(String taskBookId, Double score);
+
+    EMDV4StudentTaskBook getRootTaskBook(String taskBookLeafId);
+
+    EMDV4StudentTaskBook computeAiScore(String taskBookLeafId);
+
+    EMDV4StudentTaskBook computeCheckScore(String taskBookLeafId);
+
+    List<EMDV4StudentTaskBook> batchGetById(List<String> idList);
+
+    List<EMDV4StudentTaskBook> batchUpdateWeighting(List<EMDV4StudentTaskBook> list);
+
+    EMDV4StudentTaskBook computeTaskBookScore(EMDV4StudentTaskBook node);
+
+    List<EMDV4StudentTaskBook> getProjectTaskBlockList(Long projectTaskId);
 }

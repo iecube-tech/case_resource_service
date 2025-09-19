@@ -2,8 +2,8 @@ package com.iecube.community.model.AI.aiClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.iecube.community.model.aiMessage.entity.AiMessage;
-import com.iecube.community.model.aiMessage.mapper.AiMessageMapper;
+import com.iecube.community.model.AiMessage.entity.AiMessage;
+import com.iecube.community.model.AiMessage.mapper.AiMessageMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

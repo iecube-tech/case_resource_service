@@ -1,5 +1,6 @@
 package com.iecube.community.model.EMDV4Project.EMDV4_component.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
@@ -20,4 +21,7 @@ public class EMDV4Component {
     private String payload;
     private Integer status;
     private Integer order;
+    private Double aiScore;
+    @JsonProperty("tScore")
+    private Double tScore;
 }

@@ -6,4 +6,5 @@ public interface EMDV4ComponentService {
     EMDV4Component updateStatus(String id, int status);
     EMDV4Component updatePayload(String id, String payload);
     EMDV4Component updateScore(String id, double score);
+    EMDV4Component checkScore(String id, double score);
 }

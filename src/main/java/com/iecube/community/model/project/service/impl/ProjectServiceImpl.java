@@ -3,6 +3,8 @@ package com.iecube.community.model.project.service.impl;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.content.entity.Content;
+import com.iecube.community.model.content.mapper.ContentMapper;
+import com.iecube.community.model.content.service.ex.ContentNotFoundException;
 import com.iecube.community.model.elaborate_md_task.entity.EMDStudentTask;
 import com.iecube.community.model.elaborate_md_task.mapper.EMDStudentTaskMapper;
 import com.iecube.community.model.elaborate_md_task.service.EMDTaskService;
@@ -45,6 +47,7 @@ import com.iecube.community.util.DeleteFolderUtils;
 import com.iecube.community.util.TimeFormat;
 import com.iecube.community.util.ZipUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.javassist.NotFoundException;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -86,6 +89,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Autowired
     private ContentService contentService;
+
+    @Autowired
+    private ContentMapper contentMapper;
 
     @Autowired
     private TaskMapper taskMapper;
@@ -512,7 +518,11 @@ public class ProjectServiceImpl implements ProjectService {
         if(project == null){
             throw new ProjectNotFoundException("任务未找到");
         }
-        Content content = contentService.findById(project.getCaseId());
+//        Content content = contentService.findById(project.getCaseId());
+        Content content = contentMapper.findById(project.getCaseId());
+        if(content==null){
+            throw new ContentNotFoundException("未找到相关数据");
+        }
         project.setFourth(content.getFourth());
         project.setFourthType(content.getFourthType());
         Integer caseType = projectMapper.findCaseTypeByCaseId(project.getCaseId());

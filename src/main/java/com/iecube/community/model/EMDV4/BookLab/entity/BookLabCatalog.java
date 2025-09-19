@@ -31,6 +31,7 @@ public class BookLabCatalog {
     private Boolean hasChildren;
     private Instant createdAt;
     private Instant updatedAt;
+    private double weighting;
     private List<LabComponent> componentList;
     private List<BookLabCatalog> children;
 }

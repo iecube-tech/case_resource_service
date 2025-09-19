@@ -93,6 +93,105 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
         return this.getByBookId(taskBookId);
     }
 
+    @Override
+    public EMDV4StudentTaskBook getRootTaskBook(String taskBookLeafId) {
+        return emdV4StudentTaskBookMapper.getRootByLeaf(taskBookLeafId);
+    }
+
+    @Override
+    public EMDV4StudentTaskBook computeAiScore(String taskBookLeafId) {
+        // 1. 更新叶子节点的成绩
+        List<EMDV4Component> componentList = emdv4ComponentMapper.getByBlockId(taskBookLeafId);
+        double score = 0.0;
+        double totalScore = 0.0;
+        for (EMDV4Component comp : componentList) {
+            score += comp.getAiScore();
+            totalScore += comp.getTotalScore();
+        }
+        emdV4StudentTaskBookMapper.updateScoreOnly(taskBookLeafId, score, totalScore);
+        EMDV4StudentTaskBook taskBook = emdV4StudentTaskBookMapper.getById(taskBookLeafId);
+        // 2. 递归计算父节点的成绩 最后返回根节点
+        return computeTaskBookScore(taskBook);
+    }
+
+    @Override
+    public EMDV4StudentTaskBook computeCheckScore(String taskBookLeafId) {
+        // 1. 更新叶子节点的成绩
+        List<EMDV4Component> componentList = emdv4ComponentMapper.getByBlockId(taskBookLeafId);
+        double score = 0.0;
+        double totalScore = 0.0;
+        for (EMDV4Component comp : componentList) {
+            score += comp.getTScore();
+            totalScore += comp.getTotalScore();
+        }
+        emdV4StudentTaskBookMapper.updateScoreOnly(taskBookLeafId, score, totalScore);
+        EMDV4StudentTaskBook taskBook = emdV4StudentTaskBookMapper.getById(taskBookLeafId);
+        // 2. 递归计算父节点的成绩 最后返回根节点
+        return computeTaskBookScore(taskBook);
+    }
+
+
+    @Override
+    public List<EMDV4StudentTaskBook> batchGetById(List<String> idList){
+        return emdV4StudentTaskBookMapper.batchGetById(idList);
+    }
+
+    @Override
+    public List<EMDV4StudentTaskBook> batchUpdateWeighting(List<EMDV4StudentTaskBook> list) {
+        int res = emdV4StudentTaskBookMapper.batchUpdateWeight(list);
+        if(res != list.size()){
+            throw new UpdateException("更新数据异常");
+        }
+        List<String> idList = new ArrayList<>();
+        for(EMDV4StudentTaskBook book : list){
+            idList.add(book.getId());
+        }
+        return emdV4StudentTaskBookMapper.batchGetById(idList);
+    }
+
+    /**
+     * 根据子节点递归计算根节点的成绩
+     * @param node 子节点
+     * @return  根节点
+     */
+    @Override
+    public EMDV4StudentTaskBook computeTaskBookScore(EMDV4StudentTaskBook node){
+//        System.out.println("计算成绩"+node.getPId());
+        if(node.getPId()!=null){
+            // 计算父节点的成绩
+            List<EMDV4StudentTaskBook> taskBookList = emdV4StudentTaskBookMapper.getByPId(node.getPId());
+            double score = 0.0;
+            double totalScore = 0.0;
+            for (EMDV4StudentTaskBook child : taskBookList) {
+                if(node.getLevel().equals(2)){
+                    totalScore = 100.00;
+                    if(child.getWeighting()!=null&&child.getWeighting()!=0){
+                        if(child.getTotalScore()==null || child.getTotalScore().equals(0.0)){
+                            score += 0.0;
+                        }
+                        else {
+                            score += (child.getWeighting() / 100) * ((child.getScore() * 100) / child.getTotalScore());// 归一化后的总分
+                        }
+                    }
+                }else {
+                    score += child.getScore();
+                    totalScore += child.getTotalScore()==null?0.0:child.getTotalScore();
+                }
+            }
+            emdV4StudentTaskBookMapper.updateScoreOnly(node.getPId(), score, totalScore);
+            EMDV4StudentTaskBook parent = emdV4StudentTaskBookMapper.getById(node.getPId());
+//            System.out.println("parent");
+//            System.out.println(parent);
+            node = computeTaskBookScore(parent);
+        }
+        return node;
+    }
+
+    @Override
+    public List<EMDV4StudentTaskBook> getProjectTaskBlockList(Long projectTaskId) {
+        return emdV4StudentTaskBookMapper.getProjectTaskBlockList(projectTaskId);
+    }
+
     public List<EMDV4StudentTaskBook> getChildrenByPid(String pId){
         if (pId == null || pId.isEmpty()) {
             throw new IllegalArgumentException("父节点ID不能为空");
@@ -181,6 +280,8 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
         taskBook.setPassStatus(labProc.getPassScore()==null||labProc.getPassScore()<=0);
         taskBook.setStatus(0);
         taskBook.setCurrentChild(0);
+        taskBook.setWeighting(labProc.getWeighting());
+        taskBook.setTotalScore(0.0);
     }
 
     private void copyComponentFields(EMDV4Component target, LabComponent source) {
@@ -198,6 +299,8 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
         target.setPayload(source.getPayload());
         target.setStatus(0);
         target.setOrder(source.getOrder());
+        target.setAiScore(0.0);
+        target.setTScore(0.0);
     }
 
     private EMDV4StudentTaskBook buildTreeWithComponents(EMDV4StudentTaskBook node){

@@ -31,6 +31,8 @@ public class EMDV4StudentTaskBook {
     private Integer status;
     private Boolean hasChildren;
     private Integer currentChild;
+    private Double weighting;
+    private Double totalScore;
     private List<EMDV4Component> components;
     private List<EMDV4StudentTaskBook> children;
     private List<Long> tagList; //统计实验指导书下的tag数量

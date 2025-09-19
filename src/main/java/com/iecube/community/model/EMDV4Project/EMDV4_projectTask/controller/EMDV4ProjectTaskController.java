@@ -23,4 +23,9 @@ public class EMDV4ProjectTaskController extends BaseController {
         return new JsonResult<>(OK, emdV4ProjectTaskService.getProjectTaskList(projectId));
         // emdv4ProjectTask
     }
+
+    @GetMapping("/pt_by_id")
+    public JsonResult<EMDV4ProjectTask> getById(Long projectTaskId){
+        return new JsonResult<>(OK, emdV4ProjectTaskService.getById(projectTaskId));
+    }
 }

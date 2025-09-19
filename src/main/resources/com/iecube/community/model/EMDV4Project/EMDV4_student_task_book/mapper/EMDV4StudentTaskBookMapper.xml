@@ -13,15 +13,16 @@
         <result column="need_pass_score" property="needPassScore"></result>
         <result column="pass_score" property="passScore"></result>
         <result column="pass_status" property="passStatus"></result>
+        <result column="total_score" property="totalScore"></result>
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO EMDV4_student_task_book
         (`id`, `p_id`, `source_id`, `stage`, `level`, `version`, `name`, `type`, `description`, `order`, `section_prefix`, `device_type`,
-         `icon`, `step_by_step`, `style`, `config`, `payload`, `score`, `need_pass_score`, `pass_score`, `pass_status`, `status`, `current_child`)
+         `icon`, `step_by_step`, `style`, `config`, `payload`, `score`, `need_pass_score`, `pass_score`, `pass_status`, `status`, `current_child`, `weighting`, `total_score`)
         VALUES
             (#{id}, #{pId}, #{sourceId}, #{stage}, #{level}, #{version}, #{name}, #{type}, #{description}, #{order}, #{sectionPrefix}, #{deviceType},
-             #{icon}, #{stepByStep}, #{style}, #{config}, #{payload}, #{needPassScore}, #{score}, #{passScore}, #{passStatus}, #{status}, #{currentChild})
+             #{icon}, #{stepByStep}, #{style}, #{config}, #{payload}, #{needPassScore}, #{score}, #{passScore}, #{passStatus}, #{status}, #{currentChild}, #{weighting}, #{totalScore})
     </insert>
 
     <insert id="batchInsert">
@@ -29,13 +30,13 @@
         (`id`, `p_id`, `source_id`, `stage`, `level`, `version`, `name`,`type`, `description`, `order`, `section_prefix`, `device_type`,
         `icon`, `step_by_step`, `style`, `config`, `payload`,
          `need_pass_score`, `score`, `pass_score`, `pass_status`,
-         `status`, `current_child`)
+         `status`, `current_child`, `weighting`, `total_score`)
         VALUES
         <foreach collection="list" separator="," item="item">
             (#{item.id}, #{item.pId}, #{item.sourceId}, #{item.stage}, #{item.level}, #{item.version}, #{item.name}, #{item.type}, #{item.description}, #{item.order}, #{item.sectionPrefix}, #{item.deviceType},
              #{item.icon}, #{item.stepByStep}, #{item.style}, #{item.config}, #{item.payload},
              #{item.needPassScore}, #{item.score}, #{item.passScore}, #{item.passStatus},
-             #{item.status}, #{item.currentChild})
+             #{item.status}, #{item.currentChild}, #{item.weighting}, #{item.totalScore})
         </foreach>
     </insert>
 
@@ -74,4 +75,49 @@
                                            pass_status=#{passStatus}
                                        WHERE id=#{id}
     </update>
+
+    <update id="updateScoreOnly">
+        UPDATE EMDV4_student_task_book SET score=#{score}, total_score=#{totalScore} WHERE id=#{id}
+    </update>
+
+    <select id="getRootByLeaf" resultMap="EMDV4StudentTaskBook">
+        WITH RECURSIVE find_root AS (
+            SELECT *
+            FROM EMDV4_student_task_book
+            WHERE id = #{id}  -- 您的节点ID
+
+            UNION ALL
+
+            SELECT t.*
+            FROM EMDV4_student_task_book t
+                     INNER JOIN find_root fr ON t.id = fr.p_id
+        )
+        SELECT *
+        FROM find_root
+        WHERE p_id IS NULL;
+    </select>
+
+    <update id="batchUpdateWeight">
+        UPDATE EMDV4_student_task_book
+        SET weighting=
+           <foreach collection="list" separator=" " item="item" open="CASE id" close="END">
+                WHEN #{item.id} THEN #{item.weighting}
+           </foreach>
+        WHERE id IN
+            <foreach collection="list" item="item" open="(" separator="," close=")">
+                #{item.id}
+            </foreach>
+    </update>
+
+    <select id="batchGetById" resultMap="EMDV4StudentTaskBook">
+        SELECT * FROM EMDV4_student_task_book
+        WHERE id IN
+        <foreach collection="idList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="getProjectTaskBlockList" resultMap="EMDV4StudentTaskBook">
+        SELECT * FROM EMDV4_student_task_book WHERE p_id in (SELECT task_book_id FROM EMDV4_project_studentTask WHERE project_task=#{projectTaskId})
+    </select>
 </mapper>

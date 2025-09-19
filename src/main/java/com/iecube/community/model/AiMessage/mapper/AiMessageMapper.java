@@ -1,6 +1,6 @@
-package com.iecube.community.model.aiMessage.mapper;
+package com.iecube.community.model.AiMessage.mapper;
 
-import com.iecube.community.model.aiMessage.entity.AiMessage;
+import com.iecube.community.model.AiMessage.entity.AiMessage;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

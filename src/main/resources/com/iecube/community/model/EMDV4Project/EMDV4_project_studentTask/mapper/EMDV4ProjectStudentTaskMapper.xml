@@ -13,32 +13,88 @@
         <result column="total_num_of_tags" property="totalNumOfTags"></result>
         <result column="achieved_num_of_tags" property="achievedNumOfTags"></result>
         <result column="average_error_rate" property="averageErrorRate"></result>
+        <result column="check_score" property="checkScore"></result>
+        <result column="has_checked" property="hasChecked"></result>
+        <result column="ai_score_time" property="aiScoreTime"></result>
+        <result column="ai_score" property="aiScore"></result>
     </resultMap>
 
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
         INSERT INTO EMDV4_project_studentTask
             (id, project_student, project_task, task_book_id, score, status, start_time, done_time,
-             use_time, total_num_of_tags, achieved_num_of_tags, average_error_rate)
+             use_time, total_num_of_tags, achieved_num_of_tags, average_error_rate, check_score, has_checked, ai_score_time, ai_score)
         VALUES (NULL, #{projectStudent}, #{projectTask}, #{taskBookId}, #{score}, #{status}, #{startTime}, #{doneTime},
-             #{useTime}, #{totalNumOfTags}, #{achievedNumOfTags}, #{averageErrorRate})
+             #{useTime}, #{totalNumOfTags}, #{achievedNumOfTags}, #{averageErrorRate}, #{checkScore}, #{hasChecked}, #{aiScoreTime}, #{aiScore})
     </insert>
 
     <insert id="batchInsert" keyProperty="id" useGeneratedKeys="true">
         INSERT INTO EMDV4_project_studentTask
         (id, project_student, project_task, task_book_id, score, status, start_time, done_time,
-         use_time, total_num_of_tags, achieved_num_of_tags, average_error_rate)
+         use_time, total_num_of_tags, achieved_num_of_tags, average_error_rate, check_score, has_checked, ai_score_time, ai_score)
         VALUES
         <foreach collection="list" separator="," item="item">
             (NULL, #{item.projectStudent}, #{item.projectTask}, #{item.taskBookId}, #{item.score}, #{item.status}, #{item.startTime}, #{item.doneTime},
-            #{item.useTime}, #{item.totalNumOfTags}, #{item.achievedNumOfTags}, #{item.averageErrorRate})
+            #{item.useTime}, #{item.totalNumOfTags}, #{item.achievedNumOfTags}, #{item.averageErrorRate},#{item.checkScore}, #{item.hasChecked}, #{item.aiScoreTime}, #{item.aiScore})
         </foreach>
     </insert>
 
     <select id="getByPTIdAndPSId" resultMap="EMDV4ProjectStudentTask">
         SELECT
             id, project_student, project_task, task_book_id, score, status, start_time, done_time,
-               use_time, total_num_of_tags, achieved_num_of_tags, average_error_rate
+               use_time, total_num_of_tags, achieved_num_of_tags, average_error_rate, check_score, has_checked, ai_score_time, ai_score
         FROM EMDV4_project_studentTask
         WHERE project_student=#{projectStudentId} AND project_task=#{projectTaskId}
     </select>
+
+    <select id="getByProjectStudent" resultMap="EMDV4ProjectStudentTask">
+        SELECT
+            id, project_student, project_task, task_book_id, score, status, start_time, done_time,
+            use_time, total_num_of_tags, achieved_num_of_tags, average_error_rate, check_score, has_checked, ai_score_time, ai_score
+        FROM EMDV4_project_studentTask
+        WHERE project_student=#{projectStudent}
+    </select>
+
+    <select id="getById" resultMap="EMDV4ProjectStudentTask">
+        SELECT
+            id, project_student, project_task, task_book_id, score, status, start_time, done_time,
+            use_time, total_num_of_tags, achieved_num_of_tags, average_error_rate, check_score, has_checked, ai_score_time, ai_score
+        FROM EMDV4_project_studentTask
+        WHERE id=#{id}
+    </select>
+
+    <select id="getByPSIdAndPTNum" resultMap="EMDV4ProjectStudentTask">
+        SELECT
+            PST.*
+        FROM EMDV4_project_studentTask PST LEFT JOIN EMDV4_projectTask PT ON PST.project_task=PT.id
+        WHERE PST.project_student=#{projectStudentId} AND PT.num=#{projectTaskNum}
+    </select>
+
+    <update id="updateAiScore">
+        UPDATE  EMDV4_project_studentTask SET ai_score=#{aiScore},
+                                              score=#{aiScore},
+                                              ai_score_time=NOW()
+                                          WHERE task_book_id=#{taskBookId}
+    </update>
+
+    <update id="updateScore">
+        UPDATE  EMDV4_project_studentTask SET score=#{score} WHERE task_book_id=#{taskBookId}
+    </update>
+
+    <update id="batchUpdateScore">
+        UPDATE  EMDV4_project_studentTask
+        SET score=
+            <foreach collection="list" separator=" " item="item" open="CASE task_book_id" close="END">
+                WHEN #{item.taskBookId} THEN #{item.score}
+            </foreach>
+        WHERE task_book_id IN
+            <foreach collection="list" item="item" open="(" separator="," close=")">
+                #{item.taskBookId}
+            </foreach>
+    </update>
+
+    <update id="updateCheckScore">
+        UPDATE  EMDV4_project_studentTask SET score=#{score}, check_score=#{score}, has_checked=1 WHERE id=#{id}
+    </update>
+
+
 </mapper>

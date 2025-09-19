@@ -29,4 +29,9 @@ public class EMDV4ComponentController extends BaseController {
     public JsonResult<EMDV4Component> updateScore(@PathVariable String id, Double score) {
         return new JsonResult<>(OK, emdV4ComponentService.updateScore(id, score));
     }
+
+    @PostMapping("/check/score/{id}")
+    public JsonResult<EMDV4Component> checkScore(@PathVariable String id, Double score) {
+        return new JsonResult<>(OK, emdV4ComponentService.checkScore(id, score));
+    }
 }

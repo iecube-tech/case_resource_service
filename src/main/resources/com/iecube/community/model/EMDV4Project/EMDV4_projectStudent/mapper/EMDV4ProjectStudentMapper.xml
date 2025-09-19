@@ -19,6 +19,23 @@
         <result column="last_modified_time" property="lastModifiedTime"></result>
     </resultMap>
 
+    <resultMap id="EMDV4ProjectStudentVo" type="com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.vo.EMDV4ProjectStudentVo">
+        <result column="grade_class" property="gradeClass"></result>
+        <result column="project_id" property="projectId"></result>
+        <result column="student_id" property="studentId"></result>
+        <result column="total_num_of_labs" property="totalNumOfLabs"></result>
+        <result column="done_num_of_labs" property="doneNumOfLabs"></result>
+        <result column="total_num_of_tags" property="totalNumOfTags"></result>
+        <result column="achieved_num_of_tags" property="achievedNumOfTags"></result>
+        <result column="start_time" property="startTime"></result>
+        <result column="done_time" property="doneTime"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+        <result column="stu_id" property="stuId"></result>
+        <result column="stu_name" property="stuName"></result>
+    </resultMap>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO EMDV4_projectStudent
             (id, grade_class, project_id, student_id, score, total_num_of_labs, done_num_of_labs,
@@ -51,6 +68,26 @@
         FROM EMDV4_projectStudent
         WHERE `project_id`=#{projectId}
         ORDER BY `status` DESC, `student_id` ASC
+    </select>
+
+    <select id="getVoByProjectId" resultMap="EMDV4ProjectStudentVo">
+        SELECT
+            ps.`id`, ps.`grade_class`, ps.`project_id`, ps.`student_id`, ps.`score`, ps.`total_num_of_labs`, ps.`done_num_of_labs`,
+            ps.`total_num_of_tags`, ps.`achieved_num_of_tags`, ps.`start_time`, ps.`status`, ps.`done_time`, ps.`creator`, ps.`create_time`,
+            ps.`last_modified_user`, ps.`last_modified_time`, s.`student_name` AS stu_name, s.`student_id` AS stu_id
+        FROM EMDV4_projectStudent ps LEFT JOIN Student s ON ps.`student_id`=s.`id`
+        WHERE ps.`project_id`=#{projectId}
+        ORDER BY `status` DESC, `student_id` ASC
+    </select>
+
+    <select id="getProjectStudentListByPTid" resultMap="EMDV4ProjectStudentVo">
+        SELECT ps.`id`, ps.`grade_class`, ps.`project_id`, ps.`student_id`, ps.`score`, ps.`total_num_of_labs`, ps.`done_num_of_labs`,
+               ps.`total_num_of_tags`, ps.`achieved_num_of_tags`, ps.`start_time`, ps.`status`, ps.`done_time`, ps.`creator`, ps.`create_time`,
+               ps.`last_modified_user`, ps.`last_modified_time`, s.`student_name` AS stu_name, s.`student_id` AS stu_id
+        FROM EMDV4_projectStudent ps
+            LEFT JOIN Student s ON ps.`student_id`=s.`id`
+            LEFT JOIN EMDV4_projectTask pt ON ps.project_id=pt.project_id
+        WHERE pt.id=#{projectTaskId}
     </select>
 
     <update id="updateProjectTotalNum">

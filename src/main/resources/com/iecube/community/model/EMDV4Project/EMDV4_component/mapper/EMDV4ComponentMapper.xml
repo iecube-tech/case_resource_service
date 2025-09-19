@@ -7,32 +7,34 @@
         <result column="need_calculate" property="needCalculate"></result>
         <result column="total_score" property="totalScore"></result>
         <result column="score_proportion" property="scoreProportion"></result>
+        <result column="ai_score" property="aiScore"></result>
+        <result column="t_score" property="tScore"></result>
     </resultMap>
     
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO EMDV4_component
             (`id`, `block_id`, `tag`, `stage`, `name`, `icon`, `type`, `need_calculate`, `total_score`, `score`,
-             `score_proportion`, `style`, `config`, `payload`, `status`, `order`)
+             `score_proportion`, `style`, `config`, `payload`, `status`, `order`, `ai_score`, `t_score`)
         VALUES
             (#{id}, #{blockId}, #{tag}, #{stage}, #{name}, #{icon}, #{type}, #{needCalculate}, #{totalScore}, #{score},
-             #{scoreProportion}, #{style}, #{config}, #{payload}, #{status}, #{order})
+             #{scoreProportion}, #{style}, #{config}, #{payload}, #{status}, #{order}, #{aiScore}, #{tScore})
     </insert>
 
     <insert id="batchInsert">
         INSERT INTO EMDV4_component
         (`id`, `block_id`, `tag`, `stage`, `name`, `icon`, `type`, `need_calculate`, `total_score`, `score`,
-        `score_proportion`, `style`, `config`, `payload`, `status`, `order`)
+        `score_proportion`, `style`, `config`, `payload`, `status`, `order`, `ai_score`, `t_score`)
         VALUES
         <foreach collection="list" separator="," item="item">
             (#{item.id}, #{item.blockId}, #{item.tag}, #{item.stage}, #{item.name}, #{item.icon}, #{item.type}, #{item.needCalculate}, #{item.totalScore}, #{item.score},
-            #{item.scoreProportion}, #{item.style}, #{item.config}, #{item.payload}, #{item.status}, #{item.order})
+            #{item.scoreProportion}, #{item.style}, #{item.config}, #{item.payload}, #{item.status}, #{item.order}, #{item.aiScore}, #{item.tScore})
         </foreach>
     </insert>
 
     <select id="getByBlockId" resultMap="EMDV4Component">
         SELECT
             `id`, `block_id`, `tag`, `stage`, `name`, `icon`, `type`, `need_calculate`, `total_score`, `score`,
-            `score_proportion`, `style`, `config`, `payload`, `status`, `order`
+            `score_proportion`, `style`, `config`, `payload`, `status`, `order`,`ai_score`, `t_score`
         FROM EMDV4_component
         WHERE `block_id`=#{blockId}
     </select>
@@ -40,7 +42,7 @@
     <select id="getById" resultMap="EMDV4Component">
         SELECT
             `id`, `block_id`, `tag`, `stage`, `name`, `icon`, `type`, `need_calculate`, `total_score`, `score`,
-            `score_proportion`, `style`, `config`, `payload`, `status`, `order`
+            `score_proportion`, `style`, `config`, `payload`, `status`, `order`,`ai_score`, `t_score`
         FROM EMDV4_component
         WHERE `id`=#{id}
     </select>
@@ -53,9 +55,18 @@
         UPDATE EMDV4_component SET `payload`=#{payload} WHERE id=#{id}
     </update>
 
-    <update id="updateScore">
+    <update id="updateAiScore">
         UPDATE EMDV4_component SET `score`=#{score},
+                                   `ai_score`=#{score},
+                                   `t_score`=#{score},
                                    `score_proportion`=#{scoreProportion}
                                WHERE id=#{id}
+    </update>
+
+    <update id="updateTScore">
+        UPDATE EMDV4_component SET `score`=#{score},
+                                   `t_score`=#{score},
+                                   `score_proportion`=#{scoreProportion}
+                                WHERE id=#{id}
     </update>
 </mapper>

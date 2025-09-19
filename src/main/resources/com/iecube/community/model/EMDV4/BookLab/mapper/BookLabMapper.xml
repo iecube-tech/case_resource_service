@@ -19,9 +19,9 @@
 
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
         INSERT INTO BL_book_lab (`id`, `p_id`, `level`, `name`, `version`, `order`,`type`, `description`, `stage`, `section_prefix`, `device_type`, `icon` ,
-            `step_by_step`, `style`, `config`, `payload`, `need_pass_score`, `pass_score`, `created_at`, `updated_at`)
+            `step_by_step`, `style`, `config`, `payload`, `need_pass_score`, `pass_score`, `created_at`, `updated_at`, `weighting`)
         VALUES (NULL, #{pId}, NUll, #{name}, #{version}, #{order}, #{type},#{description}, #{stage}, #{sectionPrefix}, #{deviceType}, #{icon},
-                #{stepByStep}, #{style}, #{config}, #{payload}, #{needPassScore}, #{passScore}, NOW() ,NOW())
+                #{stepByStep}, #{style}, #{config}, #{payload}, #{needPassScore}, #{passScore}, NOW() ,NOW(), #{weighting})
     </insert>
 
 
@@ -39,7 +39,8 @@
                                payload=#{payload},
                                need_pass_score=#{needPassScore},
                                pass_score=#{passScore},
-                               updated_at=now()
+                               updated_at=now(),
+                               weighting=#{weighting}
                            WHERE id=#{id}
     </update>
 

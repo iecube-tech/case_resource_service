@@ -238,9 +238,12 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public Content findById(Integer id) {
         Content content = contentMapper.findById(id);
+        if(content==null){
+            throw new ContentNotFoundException("未找到课程数据");
+        }
         content.setGuidance(null);
-        if (content == null || content.getIsDelete() == 1){
-            throw new ContentNotFoundException("未找到该数据");
+        if (content.getIsDelete() == 1){
+            throw new ContentNotFoundException("课程数据已删除");
         }
         return content;
     }

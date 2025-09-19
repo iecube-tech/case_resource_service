@@ -3,8 +3,10 @@ package com.iecube.community.model.EMDV4Project.EMDV4_component.service.impl;
 import com.iecube.community.model.EMDV4Project.EMDV4_component.entity.EMDV4Component;
 import com.iecube.community.model.EMDV4Project.EMDV4_component.mapper.EMDV4ComponentMapper;
 import com.iecube.community.model.EMDV4Project.EMDV4_component.service.EMDV4ComponentService;
+import com.iecube.community.model.EMDV4Project.EMDV4_project_studentTask.service.EMDV4ProjectStudentTaskService;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -12,6 +14,8 @@ public class EMDV4ComponentServiceImpl implements EMDV4ComponentService {
     @Autowired
     private EMDV4ComponentMapper emdV4ComponentMapper;
 
+    @Autowired
+    private EMDV4ProjectStudentTaskService emdv4ProjectStudentTaskService;
 
     @Override
     public EMDV4Component updateStatus(String id, int status) {
@@ -44,10 +48,34 @@ public class EMDV4ComponentServiceImpl implements EMDV4ComponentService {
             }
             per = (score / totalScore) *100;
         }
-        int res = emdV4ComponentMapper.updateScore(id,score,per);
+        int res = emdV4ComponentMapper.updateAiScore(id,score,per);
         if(res!=1){
             throw new UpdateException("更新数据异常");
         }
-        return emdV4ComponentMapper.getById(id);
+        EMDV4Component res1 = emdV4ComponentMapper.getById(id);
+        emdv4ProjectStudentTaskService.computeAiScore(res1.getBlockId());
+        return res1;
+    }
+
+    @Override
+    public EMDV4Component checkScore(String id, double score){
+        EMDV4Component oldComponent = emdV4ComponentMapper.getById(id);
+        Double totalScore = oldComponent.getTotalScore();
+        double per =0.0;
+        if(totalScore==null || totalScore==0){
+            score=0;
+        }else {
+            if(score>totalScore){
+                throw new UpdateException("成绩大于总成绩");
+            }
+            per = (score / totalScore) *100;
+        }
+        int res = emdV4ComponentMapper.updateTScore(id,score,per);
+        if(res!=1){
+            throw new UpdateException("更新数据异常");
+        }
+        EMDV4Component res1 = emdV4ComponentMapper.getById(id);
+        emdv4ProjectStudentTaskService.computeCheckScore(res1.getBlockId());
+        return res1;
     }
 }

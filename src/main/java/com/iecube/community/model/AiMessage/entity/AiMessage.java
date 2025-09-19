@@ -1,4 +1,4 @@
-package com.iecube.community.model.aiMessage.entity;
+package com.iecube.community.model.AiMessage.entity;
 
 import lombok.Data;
 

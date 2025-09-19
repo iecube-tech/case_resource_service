@@ -13,5 +13,10 @@ public interface EMDV4StudentTaskBookMapper {
     List<EMDV4StudentTaskBook> getByPId(String pid);
     int updateStatus(String id, Integer status);
     int updateScore(String id, Double score, Boolean passStatus);
+    int updateScoreOnly(String id, Double score, Double totalScore);
     int updateCurrentChild(String id, Integer currentChild);
+    EMDV4StudentTaskBook getRootByLeaf(String id);
+    int batchUpdateWeight(List<EMDV4StudentTaskBook> list);
+    List<EMDV4StudentTaskBook> batchGetById(List<String> idList);
+    List<EMDV4StudentTaskBook> getProjectTaskBlockList(Long projectTaskId);
 }

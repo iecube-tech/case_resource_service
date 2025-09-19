@@ -3,6 +3,8 @@ package com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.service.imp
 import com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.entity.EMDV4ProjectStudent;
 import com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.mapper.EMDV4ProjectStudentMapper;
 import com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.service.EMDV4ProjectStudentService;
+import com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.vo.EMDV4ProjectStudentVo;
+import com.iecube.community.model.EMDV4Project.EMDV4_project_studentTask.mapper.EMDV4ProjectStudentTaskMapper;
 import com.iecube.community.model.EMDV4Project.project.qo.EMDV4ProjectQo;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.project.entity.Project;
@@ -19,6 +21,9 @@ public class EMDV4ProjectStudentServiceImpl implements EMDV4ProjectStudentServic
 
     @Autowired
     private EMDV4ProjectStudentMapper emdV4ProjectStudentMapper;
+
+    @Autowired
+    private EMDV4ProjectStudentTaskMapper emdV4ProjectStudentTaskMapper;
 
 
     @Override
@@ -59,5 +64,19 @@ public class EMDV4ProjectStudentServiceImpl implements EMDV4ProjectStudentServic
     public EMDV4ProjectStudent getByStuProject(int studentId, int projectId) {
 
         return emdV4ProjectStudentMapper.getByStudentIdAndProjectId(studentId, projectId);
+    }
+
+    @Override
+    public List<EMDV4ProjectStudentVo> getProjectStudentListByProjectId(int projectId) {
+        List<EMDV4ProjectStudentVo> projectStudentList = emdV4ProjectStudentMapper.getVoByProjectId(projectId);
+        projectStudentList.forEach(projectStudent -> {
+            projectStudent.setStudentTaskList(emdV4ProjectStudentTaskMapper.getByProjectStudent(projectStudent.getId()));
+        });
+        return projectStudentList;
+    }
+
+    @Override
+    public List<EMDV4ProjectStudentVo> getProjectStudentListByPTid(Long projectTaskId) {
+        return emdV4ProjectStudentMapper.getProjectStudentListByPTid(projectTaskId);
     }
 }
