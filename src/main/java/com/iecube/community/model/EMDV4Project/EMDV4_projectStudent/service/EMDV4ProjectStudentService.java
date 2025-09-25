@@ -2,6 +2,7 @@ package com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.service;
 
 import com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.entity.EMDV4ProjectStudent;
 import com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.vo.EMDV4ProjectStudentVo;
+import com.iecube.community.model.EMDV4Project.EMDV4_project_studentTask.entity.EMDV4ProjectStudentTask;
 import com.iecube.community.model.EMDV4Project.project.qo.EMDV4ProjectQo;
 import com.iecube.community.model.project.entity.Project;
 import com.iecube.community.model.student.entity.StudentDto;
@@ -14,4 +15,5 @@ public interface EMDV4ProjectStudentService {
     EMDV4ProjectStudent getByStuProject(int studentId, int projectId);
     List<EMDV4ProjectStudentVo> getProjectStudentListByProjectId(int projectId);
     List<EMDV4ProjectStudentVo> getProjectStudentListByPTid(Long projectTaskId);
+    void computeScore(EMDV4ProjectStudentTask changed);
 }

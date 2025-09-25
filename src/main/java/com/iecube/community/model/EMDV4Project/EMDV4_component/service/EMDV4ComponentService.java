@@ -7,4 +7,9 @@ public interface EMDV4ComponentService {
     EMDV4Component updatePayload(String id, String payload);
     EMDV4Component updateScore(String id, double score);
     EMDV4Component checkScore(String id, double score);
+
+    void batchUpdateStatus(EMDV4Component component);
+    void batchUpdatePayload(EMDV4Component component);
+    void batchUpdateAiScore(EMDV4Component component);
+    void batchUpdateTScore(EMDV4Component component);
 }

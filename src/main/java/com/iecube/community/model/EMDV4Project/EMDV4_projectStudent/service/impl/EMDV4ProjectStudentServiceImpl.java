@@ -4,6 +4,7 @@ import com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.entity.EMDV4
 import com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.mapper.EMDV4ProjectStudentMapper;
 import com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.service.EMDV4ProjectStudentService;
 import com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.vo.EMDV4ProjectStudentVo;
+import com.iecube.community.model.EMDV4Project.EMDV4_project_studentTask.entity.EMDV4ProjectStudentTask;
 import com.iecube.community.model.EMDV4Project.EMDV4_project_studentTask.mapper.EMDV4ProjectStudentTaskMapper;
 import com.iecube.community.model.EMDV4Project.project.qo.EMDV4ProjectQo;
 import com.iecube.community.model.auth.service.ex.InsertException;
@@ -24,6 +25,9 @@ public class EMDV4ProjectStudentServiceImpl implements EMDV4ProjectStudentServic
 
     @Autowired
     private EMDV4ProjectStudentTaskMapper emdV4ProjectStudentTaskMapper;
+
+    @Autowired
+    private EMDV4ProjectStudentTaskMapper emdv4ProjectStudentTaskMapper;
 
 
     @Override
@@ -78,5 +82,17 @@ public class EMDV4ProjectStudentServiceImpl implements EMDV4ProjectStudentServic
     @Override
     public List<EMDV4ProjectStudentVo> getProjectStudentListByPTid(Long projectTaskId) {
         return emdV4ProjectStudentMapper.getProjectStudentListByPTid(projectTaskId);
+    }
+
+    @Override
+    public void computeScore(EMDV4ProjectStudentTask changed) {
+        List<EMDV4ProjectStudentTask> stuPSTList = emdv4ProjectStudentTaskMapper.getByProjectStudent(changed.getProjectStudent());
+        double score = 0.0;
+        for(EMDV4ProjectStudentTask stuPST : stuPSTList){
+            if(stuPST.getScore()!=null && stuPST.getTotalScore()!=null && stuPST.getTotalScore()!=0 ){
+                score+=(100*stuPST.getScore()/stuPST.getTotalScore())*(stuPST.getWeighting()/100);
+            }
+        }
+        emdV4ProjectStudentMapper.updateScore(changed.getProjectStudent(), score);
     }
 }

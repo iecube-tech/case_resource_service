@@ -23,5 +23,7 @@ public class EMDV4ProjectStudentTask {
     private Boolean hasChecked;
     private Date aiScoreTime;
     private Double aiScore;
+    private Double totalScore;
+    private Double weighting;
     private EMDV4StudentTaskBook studentTaskBook;
 }

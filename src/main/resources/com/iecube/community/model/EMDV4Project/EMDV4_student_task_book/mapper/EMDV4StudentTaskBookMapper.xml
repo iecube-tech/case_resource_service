@@ -14,15 +14,19 @@
         <result column="pass_score" property="passScore"></result>
         <result column="pass_status" property="passStatus"></result>
         <result column="total_score" property="totalScore"></result>
+        <result column="start_time" property="startTime"></result>
+        <result column="end_time" property="endTime"></result>
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO EMDV4_student_task_book
         (`id`, `p_id`, `source_id`, `stage`, `level`, `version`, `name`, `type`, `description`, `order`, `section_prefix`, `device_type`,
-         `icon`, `step_by_step`, `style`, `config`, `payload`, `score`, `need_pass_score`, `pass_score`, `pass_status`, `status`, `current_child`, `weighting`, `total_score`)
+         `icon`, `step_by_step`, `style`, `config`, `payload`, `score`, `need_pass_score`, `pass_score`, `pass_status`,
+         `status`, `current_child`, `weighting`, `total_score`, `start_time`, `end_time`)
         VALUES
             (#{id}, #{pId}, #{sourceId}, #{stage}, #{level}, #{version}, #{name}, #{type}, #{description}, #{order}, #{sectionPrefix}, #{deviceType},
-             #{icon}, #{stepByStep}, #{style}, #{config}, #{payload}, #{needPassScore}, #{score}, #{passScore}, #{passStatus}, #{status}, #{currentChild}, #{weighting}, #{totalScore})
+             #{icon}, #{stepByStep}, #{style}, #{config}, #{payload}, #{needPassScore}, #{score}, #{passScore}, #{passStatus},
+             #{status}, #{currentChild}, #{weighting}, #{totalScore}, NULL, NUll)
     </insert>
 
     <insert id="batchInsert">
@@ -30,13 +34,13 @@
         (`id`, `p_id`, `source_id`, `stage`, `level`, `version`, `name`,`type`, `description`, `order`, `section_prefix`, `device_type`,
         `icon`, `step_by_step`, `style`, `config`, `payload`,
          `need_pass_score`, `score`, `pass_score`, `pass_status`,
-         `status`, `current_child`, `weighting`, `total_score`)
+         `status`, `current_child`, `weighting`, `total_score`, `start_time`, `end_time`)
         VALUES
         <foreach collection="list" separator="," item="item">
             (#{item.id}, #{item.pId}, #{item.sourceId}, #{item.stage}, #{item.level}, #{item.version}, #{item.name}, #{item.type}, #{item.description}, #{item.order}, #{item.sectionPrefix}, #{item.deviceType},
              #{item.icon}, #{item.stepByStep}, #{item.style}, #{item.config}, #{item.payload},
              #{item.needPassScore}, #{item.score}, #{item.passScore}, #{item.passStatus},
-             #{item.status}, #{item.currentChild}, #{item.weighting}, #{item.totalScore})
+             #{item.status}, #{item.currentChild}, #{item.weighting}, #{item.totalScore}, NUll, NULL)
         </foreach>
     </insert>
 
@@ -66,14 +70,58 @@
         UPDATE EMDV4_student_task_book SET status=#{status} WHERE id=#{id}
     </update>
 
+    <update id="batchUpdateStatus">
+        UPDATE EMDV4_student_task_book
+        SET `status`= CASE id
+        <foreach collection="records" separator=" " item="item">
+            WHEN #{item.id} THEN #{item.status}
+        </foreach>
+        END
+        WHERE id IN
+        <foreach collection="records" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </update>
+
     <update id="updateCurrentChild">
         UPDATE EMDV4_student_task_book SET current_child=#{currentChild} WHERE id=#{id}
+    </update>
+
+    <update id="batchUpdateCurrentChild">
+        UPDATE EMDV4_student_task_book
+        SET `current_child`= CASE id
+        <foreach collection="records" separator=" " item="item">
+            WHEN #{item.id} THEN #{item.currentChild}
+        </foreach>
+        END
+        WHERE id IN
+        <foreach collection="records" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
     </update>
 
     <update id="updateScore">
         UPDATE EMDV4_student_task_book SET score=#{score},
                                            pass_status=#{passStatus}
                                        WHERE id=#{id}
+    </update>
+
+    <update id="batchUpdateScore">
+        UPDATE EMDV4_student_task_book
+        SET `score`= CASE id
+        <foreach collection="records" separator=" " item="item">
+            WHEN #{item.id} THEN #{item.score}
+        </foreach>
+        END,
+            pass_status=CASE id
+        <foreach collection="records" separator=" " item="item">
+            WHEN #{item.id} THEN #{item.passStatus}
+        </foreach>
+        END
+        WHERE id IN
+        <foreach collection="records" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
     </update>
 
     <update id="updateScoreOnly">
@@ -95,6 +143,23 @@
         SELECT *
         FROM find_root
         WHERE p_id IS NULL;
+    </select>
+
+    <select id="getLevel2ByComponentId" resultMap="EMDV4StudentTaskBook">
+        WITH RECURSIVE find_root AS (
+            SELECT tb.*
+            FROM EMDV4_student_task_book tb LEFT JOIN EMDV4_component c ON c.block_id=tb.id
+            WHERE c.id = #{componentId}  -- 您的节点ID
+
+            UNION ALL
+
+            SELECT t.*
+            FROM EMDV4_student_task_book t
+                     INNER JOIN find_root fr ON t.id = fr.p_id
+        )
+        SELECT *
+        FROM find_root
+        WHERE level=2;
     </select>
 
     <update id="batchUpdateWeight">
@@ -120,4 +185,29 @@
     <select id="getProjectTaskBlockList" resultMap="EMDV4StudentTaskBook">
         SELECT * FROM EMDV4_student_task_book WHERE p_id in (SELECT task_book_id FROM EMDV4_project_studentTask WHERE project_task=#{projectTaskId})
     </select>
+
+
+    <update id="batchUpdateStartTime">
+        UPDATE EMDV4_student_task_book
+        SET start_time=
+        <foreach collection="idList" separator=" " item="id" open="CASE id" close="END">
+            WHEN #{id} THEN #{startTime}
+        </foreach>
+        WHERE id IN
+        <foreach collection="idList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateEndTime">
+        UPDATE EMDV4_student_task_book
+        SET end_time=
+        <foreach collection="idList" separator=" " item="id" open="CASE id" close="END">
+            WHEN #{id} THEN #{endTime}
+        </foreach>
+        WHERE id IN
+        <foreach collection="idList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>

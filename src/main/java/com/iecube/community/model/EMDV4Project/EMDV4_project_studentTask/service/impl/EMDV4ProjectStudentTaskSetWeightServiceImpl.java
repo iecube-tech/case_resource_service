@@ -34,9 +34,9 @@ public class EMDV4ProjectStudentTaskSetWeightServiceImpl implements EMDV4Project
         List<EMDV4StudentTaskBook> allBlockLevel2 = emdV4StudentTaskBookService.getProjectTaskBlockList(PST.getProjectTask());
 
         // 不需要再次更新的block的id， 也是获取 weighting值的block 的id
-        List<String> tagetIdList = new ArrayList<>();
+        List<String> targetIdList = new ArrayList<>();
         for(EMDV4StudentTaskBook block : targetBlockList){
-            tagetIdList.add(block.getId());
+            targetIdList.add(block.getId());
         }
 
         Map<Long, EMDV4StudentTaskBook> targetSourceMap = new HashMap<>(); // 从这个map中获取对应的weighting
@@ -45,7 +45,7 @@ public class EMDV4ProjectStudentTaskSetWeightServiceImpl implements EMDV4Project
         Long targetSourceId = null;
 
         for (EMDV4StudentTaskBook block : allBlockLevel2) {
-            if(tagetIdList.contains(block.getId())){
+            if(targetIdList.contains(block.getId())){
                 targetSourceMap.put(block.getSourceId(), block);
                 targetSourceId = block.getSourceId();
             }else{
@@ -76,16 +76,17 @@ public class EMDV4ProjectStudentTaskSetWeightServiceImpl implements EMDV4Project
         }
 
         List<EMDV4StudentTaskBook> willUseUpPSTScore = new ArrayList<>();
-        useComputeScoreBlockList.forEach(block->{
+        for(EMDV4StudentTaskBook block:useComputeScoreBlockList){
 //            System.out.println("调用计算成绩"+ block.getPId());
             willUseUpPSTScore.add(emdV4StudentTaskBookService.computeTaskBookScore(block));
-        });
+        }
 
         List<EMDV4ProjectStudentTask> PSTList = new ArrayList<>();
         willUseUpPSTScore.forEach(block->{
             EMDV4ProjectStudentTask pst = new EMDV4ProjectStudentTask();
             pst.setScore(block.getScore());
             pst.setTaskBookId(block.getId());
+            pst.setTotalScore(block.getTotalScore());
             PSTList.add(pst);
         });
         int res = emdV4ProjectStudentTaskMapper.batchUpdateScore(PSTList);

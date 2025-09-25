@@ -1,6 +1,8 @@
 package com.iecube.community.model.EMDV4Project.EMDV4_project_studentTask.service.impl;
 
 import com.iecube.community.model.EMDV4.BookLab.entity.BookLabCatalog;
+import com.iecube.community.model.EMDV4Project.EMDV4ProjectEvent.event.ComputeProjectScore;
+import com.iecube.community.model.EMDV4Project.EMDV4_component.entity.EMDV4Component;
 import com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.entity.EMDV4ProjectStudent;
 import com.iecube.community.model.EMDV4Project.EMDV4_projectTask.entity.EMDV4ProjectTask;
 import com.iecube.community.model.EMDV4Project.EMDV4_project_studentTask.entity.EMDV4ProjectStudentTask;
@@ -14,13 +16,10 @@ import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.auth.service.ex.UpdateException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -34,6 +33,15 @@ public class EMDV4ProjectStudentTaskServiceImpl implements EMDV4ProjectStudentTa
 
     @Autowired
     private EMDV4ProjectStudentTaskSetWeightService emdv4ProjectStudentTaskSetWeightService;
+
+    @Autowired
+    private EMDV4StudentTaskBookService emdv4StudentTaskBookService;
+
+    @Autowired
+    private EMDV4ProjectStudentTaskMapper emdv4ProjectStudentTaskMapper;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     @Override
     public List<Integer> createProjectStudentTask(List<EMDV4ProjectTask> projectTaskList, List<BookLabCatalog> labProcList, List<EMDV4ProjectStudent> projectStudentList) {
@@ -80,6 +88,7 @@ public class EMDV4ProjectStudentTaskServiceImpl implements EMDV4ProjectStudentTa
         projectStudentTask.setHasChecked(false);
         projectStudentTask.setAiScoreTime(null);
         projectStudentTask.setAiScore(0.0);
+        projectStudentTask.setTotalScore(100.00);
         return projectStudentTask;
     }
 
@@ -108,11 +117,12 @@ public class EMDV4ProjectStudentTaskServiceImpl implements EMDV4ProjectStudentTa
     }
 
     @Override
-    @Async
     public void computeAiScore(String blockLeafId) {
         EMDV4StudentTaskBook emdv4StudentTaskBook = emdV4StudentTaskBookService.computeAiScore(blockLeafId);
         // 更新PST的成绩
-        emdV4ProjectStudentTaskMapper.updateAiScore(emdv4StudentTaskBook.getId(),emdv4StudentTaskBook.getScore());
+        emdV4ProjectStudentTaskMapper.updateAiScore(emdv4StudentTaskBook.getId(),emdv4StudentTaskBook.getScore(), new Date());
+        EMDV4ProjectStudentTask PST = emdV4ProjectStudentTaskMapper.getByTaskBookId(emdv4StudentTaskBook.getId());
+        eventPublisher.publishEvent(new ComputeProjectScore(this,PST));
     }
 
     /**
@@ -120,13 +130,14 @@ public class EMDV4ProjectStudentTaskServiceImpl implements EMDV4ProjectStudentTa
      * @param blockLeafId 叶子节点的id
      */
     @Override
-//    @Async
     public void computeCheckScore(String blockLeafId) {
 //        System.out.println("计算成绩");
         EMDV4StudentTaskBook emdv4StudentTaskBook = emdV4StudentTaskBookService.computeCheckScore(blockLeafId);
 //        System.out.println(emdv4StudentTaskBook);
         // 更新PST的成绩
-        emdV4ProjectStudentTaskMapper.updateScore(emdv4StudentTaskBook.getId(),emdv4StudentTaskBook.getScore());
+        emdV4ProjectStudentTaskMapper.updateScore(emdv4StudentTaskBook.getId(),emdv4StudentTaskBook.getScore(), emdv4StudentTaskBook.getTotalScore());
+        EMDV4ProjectStudentTask PST = emdV4ProjectStudentTaskMapper.getByTaskBookId(emdv4StudentTaskBook.getId());
+        eventPublisher.publishEvent(new ComputeProjectScore(this,PST));
     }
 
     @Override
@@ -141,18 +152,15 @@ public class EMDV4ProjectStudentTaskServiceImpl implements EMDV4ProjectStudentTa
         Map<String,Double> stepWeightingMap = new HashMap<String,Double>();
         List<EMDV4StudentTaskBook> emdv4StudentTaskBookList = new ArrayList<>();
         List<String> idList = new ArrayList<>();
-        double totalWeight = 0.0;
+//        double totalWeight = 0.0;
         for (StepWeightingQo.StepWeighting stepWeighting : stepWeightings) {
-            totalWeight+=stepWeighting.getWeighting();
+//            totalWeight+=stepWeighting.getWeighting();
             EMDV4StudentTaskBook emdv4StudentTaskBook = new EMDV4StudentTaskBook();
             emdv4StudentTaskBook.setId(stepWeighting.getBlockId());
             emdv4StudentTaskBook.setWeighting(stepWeighting.getWeighting());
             emdv4StudentTaskBookList.add(emdv4StudentTaskBook);
             idList.add(stepWeighting.getBlockId());
             stepWeightingMap.put(stepWeighting.getBlockId(),stepWeighting.getWeighting());
-        }
-        if(totalWeight!=100.0){
-            throw new UpdateException("权重总和不为100，请重设");
         }
         // 校验是否有变化
         List<EMDV4StudentTaskBook> taskBookListOld = emdV4StudentTaskBookService.batchGetById(idList);
@@ -166,15 +174,54 @@ public class EMDV4ProjectStudentTaskServiceImpl implements EMDV4ProjectStudentTa
             throw new UpdateException("权重没有变化");
         }
 
+//        if(totalWeight!=100.0){
+//            throw new UpdateException("权重总和不为100，请重设");
+//        }
+
         List<EMDV4StudentTaskBook> taskBookList = emdV4StudentTaskBookService.batchUpdateWeighting(emdv4StudentTaskBookList);
         if (taskBookList==null || taskBookList.isEmpty()){
             throw new UpdateException("成绩计算时未找到对象");
         }
         EMDV4StudentTaskBook res = emdV4StudentTaskBookService.computeTaskBookScore(taskBookList.get(0));
-        emdV4ProjectStudentTaskMapper.updateScore(res.getId(),res.getScore());
+        emdV4ProjectStudentTaskMapper.updateScore(res.getId(),res.getScore(), res.getTotalScore());
         EMDV4ProjectStudentTask PST = this.getByPSTid(stepWeightingQo.getPstId());
         emdv4ProjectStudentTaskSetWeightService.checkProjectTaskWeighting(emdv4StudentTaskBookList, PST);
         return PST;
+    }
+
+    /**
+     * 根据实验指导书的组件获取PST
+     * @param component component组件
+     * @return PST
+     */
+    @Override
+    public EMDV4ProjectStudentTask getPSTByComponent(EMDV4Component component) {
+        // 1. 获取taskBook的根节点
+        EMDV4StudentTaskBook rootBlock = emdv4StudentTaskBookService.getRootTaskBook(component.getBlockId());
+        // 2. 根据根节点获取PST
+        return emdv4ProjectStudentTaskMapper.getByTaskBookId(rootBlock.getId());
+    }
+
+    @Override
+    public EMDV4ProjectStudentTask getPSTByBlock(EMDV4StudentTaskBook block) {
+        EMDV4StudentTaskBook rootBlock = emdv4StudentTaskBookService.getRootTaskBook(block.getId());
+        return emdv4ProjectStudentTaskMapper.getByTaskBookId(rootBlock.getId());
+    }
+
+    /**
+     * 根据PT id 以及学生id列表获取同一个小组内的PSTList
+     * @param ptId PT id
+     * @param studentList 学生id列表
+     * @return PST 列表
+     */
+    @Override
+    public List<EMDV4ProjectStudentTask> getListByPTAndStu(Long ptId, List<Integer> studentList) {
+        List<EMDV4ProjectStudentTask> res = emdV4ProjectStudentTaskMapper.getByPTAndStuIdList(ptId,studentList);
+        res.forEach(pst->{
+            EMDV4StudentTaskBook book = emdV4StudentTaskBookService.getByBookId(pst.getTaskBookId());
+            pst.setStudentTaskBook(book);
+        });
+        return res;
     }
 
 }

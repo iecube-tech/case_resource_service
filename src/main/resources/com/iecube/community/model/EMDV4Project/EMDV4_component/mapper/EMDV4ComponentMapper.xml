@@ -69,4 +69,93 @@
                                    `score_proportion`=#{scoreProportion}
                                 WHERE id=#{id}
     </update>
+
+    <select id="batchGetByOrderAndBlockIds" resultMap="EMDV4Component">
+        SELECT *
+        FROM EMDV4_component
+        WHERE `order`=#{order}
+          AND `name`=#{name}
+          AND `type`=#{type}
+          AND `block_id` in
+        <foreach collection="blockIds" item="blockId" open="(" separator="," close=")">
+            #{blockId}
+        </foreach>
+    </select>
+
+    <update id="batchUpdateStatus">
+        UPDATE EMDV4_component
+        SET `status`=
+        <foreach collection="records" separator=" " item="item" open="CASE id" close="END">
+            WHEN #{item.id} THEN #{item.status}
+        </foreach>
+        WHERE id IN
+        <foreach collection="records" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </update>
+
+    <update id="batchUpdatePayload">
+        UPDATE EMDV4_component
+        SET `payload`=
+            <foreach collection="records" separator=" " item="item" open="CASE id" close="END">
+                WHEN #{item.id} THEN #{item.payload}
+            </foreach>
+        WHERE id IN
+            <foreach collection="records" item="item" open="(" separator="," close=")">
+                #{item.id}
+            </foreach>
+    </update>
+
+    <update id="batchUpdateAiScore">
+        UPDATE EMDV4_component
+        SET
+            `score`= CASE id
+        <foreach collection="records" separator="" item="item">
+            WHEN #{item.id} THEN #{item.score}
+        </foreach>
+        END,
+            `ai_score`= CASE id
+        <foreach collection="records" separator="" item="item">
+            WHEN #{item.id} THEN #{item.aiScore}
+        </foreach>
+        END,
+            `t_score`= CASE id
+        <foreach collection="records" separator="" item="item">
+            WHEN #{item.id} THEN #{item.tScore}
+        </foreach>
+        END,
+            `score_proportion`= CASE id
+        <foreach collection="records" separator="" item="item">
+            WHEN #{item.id} THEN #{item.scoreProportion}
+        </foreach>
+        END
+        WHERE id IN
+        <foreach collection="records" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateTScore">
+        UPDATE EMDV4_component
+        SET
+            `score`= CASE id
+        <foreach collection="records" separator="" item="item">
+            WHEN #{item.id} THEN #{item.score}
+        </foreach>
+        END,
+            `t_score`= CASE id
+        <foreach collection="records" separator="" item="item">
+            WHEN #{item.id} THEN #{item.tScore}
+        </foreach>
+        END,
+            `score_proportion`= CASE id
+        <foreach collection="records" separator="" item="item">
+            WHEN #{item.id} THEN #{item.scoreProportion}
+        </foreach>
+        END
+        WHERE id IN
+        <foreach collection="records" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </update>
 </mapper>

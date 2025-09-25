@@ -1,6 +1,7 @@
 package com.iecube.community.model.EMDV4Project.EMDV4_student_task_book.service;
 
 import com.iecube.community.model.EMDV4.BookLab.entity.BookLabCatalog;
+import com.iecube.community.model.EMDV4Project.EMDV4_component.entity.EMDV4Component;
 import com.iecube.community.model.EMDV4Project.EMDV4_student_task_book.entity.EMDV4StudentTaskBook;
 
 import java.util.List;
@@ -31,4 +32,14 @@ public interface EMDV4StudentTaskBookService {
     EMDV4StudentTaskBook computeTaskBookScore(EMDV4StudentTaskBook node);
 
     List<EMDV4StudentTaskBook> getProjectTaskBlockList(Long projectTaskId);
+
+    List<EMDV4StudentTaskBook> getAllLeafNodes(EMDV4StudentTaskBook rootNode);
+
+    EMDV4StudentTaskBook updateBlockTime(String blockId, Boolean startTime, Boolean endTime);
+
+    void batchUpdateBlockStatus(EMDV4StudentTaskBook changed);
+    void batchUpdateBlockCurrentChild(EMDV4StudentTaskBook changed);
+    void batchUpdateBlockScore(EMDV4StudentTaskBook changed);
+    void batchUpdateBlockTime(EMDV4StudentTaskBook changed);
+    void handleUpdateLevel2StartTime(EMDV4Component component);
 }

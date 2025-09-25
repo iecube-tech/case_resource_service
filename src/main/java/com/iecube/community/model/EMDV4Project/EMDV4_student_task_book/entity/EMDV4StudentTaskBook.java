@@ -3,6 +3,7 @@ package com.iecube.community.model.EMDV4Project.EMDV4_student_task_book.entity;
 import com.iecube.community.model.EMDV4Project.EMDV4_component.entity.EMDV4Component;
 import lombok.Data;
 
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -33,6 +34,8 @@ public class EMDV4StudentTaskBook {
     private Integer currentChild;
     private Double weighting;
     private Double totalScore;
+    private Date startTime;
+    private Date endTime;
     private List<EMDV4Component> components;
     private List<EMDV4StudentTaskBook> children;
     private List<Long> tagList; //统计实验指导书下的tag数量

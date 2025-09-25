@@ -14,6 +14,11 @@ public interface EMDV4ComponentMapper {
     int updateStatus(String id, int status);
     int updatePayload(String id, String payload);
     int updateAiScore(String id, double score, double scoreProportion);
-
     int updateTScore(String id, double score, double scoreProportion);
+
+    List<EMDV4Component> batchGetByOrderAndBlockIds(Integer order, String name, String type, List<String> blockIds);
+    int batchUpdateStatus(List<EMDV4Component> records);
+    int batchUpdatePayload(List<EMDV4Component> records);
+    int batchUpdateAiScore(List<EMDV4Component> records);
+    int batchUpdateTScore(List<EMDV4Component> records);
 }

@@ -1,6 +1,7 @@
 package com.iecube.community.model.EMDV4Project.EMDV4_project_studentTask.service;
 
 import com.iecube.community.model.EMDV4.BookLab.entity.BookLabCatalog;
+import com.iecube.community.model.EMDV4Project.EMDV4_component.entity.EMDV4Component;
 import com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.entity.EMDV4ProjectStudent;
 import com.iecube.community.model.EMDV4Project.EMDV4_projectTask.entity.EMDV4ProjectTask;
 import com.iecube.community.model.EMDV4Project.EMDV4_project_studentTask.entity.EMDV4ProjectStudentTask;
@@ -34,4 +35,10 @@ public interface EMDV4ProjectStudentTaskService {
     EMDV4ProjectStudentTask teacherChecked(Long id, Double score);
 
     EMDV4ProjectStudentTask checkedScoreWeighting(StepWeightingQo stepWeightingQo);
+
+    EMDV4ProjectStudentTask getPSTByComponent(EMDV4Component component);
+
+    EMDV4ProjectStudentTask getPSTByBlock(EMDV4StudentTaskBook block);
+
+    List<EMDV4ProjectStudentTask> getListByPTAndStu(Long ptId, List<Integer> studentList);
 }

@@ -15,4 +15,6 @@ public interface EMDV4ProjectStudentMapper {
     List<EMDV4ProjectStudentVo> getProjectStudentListByPTid(Long projectTaskId);
     void updateProjectTotalNum(Integer projectId, int totalNumOfLabs, int totalNumOfTags);
     EMDV4ProjectStudent getByStudentIdAndProjectId(Integer studentId, Integer projectId);
+    EMDV4ProjectStudent getById(Long id);
+    int updateScore(Long id, Double score);
 }
