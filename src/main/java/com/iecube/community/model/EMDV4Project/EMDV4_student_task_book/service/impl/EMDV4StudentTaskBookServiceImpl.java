@@ -490,7 +490,8 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
         taskBook.setId(UUIDGenerator.generateUUID()); // 生成新ID（根据实际需求实现，如UUID或自增）
         taskBook.setChildren(null); // 先清空子节点，后续递归处理
         if(taskBook.getLevel().equals(2) && taskBook.getStage().equals(0)){
-            taskBook.setNeedPassScore(projectTask.getStep1NeedPassScore() != null && projectTask.getStep1NeedPassScore());
+//            taskBook.setNeedPassScore(projectTask.getStep1NeedPassScore() != null && projectTask.getStep1NeedPassScore());
+            taskBook.setNeedPassScore(true);
             taskBook.setPassScore(projectTask.getStep1PassScore()==null?0: projectTask.getStep1PassScore());
         }
 
