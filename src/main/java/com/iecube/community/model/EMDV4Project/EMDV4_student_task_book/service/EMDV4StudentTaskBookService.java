@@ -2,12 +2,13 @@ package com.iecube.community.model.EMDV4Project.EMDV4_student_task_book.service;
 
 import com.iecube.community.model.EMDV4.BookLab.entity.BookLabCatalog;
 import com.iecube.community.model.EMDV4Project.EMDV4_component.entity.EMDV4Component;
+import com.iecube.community.model.EMDV4Project.EMDV4_projectTask.entity.EMDV4ProjectTask;
 import com.iecube.community.model.EMDV4Project.EMDV4_student_task_book.entity.EMDV4StudentTaskBook;
 
 import java.util.List;
 
 public interface EMDV4StudentTaskBookService {
-    EMDV4StudentTaskBook createStudentTaskBook(BookLabCatalog labProc);
+    EMDV4StudentTaskBook createStudentTaskBook(EMDV4ProjectTask projectTask, BookLabCatalog labProc);
 
     /**
      * @param taskBookId 实验详情对应的指导书的id

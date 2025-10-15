@@ -12,6 +12,7 @@ import com.iecube.community.model.EMDV4Project.EMDV4_component.entity.EMDV4Compo
 import com.iecube.community.model.EMDV4Project.EMDV4_component.mapper.EMDV4ComponentMapper;
 import com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.entity.EMDV4ProjectStudent;
 import com.iecube.community.model.EMDV4Project.EMDV4_projectStudent.mapper.EMDV4ProjectStudentMapper;
+import com.iecube.community.model.EMDV4Project.EMDV4_projectTask.entity.EMDV4ProjectTask;
 import com.iecube.community.model.EMDV4Project.EMDV4_project_studentTask.entity.EMDV4ProjectStudentTask;
 import com.iecube.community.model.EMDV4Project.EMDV4_project_studentTask.mapper.EMDV4ProjectStudentTaskMapper;
 import com.iecube.community.model.EMDV4Project.EMDV4_student_task_book.entity.EMDV4StudentTaskBook;
@@ -48,12 +49,12 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
     private ApplicationEventPublisher eventPublisher;
 
     @Override
-    public EMDV4StudentTaskBook createStudentTaskBook(BookLabCatalog labProc) {
+    public EMDV4StudentTaskBook createStudentTaskBook(EMDV4ProjectTask projectTask, BookLabCatalog labProc) {
         // 存储原ID与新ID的映射关系（避免递归中找不到父节点新ID）
         Map<Long, String> booklabIdMap = new HashMap<>(); // 原BookLabCatalog.id -> 新id
         List<EMDV4StudentTaskBook> allNodes = new ArrayList<>();
         List<EMDV4Component> allComponents = new ArrayList<>();
-        EMDV4StudentTaskBook res = this.copyFromBookLabCatalog(labProc, allNodes, allComponents, booklabIdMap);
+        EMDV4StudentTaskBook res = this.copyFromBookLabCatalog(projectTask, labProc, allNodes, allComponents, booklabIdMap);
         // 入库 allNodes  allComponents
         if(!allNodes.isEmpty()){
             int re1 = emdV4StudentTaskBookMapper.batchInsert(allNodes);
@@ -471,13 +472,15 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
 
     /**
      *  从 模版复制必要字段
+     * @param projectTask 当前知道书对应的任务
      * @param labProc EMDV4 的labProc
      * @param allNodes 所有节点
      * @param allComponents 所有的component
      * @param booklabIdMap map
      * @return 构建好的EMDV4StudentTaskBook
      */
-    private EMDV4StudentTaskBook copyFromBookLabCatalog(BookLabCatalog labProc,
+    private EMDV4StudentTaskBook copyFromBookLabCatalog(EMDV4ProjectTask projectTask,
+                                                        BookLabCatalog labProc,
                                                         List<EMDV4StudentTaskBook> allNodes,
                                                         List<EMDV4Component> allComponents,
                                                         Map<Long, String> booklabIdMap) {
@@ -486,6 +489,10 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
         this.copyTaskBookFields(taskBook, labProc); // 复制非ID、非关系字段
         taskBook.setId(UUIDGenerator.generateUUID()); // 生成新ID（根据实际需求实现，如UUID或自增）
         taskBook.setChildren(null); // 先清空子节点，后续递归处理
+        if(taskBook.getLevel().equals(2) && taskBook.getStage().equals(0)){
+            taskBook.setNeedPassScore(projectTask.getStep1NeedPassScore() != null && projectTask.getStep1NeedPassScore());
+            taskBook.setPassScore(projectTask.getStep1PassScore()==null?0: projectTask.getStep1PassScore());
+        }
 
         // 2. 存储原ID与新ID的映射（供子节点设置pId使用）
         booklabIdMap.put(labProc.getId(), taskBook.getId());
@@ -524,7 +531,7 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
         if(labProc.getChildren()!=null && !labProc.getChildren().isEmpty()) {
             // 如果子节点不为空
             labProc.getChildren().forEach(block->{
-                copyFromBookLabCatalog(block, allNodes, allComponents, booklabIdMap);
+                copyFromBookLabCatalog(projectTask, block, allNodes, allComponents, booklabIdMap);
             });
         }
         return taskBook;
@@ -547,14 +554,14 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
         taskBook.setStyle(labProc.getStyle());
         taskBook.setConfig(labProc.getConfig());
         taskBook.setPayload(labProc.getPayload());
-        taskBook.setNeedPassScore(labProc.getNeedPassScore());
-        taskBook.setPassScore(labProc.getPassScore()==null?0.0:labProc.getPassScore());
         taskBook.setScore(0.0);
         taskBook.setPassStatus(labProc.getPassScore()==null||labProc.getPassScore()<=0);
         taskBook.setStatus(0);
         taskBook.setCurrentChild(0);
         taskBook.setWeighting(labProc.getWeighting());
         taskBook.setTotalScore(0.0);
+        taskBook.setNeedPassScore(labProc.getNeedPassScore());
+        taskBook.setPassScore(labProc.getPassScore()==null?0.0:labProc.getPassScore());
     }
 
     private void copyComponentFields(EMDV4Component target, LabComponent source) {

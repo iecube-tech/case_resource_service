@@ -121,4 +121,27 @@
         ORDER BY school, major, collage, student_grade, student_class, student_id
     </select>
 
+    <select id="findByGradeClassIdList" resultMap="StudentDto">
+        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.grade as student_grade,
+               class_and_grade.name as student_class, Major.name as major, Collage.name as collage, School.`name` as school
+        FROM Student RIGHT JOIN Major ON Student.major_id=Major.id RIGHT JOIN Collage ON Major.collage_id=Collage.id RIGHT JOIN School ON Collage.school_id=School.id
+                     RIGHT JOIN class_and_grade ON class_and_grade.id=Student.student_class
+        WHERE class_and_grade.`id` IN
+        <foreach collection="idList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        ORDER BY school, major, collage, student_grade, student_class, student_id
+    </select>
+
+    <select id="findByIdList" resultMap="StudentDto">
+        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.grade as student_grade,
+               class_and_grade.name as student_class, Major.name as major, Collage.name as collage, School.`name` as school
+        FROM Student RIGHT JOIN Major ON Student.major_id=Major.id RIGHT JOIN Collage ON Major.collage_id=Collage.id RIGHT JOIN School ON Collage.school_id=School.id
+                     RIGHT JOIN class_and_grade ON class_and_grade.id=Student.student_class
+        WHERE Student.id IN
+        <foreach collection="idList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY school, major, collage, student_grade, student_class, student_id
+    </select>
 </mapper>

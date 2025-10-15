@@ -37,4 +37,7 @@ public class TaskTemplateDto {
     private Long taskEMdProc;
     private LabProc labProc;
     private Long labProcId;
+    private Boolean step1NeedPassScore;
+    private Double step1PassScore;  // 课前预习通过分数的阈值
+    private Integer version;
 }

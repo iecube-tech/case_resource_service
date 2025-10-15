@@ -13,4 +13,7 @@ public class TaskTemplate extends BaseEntity {
     private String taskName;
     private String taskCover;
     private Integer taskDevice;
+    private Boolean step1NeedPassScore;
+    private Double step1PassScore;
+    private Integer version;
 }

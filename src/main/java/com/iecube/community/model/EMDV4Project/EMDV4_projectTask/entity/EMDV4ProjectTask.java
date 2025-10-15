@@ -23,5 +23,7 @@ public class EMDV4ProjectTask {
     private Double averageScore;
     private Double averageUseTime;
     private Double averageErrorRate;
-
+    private Boolean step1NeedPassScore;
+    private Double step1PassScore;  // 课前预习通过分数的阈值
+    private Integer version;
 }

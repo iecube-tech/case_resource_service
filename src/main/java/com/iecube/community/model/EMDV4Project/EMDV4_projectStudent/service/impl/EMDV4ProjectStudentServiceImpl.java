@@ -31,7 +31,7 @@ public class EMDV4ProjectStudentServiceImpl implements EMDV4ProjectStudentServic
 
 
     @Override
-    public List<EMDV4ProjectStudent> createProjectStudents(Project project, EMDV4ProjectQo emdv4ProjectQo, List<StudentDto> studentDtoList) {
+    public List<EMDV4ProjectStudent> createProjectStudents(Project project, List<StudentDto> studentDtoList) {
         List<EMDV4ProjectStudent> emdV4ProjectStudentList = new ArrayList<>();
         studentDtoList.forEach(studentDto -> {
             EMDV4ProjectStudent ps = new EMDV4ProjectStudent();

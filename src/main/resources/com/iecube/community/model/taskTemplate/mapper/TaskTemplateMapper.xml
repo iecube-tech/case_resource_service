@@ -10,12 +10,18 @@
         <result column="task_name" property="taskName"></result>
         <result column="task_cover" property="taskCover"></result>
         <result column="task_device" property="taskDevice"></result>
+        <result column="step1_need_pass_score" property="step1NeedPassScore"></result>
+        <result column="step1_pass_score" property="step1PassScore"></result>
     </resultMap>
 
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
         INSERT INTO
-            task_templates (id, content_id, num, weighting, class_hour, task_name, task_cover, task_device, creator, create_time, last_modified_user, last_modified_time)
-        VALUES (null, #{contentId}, #{num}, #{weighting}, #{classHour}, #{taskName}, #{taskCover}, #{taskDevice},  #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime})
+            task_templates (id, content_id, num, weighting, class_hour, task_name, task_cover, task_device,
+                            creator, create_time, last_modified_user, last_modified_time,
+                            step1_need_pass_score, step1_pass_score, version)
+        VALUES (null, #{contentId}, #{num}, #{weighting}, #{classHour}, #{taskName}, #{taskCover}, #{taskDevice},
+                #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime},
+                #{step1NeedPassScore}, #{step1PassScore}, #{version})
     </insert>
 
     <update id="update">
@@ -27,11 +33,17 @@
                                   task_cover=#{taskCover},
                                   task_device=#{taskDevice},
                                   last_modified_user=#{lastModifiedUser},
-                                  last_modified_time=#{lastModifiedTime} WHERE id=#{id}
+                                  last_modified_time=#{lastModifiedTime},
+                                  step1_need_pass_score=#{step1NeedPassScore},
+                                  step1_pass_score=#{step1PassScore}
+                              WHERE id=#{id}
     </update>
 
     <select id="getTaskTemplatesByContentId" resultMap="taskTemplateDto">
-        SELECT id, content_id, num, weighting, class_hour, task_name, task_cover, task_device, task_data_tables
+        SELECT
+            id, content_id, num, weighting, class_hour, task_name, task_cover, task_device,
+            creator, create_time, last_modified_user, last_modified_time,
+            step1_need_pass_score, step1_pass_score, version
         FROM `task_templates` WHERE content_id=#{contentId} ORDER BY num
     </select>
 

@@ -311,7 +311,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             taskTemplateDto.setReferenceFileList(referenceFileList);
             taskTemplateDto.setAttentionList(attentionList);
             taskTemplateDto.setExperimentalSubjectList(experimentalSubjectList);
-            taskTemplateDto.setLabProcId(taskTemplateEMdProc.getProcId());
+            taskTemplateDto.setLabProcId(taskTemplateEMdProc==null?null:taskTemplateEMdProc.getProcId());
             if(details != null){
                 taskTemplateDto.setTaskDetails(details.getName());
             }

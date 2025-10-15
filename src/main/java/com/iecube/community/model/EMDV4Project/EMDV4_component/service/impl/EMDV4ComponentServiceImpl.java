@@ -86,7 +86,7 @@ public class EMDV4ComponentServiceImpl implements EMDV4ComponentService {
         if(res!=1){
             throw new UpdateException("更新数据异常");
         }
-        emdv4ProjectStudentTaskService.computeAiScore(oldComponent.getBlockId()); // 计算本人的成绩
+        eventPublisher.publishEvent(new ComputeAiScore(this,oldComponent));// 计算本人的成绩
         EMDV4Component res1 = emdV4ComponentMapper.getById(id);
         eventPublisher.publishEvent(new ComponentAiScoreChanged(this, res1));
         return res1;
@@ -101,7 +101,7 @@ public class EMDV4ComponentServiceImpl implements EMDV4ComponentService {
             score=0;
         }else {
             if(score>totalScore){
-                throw new UpdateException("成绩大于总成绩");
+                score = totalScore;
             }
             per = (score / totalScore) *100;
         }
@@ -110,7 +110,7 @@ public class EMDV4ComponentServiceImpl implements EMDV4ComponentService {
             throw new UpdateException("更新数据异常");
         }
 
-        emdv4ProjectStudentTaskService.computeCheckScore(oldComponent.getBlockId()); // 计算本人的成绩
+        eventPublisher.publishEvent(new ComputeTScore(this,oldComponent));// 计算本人的成绩
         EMDV4Component res1 = emdV4ComponentMapper.getById(id);
         eventPublisher.publishEvent(new ComponentTScoreChanged(this, res1));
         return res1;

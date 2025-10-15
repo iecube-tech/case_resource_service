@@ -42,6 +42,9 @@ public class EMDV4ProjectTaskImpl implements EMDV4ProjectTaskService {
             task.setAverageScore(0.0);
             task.setAverageUseTime(0.0);
             task.setAverageErrorRate(0.0);
+            task.setStep1NeedPassScore(taskTemp.getStep1NeedPassScore());
+            task.setStep1PassScore(taskTemp.getStep1PassScore());
+            task.setVersion(taskTemp.getVersion());
             taskV4List.add(task);
         });
         int res = emdV4ProjectTaskMapper.batchInsert(taskV4List);

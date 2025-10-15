@@ -57,7 +57,7 @@ public class EMDV4PSTListener {
     @EventListener
     @Order(2)
     public void batchUpLevel2BlockTimeEvent(ComponentPayloadChanged event) {
-        log.info("异步事件：ComponentAiScoreChanged - 同步小组");
+        log.info("异步事件：ComponentPayloadChanged - 同步小组大步骤时间");
         // 事件2 更新大步骤的开始时间
         EMDV4Component changed = event.getComponent();
         taskBookService.handleUpdateLevel2StartTime(changed);

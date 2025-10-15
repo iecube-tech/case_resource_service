@@ -45,7 +45,7 @@ public class EMDV4ProjectStudentTaskServiceImpl implements EMDV4ProjectStudentTa
 
     @Override
     public List<Integer> createProjectStudentTask(List<EMDV4ProjectTask> projectTaskList, List<BookLabCatalog> labProcList, List<EMDV4ProjectStudent> projectStudentList) {
-        // 5. 根据学生人数 创建 EMDV4_student_task_book(实验指导书)和EMDV4_component(组件) // 分发实验指导书 一个学生一个学生的穿件 循环学生人数次
+        // 5. 根据学生人数 创建 EMDV4_student_task_book(实验指导书)和EMDV4_component(组件) // 分发实验指导书 一个学生一个学生的创建 循环学生人数次
         // projectStudent+projectStudentTask->taskBook
         // List<EMDV4ProjectStudent>元素 和 List<EMDV4ProjectTask> 元素两两组合
         List<EMDV4ProjectStudentTask> studentTaskList = new ArrayList<>();
@@ -57,7 +57,7 @@ public class EMDV4ProjectStudentTaskServiceImpl implements EMDV4ProjectStudentTa
             for(int i=0; i<projectTaskList.size(); i++){
                 EMDV4ProjectTask projectTask = projectTaskList.get(i);
                 BookLabCatalog labCatalog = labProcList.get(i);
-                EMDV4StudentTaskBook studentTaskBook = emdV4StudentTaskBookService.createStudentTaskBook(labCatalog);
+                EMDV4StudentTaskBook studentTaskBook = emdV4StudentTaskBookService.createStudentTaskBook(projectTask, labCatalog);
                 EMDV4ProjectStudentTask studentTask = this.newEMDV4ProjectStudentTask(projectStudent,projectTask,studentTaskBook);
                 studentTask.setTotalNumOfTags(studentTaskBook.getTagList().size());  // 更新实验下的总tag数量
                 taskTagNumList.set(i, studentTaskBook.getTagList().size());
@@ -120,7 +120,7 @@ public class EMDV4ProjectStudentTaskServiceImpl implements EMDV4ProjectStudentTa
     public void computeAiScore(String blockLeafId) {
         EMDV4StudentTaskBook emdv4StudentTaskBook = emdV4StudentTaskBookService.computeAiScore(blockLeafId);
         // 更新PST的成绩
-        emdV4ProjectStudentTaskMapper.updateAiScore(emdv4StudentTaskBook.getId(),emdv4StudentTaskBook.getScore(), new Date());
+        emdV4ProjectStudentTaskMapper.updateAiScore(emdv4StudentTaskBook.getId(),emdv4StudentTaskBook.getScore(),emdv4StudentTaskBook.getTotalScore(), new Date());
         EMDV4ProjectStudentTask PST = emdV4ProjectStudentTaskMapper.getByTaskBookId(emdv4StudentTaskBook.getId());
         eventPublisher.publishEvent(new ComputeProjectScore(this,PST));
     }

@@ -36,4 +36,8 @@ public interface StudentMapper {
     List<StudentDto> findAllStudent();
 
     List<StudentDto> findByGradeClass(Integer gradeClass);
+
+    List<StudentDto> findByGradeClassIdList(List<Integer> idList);
+
+    List<StudentDto> findByIdList(List<Integer> idList);
 }

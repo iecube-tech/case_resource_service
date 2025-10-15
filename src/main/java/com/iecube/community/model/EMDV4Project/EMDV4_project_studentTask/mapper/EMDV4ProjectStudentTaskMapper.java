@@ -14,7 +14,7 @@ public interface EMDV4ProjectStudentTaskMapper {
     List<EMDV4ProjectStudentTask> getByProjectStudent(Long projectStudent);
     EMDV4ProjectStudentTask getById(Long id);
     EMDV4ProjectStudentTask getByPSIdAndPTNum(Long projectStudentId, Integer projectTaskNum);
-    int updateAiScore(String taskBookId, double aiScore, Date aiScoreTime);
+    int updateAiScore(String taskBookId, double aiScore, double totalScore, Date aiScoreTime);
     int updateScore(String taskBookId, double score, double totalScore);
     int batchUpdateScore(List<EMDV4ProjectStudentTask> list);
     int updateCheckScore(Long id, double score);

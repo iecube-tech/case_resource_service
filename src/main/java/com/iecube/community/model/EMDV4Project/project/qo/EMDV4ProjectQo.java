@@ -1,5 +1,6 @@
 package com.iecube.community.model.EMDV4Project.project.qo;
 
+import com.iecube.community.model.major.entity.ClassAndGrade;
 import com.iecube.community.model.project.entity.RemoteQo;
 import com.iecube.community.model.student.entity.Student;
 import com.iecube.community.model.task.entity.Task;
@@ -22,4 +23,5 @@ public class EMDV4ProjectQo {
     private List<Date> date;
     private List<Student> students; // 空
     private List<Task> task;
+    private List<ClassAndGrade> gradeClassList;
 }

@@ -41,4 +41,6 @@ public class TaskVo {
     private MDChapter mdChapter;
     private Long taskEMDProc;
     private LabProc labProc;
+    private Boolean step1NeedPassScore;
+    private Double step1PassScore;
 }
