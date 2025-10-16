@@ -107,6 +107,11 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         taskTemplate.setLastModifiedUser(user);
         taskTemplate.setCreateTime(new Date());
         taskTemplate.setLastModifiedTime(new Date());
+        taskTemplate.setStep1NeedPassScore(taskTemplateDto.getStep1NeedPassScore());
+        taskTemplate.setStep1PassScore(taskTemplateDto.getStep1PassScore());
+        taskTemplate.setVersion(taskTemplateDto.getVersion());
+        taskTemplate.setUseCoder(taskTemplateDto.getUseCoder());
+        taskTemplate.setCoderType(taskTemplateDto.getCoderType());
         Integer row = taskTemplateMapper.insert(taskTemplate);
         if (row != 1){
             throw new InsertException("插入数据异常");
@@ -284,6 +289,11 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         taskTemplate.setTaskDevice(taskTemplateDto.getTaskDevice());
         taskTemplate.setLastModifiedUser(user);
         taskTemplate.setLastModifiedTime(new Date());
+        taskTemplate.setStep1NeedPassScore(taskTemplateDto.getStep1NeedPassScore());
+        taskTemplate.setStep1PassScore(taskTemplateDto.getStep1PassScore());
+        taskTemplate.setVersion(taskTemplateDto.getVersion());
+        taskTemplate.setUseCoder(taskTemplateDto.getUseCoder());
+        taskTemplate.setCoderType(taskTemplateDto.getCoderType());
         taskTemplateMapper.update(taskTemplate);
         this.deleteTaskTemplateItem(taskTemplateDto.getId());
         this.addTaskTemplateItems(taskTemplateDto);
@@ -302,8 +312,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             List<ExperimentalSubject> experimentalSubjectList = experimentalSubjectMapper.getExperimentalSubjectByTaskTemplateId(taskTemplateDto.getId());
             Details details = taskDetailsMapper.getDetailsByTaskTemplateId(taskTemplateDto.getId());
             TaskMdDoc taskMdDoc = taskMdDocMapper.getTaskMdDocByTaskTemplateId(taskTemplateDto.getId());
-            LabProc labProc = taskEMdProcMapper.getLabProcByTaskTemplateId(taskTemplateDto.getId());
-            TaskTemplateEMdProc taskTemplateEMdProc = taskEMdProcMapper.getByTaskTemplateId(taskTemplateDto.getId());
+            LabProc labProc = taskEMdProcMapper.getLabProcByTaskTemplateId(taskTemplateDto.getId()); // 获取EMDv3指导书的详细内容
+            TaskTemplateEMdProc taskTemplateEMdProc = taskEMdProcMapper.getByTaskTemplateId(taskTemplateDto.getId()); // 获取v3 v4 的指导书 ID
             taskTemplateDto.setBackDropList(backDropList);
             taskTemplateDto.setRequirementList(requirementList);
             taskTemplateDto.setDeliverableRequirementList(deliverableRequirementList);
@@ -320,9 +330,14 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 MDChapter mdChapter = markdownService.getChapterById(taskMdDoc.getMdDocId());
                 taskTemplateDto.setMdChapter(mdChapter);
             }
-            if(labProc != null){
-                taskTemplateDto.setLabProc(labProc);
-                taskTemplateDto.setTaskEMdProc(labProc.getId());
+            if(taskTemplateDto.getVersion()!=null){
+                if(labProc != null && taskTemplateDto.getVersion().equals(3)){
+                    taskTemplateDto.setLabProc(labProc);
+                    taskTemplateDto.setTaskEMdProc(labProc.getId());
+                }
+                if(taskTemplateDto.getVersion().equals(4)){
+                    taskTemplateDto.setTaskEMdProc(taskTemplateDto.getLabProcId());
+                }
             }
         }
         return contentTaskTemplates;

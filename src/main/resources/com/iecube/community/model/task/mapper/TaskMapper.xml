@@ -18,6 +18,8 @@
         <result column="last_modified_time" property="lastModifiedTime"></result>
         <result column="step1_need_pass_score" property="step1NeedPassScore"></result>
         <result column="step1_pass_score" property="step1PassScore"></result>
+        <result column="use_coder" property="useCoder"></result>
+        <result column="coder_type" property="coderType"></result>
     </resultMap>
 
     <resultMap id="TaskVo" type="com.iecube.community.model.task.entity.TaskVo">
@@ -32,6 +34,8 @@
         <result column="task_end_time" property="taskEndTime"></result>
         <result column="step1_need_pass_score" property="step1NeedPassScore"></result>
         <result column="step1_pass_score" property="step1PassScore"></result>
+        <result column="use_coder" property="useCoder"></result>
+        <result column="coder_type" property="coderType"></result>
     </resultMap>
 
     <resultMap id="studentTaskVo" type="com.iecube.community.model.task.entity.StudentTaskVo">
@@ -41,6 +45,8 @@
         <result column="task_status" property="taskStatus"></result>
         <result column="step1_need_pass_score" property="step1NeedPassScore"></result>
         <result column="step1_pass_score" property="step1PassScore"></result>
+        <result column="use_coder" property="useCoder"></result>
+        <result column="coder_type" property="coderType"></result>
     </resultMap>
 
     <resultMap id="StudentTaskDetailVo" type="com.iecube.community.model.task.entity.StudentTaskDetailVo">
@@ -61,6 +67,8 @@
         <result column="data_tables" property="dataTables"></result>
         <result column="step1_need_pass_score" property="step1NeedPassScore"></result>
         <result column="step1_pass_score" property="step1PassScore"></result>
+        <result column="use_coder" property="useCoder"></result>
+        <result column="coder_type" property="coderType"></result>
     </resultMap>
 
     <resultMap id="TaskBriefVo" type="com.iecube.community.model.task.vo.TaskBriefVo">
@@ -87,15 +95,19 @@
 
 
     <insert id="addProjectTask" useGeneratedKeys="true" keyProperty="id" >
-        INSERT INTO task (id, task_template_id, project_id, num, weighting,objective_weighting, class_hour, task_name, task_cover, task_device, task_data_tables, task_start_time,
-                          task_end_time, creator, create_time, last_modified_user, last_modified_time, step1_need_pass_score, step1_pass_score)
-        VALUES (NULL,#{taskTemplateId}, #{projectId}, #{num}, #{weighting}, 0, #{classHour}, #{taskName}, #{taskCover}, #{taskDevice}, #{taskDataTables},
-                #{taskStartTime},#{taskEndTime}, #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime}, #{step1NeedPassScore}, #{step1PassScore})
+        INSERT INTO task (id, task_template_id, project_id, num, weighting,objective_weighting, class_hour, task_name,
+                          task_cover, task_device, task_data_tables, task_start_time, task_end_time, creator,
+                          create_time, last_modified_user, last_modified_time, step1_need_pass_score, step1_pass_score,
+                          use_coder, coder_type)
+        VALUES (NULL,#{taskTemplateId}, #{projectId}, #{num}, #{weighting}, 0, #{classHour}, #{taskName},
+                #{taskCover}, #{taskDevice}, #{taskDataTables},#{taskStartTime},#{taskEndTime}, #{creator},
+                #{createTime}, #{lastModifiedUser}, #{lastModifiedTime}, #{step1NeedPassScore}, #{step1PassScore},
+                #{useCoder}, #{coderType})
     </insert>
 
     <select id="getTaskById" resultMap="Task">
             SELECT id,project_id,num,weighting,class_hour,task_name,task_cover,task_device,task_start_time,task_end_time,
-                   step1_need_pass_score, step1_pass_score
+                   step1_need_pass_score, step1_pass_score, use_coder, coder_type
             FROM task
             WHERE id=#{id}
     </select>
@@ -116,6 +128,8 @@
                task.class_hour AS class_hour,
                task.step1_pass_score,
                task.step1_need_pass_score,
+               task.use_coder,
+               task.coder_type,
                project_task_student.grade AS task_grade,
                project_task_student.status AS task_status
 --                project_task_student.tags AS tags
@@ -145,6 +159,8 @@
                task.class_hour AS class_hour,
                task.step1_pass_score,
                task.step1_need_pass_score,
+               task.use_coder,
+               task.coder_type,
                task.task_start_time AS task_start_time,
                task.task_end_time AS task_end_time
         FROM project_task_student INNER JOIN task ON project_task_student.task_id=task.id
@@ -169,6 +185,8 @@
                task.num AS task_num, task.task_name AS task_name,
                task.step1_pass_score,
                task.step1_need_pass_score,
+               task.use_coder,
+               task.coder_type,
                task.weighting AS weighting,
                task.class_hour AS class_hour
         FROM project_task_student INNER JOIN task ON project_task_student.task_id=task.id
@@ -215,7 +233,10 @@
     </update>
 
     <select id="getProjectTasks" resultMap="TaskVo">
-        SELECT id,task_name,num,weighting,task_device,task_data_tables,step1_pass_score,step1_need_pass_score from task WHERE project_id=#{projectId} ORDER BY num
+        SELECT
+            id,task_name,num,weighting,task_device,task_data_tables,step1_pass_score,step1_need_pass_score, use_coder,
+            coder_type
+        from task WHERE project_id=#{projectId} ORDER BY num
     </select>
 
     <update id="updatePSTDataTables">

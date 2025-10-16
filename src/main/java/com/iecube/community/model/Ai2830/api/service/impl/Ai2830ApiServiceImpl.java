@@ -23,6 +23,9 @@ public class Ai2830ApiServiceImpl implements Ai2830ApiService {
     @Value("${AI2830.server.url}")
     private String baseUrl;
 
+    @Value("${AI2830.server.key}")
+    private String KEY;
+
     @Override
     public String register() {
         String uri= UriComponentsBuilder.fromHttpUrl(baseUrl + "/api/server_chat/register")
@@ -32,7 +35,7 @@ public class Ai2830ApiServiceImpl implements Ai2830ApiService {
 
         // 构建请求体对象
         Map<String, Object> requestBodyMap = new HashMap<>();
-        requestBodyMap.put("key","q5WSkt4KbhZ4YGWthoqyzNLt8wz17SYs");
+        requestBodyMap.put("key",KEY);
         requestBodyMap.put("course_id","2830");
         requestBodyMap.put("teacher_type","assistant");
         RestTemplate restTemplate = new RestTemplate();
