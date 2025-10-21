@@ -43,4 +43,7 @@ public class TaskVo {
     private LabProc labProc;
     private Boolean step1NeedPassScore;
     private Double step1PassScore;
+    private Boolean useCoder;
+    private Boolean useLabProc;
+    private String coderType;
 }

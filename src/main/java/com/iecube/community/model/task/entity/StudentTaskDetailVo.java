@@ -12,25 +12,31 @@ import java.util.List;
 
 @Data
 public class StudentTaskDetailVo {
-    Integer PSTId;
-    Integer studentId;
-    Integer projectId;
-    Integer taskNum;
-    Double weighting;
-    Double classHour;
-    String taskName;
-    Double taskGrade;
-    String dataTables;
-    List<Tag> taskTags;
-    String taskEvaluate;
-    String taskImprovement;
-    String taskContent;
-    Integer taskStatus;
-    List<PSTResourceVo> resources;
-    Integer taskResubmit;
-    Date taskStartTime;
-    Date taskEndTime;
-    Integer questionListSize;
+    private Integer PSTId;
+    private Integer studentId;
+    private Integer projectId;
+    private Integer taskNum;
+    private Double weighting;
+    private Double classHour;
+    private String taskName;
+    private Double taskGrade;
+    private String dataTables;
+    private List<Tag> taskTags;
+    private String taskEvaluate;
+    private String taskImprovement;
+    private String taskContent;
+    private Integer taskStatus;
+    private List<PSTResourceVo> resources;
+    private Integer taskResubmit;
+    private Date taskStartTime;
+    private Date taskEndTime;
+    private Integer questionListSize;
 //    PSTMarkdownOperate pstMarkdownOperate;
-    PSTArticle pstArticle;
+    private PSTArticle pstArticle;
+    private Boolean step1NeedPassScore;
+    private Double step1PassScore;  // 课前预习通过分数的阈值
+    private Integer version;
+    private Boolean useCoder;
+    private Boolean useLabProc;
+    private String coderType;
 }

@@ -93,23 +93,34 @@ public class EMDV4StudentTaskBookServiceImpl implements EMDV4StudentTaskBookServ
         EMDV4StudentTaskBook block= emdV4StudentTaskBookMapper.getById(taskBookId); // 更新状态的block
 //        this.batchUpdateStatus(block); // 同步小组状态
         eventPublisher.publishEvent(new BlockStatusChanged(this,block));
-        EMDV4StudentTaskBook wholeParentBlock=this.getByBookId(block.getPId()); // 更新currentChild的block
-        List<EMDV4StudentTaskBook> brothBlockList = wholeParentBlock.getChildren();
-        int parentBlockCurrentChild = wholeParentBlock.getCurrentChild();
-        if(parentBlockCurrentChild < (brothBlockList.size()-1)){
-            emdV4StudentTaskBookMapper.updateCurrentChild(wholeParentBlock.getId(), parentBlockCurrentChild+1);
-            EMDV4StudentTaskBook currentChildChanged = emdV4StudentTaskBookMapper.getById(wholeParentBlock.getId());
-//            this.batchUpdateCurrentChild(currentChildChanged); // 同步小组currentChild
-            eventPublisher.publishEvent(new BlockCurrentChildChanged(this,currentChildChanged));
+        EMDV4StudentTaskBook wholeParentBlock=this.getByBookId(block.getPId()); // 更新currentChild的block  // 完整的父节点
+        List<EMDV4StudentTaskBook> brothBlockList = wholeParentBlock.getChildren(); // 所有的同级节点的列表
+        // 获取当前节点索引
+        int currentBlockIndex = 0;
+        for (int i = brothBlockList.size() - 1; i >= 0; i--) { // 从末尾开始遍历
+            if (Objects.equals(brothBlockList.get(i).getId(), block.getId())) {
+                currentBlockIndex = i;
+                break;
+            }
         }
-        // 判断是不根节点的最后一个节点
-        if(block.getLevel().equals(2) && status.equals(1)){
-            List<EMDV4StudentTaskBook> level2Blocks = this.getChildrenByPid(block.getPId());
-            if(block.getOrder()>=level2Blocks.size()-1){
-                // 是最后一步 更新pst的Status
-                EMDV4StudentTaskBook rootBlock = this.getRootTaskBook(block.getId());
-                EMDV4ProjectStudentTask PST = emdv4ProjectStudentTaskMapper.getByTaskBookId(rootBlock.getId());
-                emdv4ProjectStudentTaskMapper.updateStatus(PST.getId(), 1);
+
+        int parentBlockCurrentChild = wholeParentBlock.getCurrentChild(); // 父节点的 CurrentChild
+        if(currentBlockIndex >= parentBlockCurrentChild){
+            if(currentBlockIndex < (brothBlockList.size()-1)){
+                emdV4StudentTaskBookMapper.updateCurrentChild(wholeParentBlock.getId(), currentBlockIndex+1);
+                EMDV4StudentTaskBook currentChildChanged = emdV4StudentTaskBookMapper.getById(wholeParentBlock.getId());
+//            this.batchUpdateCurrentChild(currentChildChanged); // 同步小组currentChild
+                eventPublisher.publishEvent(new BlockCurrentChildChanged(this,currentChildChanged));
+            }
+            // 判断是不根节点的最后一个节点
+            if(block.getLevel().equals(2) && status.equals(1)){
+                List<EMDV4StudentTaskBook> level2Blocks = this.getChildrenByPid(block.getPId());
+                if(currentBlockIndex>=level2Blocks.size()-1){
+                    // 是最后一步 更新pst的Status
+                    EMDV4StudentTaskBook rootBlock = this.getRootTaskBook(block.getId());
+                    EMDV4ProjectStudentTask PST = emdv4ProjectStudentTaskMapper.getByTaskBookId(rootBlock.getId());
+                    emdv4ProjectStudentTaskMapper.updateStatus(PST.getId(), 1);
+                }
             }
         }
         return this.getByBookId(taskBookId);

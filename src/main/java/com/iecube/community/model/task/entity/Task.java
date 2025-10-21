@@ -46,5 +46,6 @@ public class Task extends BaseEntity {
     private Double step1PassScore;  // 课前预习通过分数的阈值
     private Integer version;
     private Boolean useCoder;
+    private Boolean useLabProc;
     private String coderType;
 }

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 属性：用于指定当前的映射文件和哪个接口进行映射， 需要指定接口的文件路径， 需要标注包的完整路径接口-->
+<mapper namespace="com.iecube.community.model.EMDV4.TagLink.mapper.TagLinkMapper">
+
+    <resultMap id="TagLink" type="com.iecube.community.model.EMDV4.TagLink.entity.TagLink">
+        <result property="tagId" column="tag_id"></result>
+    </resultMap>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO BLT_tag_link
+            (`id`, `tag_id`, `name`, `link`, `style`, `config`, `payload`)
+        VALUES  (NULL, #{tagId}, #{name}, #{link}, #{style}, #{config}, #{payload})
+    </insert>
+
+    <update id="updateById">
+        update BLT_tag_link SET `name`=#{name},
+                                `link`=#{link},
+                                `style`=#{style},
+                                `config`=#{config},
+                                `payload`=#{payload}
+                            WHERE `id`=#{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM BLT_tag_link WHERE `id`=#{id}
+    </delete>
+
+    <select id="getById" resultMap="TagLink">
+        SELECT `id`, `tag_id`, `name`, `link`, `style`, `config`, `payload` FROM BLT_tag_link WHERE id=#{id}
+    </select>
+
+    <select id="getByTagId" resultMap="TagLink">
+        SELECT `id`, `tag_id`, `name`, `link`, `style`, `config`, `payload` FROM BLT_tag_link WHERE `tag_id`=#{tagId}
+    </select>
+</mapper>

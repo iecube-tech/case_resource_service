@@ -13,6 +13,7 @@
         <result column="step1_need_pass_score" property="step1NeedPassScore"></result>
         <result column="step1_pass_score" property="step1PassScore"></result>
         <result column="use_coder" property="useCoder"></result>
+        <result column="use_lab_proc" property="useLabProc"></result>
         <result column="coder_type" property="coderType"></result>
     </resultMap>
 
@@ -20,10 +21,10 @@
         INSERT INTO
             task_templates (id, content_id, num, weighting, class_hour, task_name, task_cover, task_device,
                             creator, create_time, last_modified_user, last_modified_time,
-                            step1_need_pass_score, step1_pass_score, version, use_coder, coder_type)
+                            step1_need_pass_score, step1_pass_score, version, use_coder,use_lab_proc, coder_type)
         VALUES (null, #{contentId}, #{num}, #{weighting}, #{classHour}, #{taskName}, #{taskCover}, #{taskDevice},
                 #{creator}, #{createTime}, #{lastModifiedUser}, #{lastModifiedTime},
-                #{step1NeedPassScore}, #{step1PassScore}, #{version}, #{useCoder}, #{coderType})
+                #{step1NeedPassScore}, #{step1PassScore}, #{version}, #{useCoder}, #{useLabProc}, #{coderType})
     </insert>
 
     <update id="update">
@@ -39,6 +40,7 @@
                                   step1_need_pass_score=#{step1NeedPassScore},
                                   step1_pass_score=#{step1PassScore},
                                   use_coder=#{useCoder},
+                                  use_lab_proc=#{useLabProc},
                                   coder_type=#{coderType},
                                   version=#{version}
                               WHERE id=#{id}
@@ -48,7 +50,7 @@
         SELECT
             id, content_id, num, weighting, class_hour, task_name, task_cover, task_device,
             creator, create_time, last_modified_user, last_modified_time,
-            step1_need_pass_score, step1_pass_score, version, use_coder, coder_type
+            step1_need_pass_score, step1_pass_score, version, use_coder, coder_type, use_lab_proc
         FROM `task_templates` WHERE content_id=#{contentId} ORDER BY num
     </select>
 

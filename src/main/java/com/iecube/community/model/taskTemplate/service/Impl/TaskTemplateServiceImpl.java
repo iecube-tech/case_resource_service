@@ -111,6 +111,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         taskTemplate.setStep1PassScore(taskTemplateDto.getStep1PassScore());
         taskTemplate.setVersion(taskTemplateDto.getVersion());
         taskTemplate.setUseCoder(taskTemplateDto.getUseCoder());
+        taskTemplate.setUseLabProc(taskTemplateDto.getUseLabProc());
         taskTemplate.setCoderType(taskTemplateDto.getCoderType());
         Integer row = taskTemplateMapper.insert(taskTemplate);
         if (row != 1){
@@ -293,6 +294,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         taskTemplate.setStep1PassScore(taskTemplateDto.getStep1PassScore());
         taskTemplate.setVersion(taskTemplateDto.getVersion());
         taskTemplate.setUseCoder(taskTemplateDto.getUseCoder());
+        taskTemplate.setUseLabProc(taskTemplateDto.getUseLabProc());
         taskTemplate.setCoderType(taskTemplateDto.getCoderType());
         taskTemplateMapper.update(taskTemplate);
         this.deleteTaskTemplateItem(taskTemplateDto.getId());

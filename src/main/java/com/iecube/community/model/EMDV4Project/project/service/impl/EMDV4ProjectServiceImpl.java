@@ -71,7 +71,7 @@ public class EMDV4ProjectServiceImpl implements EMDV4ProjectService {
         // 远程实验
         projectService.createRemote(project,emdv4ProjectQo.getRemoteQo());
         List<Integer> classGradeIdLis = emdv4ProjectQo.getGradeClassList().stream().filter(Objects::nonNull).map(ClassAndGrade::getId).collect(Collectors.toList());
-        System.out.println("classGradeIdLis:"+classGradeIdLis);
+//        System.out.println("classGradeIdLis:"+classGradeIdLis);
         List<StudentDto> studentDtoList = studentMapper.findByGradeClassIdList(classGradeIdLis);
         // 2. 创建 EMDV4_projectTask(课程实验) 返回 List<EMDV4ProjectTask>
         List<EMDV4ProjectTask> projectTaskList = projectTaskService.projectTaskListCreate(project, emdv4ProjectQo, studentDtoList);

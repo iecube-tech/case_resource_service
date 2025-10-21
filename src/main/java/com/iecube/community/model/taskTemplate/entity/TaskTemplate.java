@@ -17,5 +17,6 @@ public class TaskTemplate extends BaseEntity {
     private Double step1PassScore;
     private Integer version;
     private Boolean useCoder;
+    private Boolean useLabProc;
     private String coderType;
 }
