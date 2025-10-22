@@ -30,4 +30,6 @@ public interface BookLabService {
      * @return BookLabCatalog
      */
     BookLabCatalog wholeBookLabCatalogById(Long id);
+
+    List<BookLabCatalog> batchUpOrder(List<BookLabCatalog> catalogList);
 }

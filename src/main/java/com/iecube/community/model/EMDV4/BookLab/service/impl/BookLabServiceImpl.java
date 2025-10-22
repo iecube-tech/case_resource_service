@@ -121,6 +121,18 @@ public class BookLabServiceImpl implements BookLabService {
         return this.buildTreeWithComponents(bookLabCatalog);
     }
 
+    @Override
+    public List<BookLabCatalog> batchUpOrder(List<BookLabCatalog> catalogList) {
+        if(catalogList.isEmpty()){
+            throw new UpdateException("参数列表为空");
+        }
+        int res = bookLabMapper.batchUpOrder(catalogList);
+        if(res != catalogList.size()){
+            throw new UpdateException("更新数量不匹配");
+        }
+        return this.getChildrenByParentId(catalogList.get(0).getPId());
+    }
+
     private BookLabCatalog buildTreeWithComponents(BookLabCatalog node){
         if (node == null) {
             return null;

@@ -49,4 +49,9 @@ public class BookLabController extends BaseController {
         return new JsonResult<>(OK, bookLabService.wholeBookLabCatalogById(labId));
     }
 
+    @PostMapping("/up/orders")
+    public JsonResult<List<BookLabCatalog>> batchUpOrder(@RequestBody List<BookLabCatalog> bookLabCatalogs) {
+        return new JsonResult<>(OK, bookLabService.batchUpOrder(bookLabCatalogs));
+    }
+
 }

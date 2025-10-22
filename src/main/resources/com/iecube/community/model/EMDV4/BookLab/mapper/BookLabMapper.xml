@@ -102,4 +102,17 @@
         WHERE
             t.id=#{id}
     </select>
+
+    <update id="batchUpOrder">
+        UPDATE BL_book_lab
+        SET `order`= CASE id
+        <foreach collection="list" item="item" separator=" ">
+            WHEN #{item.id} THEN #{item.order}
+        </foreach>
+        END
+        WHERE id IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </update>
 </mapper>

@@ -36,4 +36,6 @@ public interface BookLabMapper {
      * @return 有子节点返回true，否则返回false
      */
     boolean hasChildren(@Param("nodeId") Long nodeId);
+
+    int batchUpOrder(List<BookLabCatalog> list);
 }
