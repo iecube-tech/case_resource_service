@@ -114,13 +114,13 @@ public class AiClientWebSocketHandler extends TextWebSocketHandler {
                             msgNode.get("payload").get("role").asText(),
                             chatId
                     ));
-//                    AiMessage aiMessage = new AiMessage();
-//                    aiMessage.setId(msgNode.get("payload").get("id").asText());
-//                    aiMessage.setChatId(msgNode.get("payload").get("agent_request").get("chat_id").asText());
-//                    aiMessage.setRole(msgNode.get("payload").get("role").asText());
-//                    aiMessage.setContent(msgNode.get("payload").get("content").asText());
-//                    aiMessage.setCreateTime(Instant.now());
-//                    aiMessageMapper.insert(aiMessage);
+                    AiMessage aiMessage = new AiMessage();
+                    aiMessage.setId(msgNode.get("payload").get("id").asText());
+                    aiMessage.setChatId(msgNode.get("payload").get("agent_request").get("chat_id").asText());
+                    aiMessage.setRole(msgNode.get("payload").get("role").asText());
+                    aiMessage.setContent(msgNode.get("payload").get("content").asText());
+                    aiMessage.setCreateTime(Instant.now());
+                    aiMessageMapper.insert(aiMessage);
                 }
             }else {
                 log.warn("无法转发W6MSG:{}",chatId);
