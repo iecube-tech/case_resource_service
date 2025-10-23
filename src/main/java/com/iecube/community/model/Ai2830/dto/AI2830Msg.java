@@ -12,4 +12,5 @@ public class AI2830Msg {
     private String message;
     private String timestamp;
     private String type;
+    private String sectionPrefix;
 }

@@ -128,8 +128,8 @@ Ai:
 
 AI2830:
   server:
-    url: "http://115.190.32.35"
-    key: "VJWAcoLJGnVN4wVzxyyGIycqWKbYpRbn"
+    url: "http://47.94.161.154:5001"
+    key: "oNeuT5gY4muUzBtvcjvbTrS197LJpOjf"
   reconnect:
     enabled: true
     delay: 3000

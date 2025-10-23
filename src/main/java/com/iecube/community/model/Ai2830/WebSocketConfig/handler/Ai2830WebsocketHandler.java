@@ -6,9 +6,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iecube.community.model.Ai2830.api.service.Ai2830ApiService;
 import com.iecube.community.model.Ai2830.dto.AI2830Msg;
 import com.iecube.community.model.Ai2830.dto.StreamAi2830Msg;
+import com.iecube.community.model.AiChatHistory.aiMessageEvent.NewMessageEvent;
 import io.socket.client.Socket;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -37,17 +39,20 @@ public class Ai2830WebsocketHandler extends TextWebSocketHandler {
     private final ConcurrentHashMap<String, Socket> Ai2830ChatIdToSocket;
     private final BlockingQueue<Socket> FrontClosedAi2830ConnectSession;
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    private final ApplicationEventPublisher eventPublisher;
     @Autowired
     public Ai2830WebsocketHandler(ConcurrentHashMap<String, WebSocketSession> Ai2830ChatIdToSession,
                                   ConcurrentHashMap<String, String> SessionIdToAi2830ChatId,
                                   BlockingQueue<String> FrontNewAi2830ConnectChatId,
                                   ConcurrentHashMap<String, Socket> Ai2830ChatIdToSocket,
-                                  BlockingQueue<Socket> FrontClosedAi2830ConnectSession){
+                                  BlockingQueue<Socket> FrontClosedAi2830ConnectSession,
+                                  ApplicationEventPublisher eventPublisher){
         this.Ai2830ChatIdToSession = Ai2830ChatIdToSession;
         this.SessionIdToAi2830ChatId = SessionIdToAi2830ChatId;
         this.FrontNewAi2830ConnectChatId = FrontNewAi2830ConnectChatId;
         this.Ai2830ChatIdToSocket = Ai2830ChatIdToSocket;
         this.FrontClosedAi2830ConnectSession = FrontClosedAi2830ConnectSession;
+        this.eventPublisher = eventPublisher;
     }
 
     @Autowired
@@ -83,7 +88,10 @@ public class Ai2830WebsocketHandler extends TextWebSocketHandler {
                         currentMsg.setMsgList(new ObjectMapper().treeToValue(res.get("messages"), List.class));
                         session.sendMessage(new TextMessage(new ObjectMapper().writeValueAsString(currentMsg)));
                     }
-                    if(!res.get("has_next").asBoolean()){
+                    if(res.get("has_next")==null){
+                        break;
+                    }
+                    if(res.get("has_next")!=null && !res.get("has_next").asBoolean()){
                         break;
                     }
                 }catch (IOException e){
@@ -120,6 +128,7 @@ public class Ai2830WebsocketHandler extends TextWebSocketHandler {
 //        System.out.println(message.getPayload());
         AI2830Msg msg = parseMessage(session, message.getPayload());
         // type 的消息用于ping
+//        System.out.println(msg);
         if(msg.getType()==null){
             //message-ack
             String chatId = SessionIdToAi2830ChatId.get(session.getId());
@@ -138,15 +147,25 @@ public class Ai2830WebsocketHandler extends TextWebSocketHandler {
             ackMsg.setMessage(msg);
             try {
                 session.sendMessage(new TextMessage(new ObjectMapper().writeValueAsString(ackMsg)));
+                eventPublisher.publishEvent(new NewMessageEvent(
+                        this,
+                        msg.getMessage(),
+                        msg.getDirection(),
+                        chatId
+                ));
             }catch (IOException e){
                 log.error("转发AI2830消息json格式化异常: message-ack : {}", e.getMessage());
             }
-//        log.info("需要转发到{}",socket);
+//            log.info("需要转发到{}",socket);
             // 获取socketIo 转发到 socketIo
             Map<String, Object> requestBodyMap = new HashMap<>();
             requestBodyMap.put("user_id", chatId);
             requestBodyMap.put("content", msg.getMessage());
             requestBodyMap.put("course_id", msg.getCourse_id());
+            requestBodyMap.put("teacher_type", "teacher");
+            requestBodyMap.put("book_id", "2830");
+            requestBodyMap.put("chapter_prefix", msg.getSectionPrefix());
+//            System.out.println(requestBodyMap);
             socket.emit("send_message",requestBodyMap);
 //        connectToAi2830.sendMessage(msg.getChatId(), msg.getContent(), msg.getCourseId(),msg.getTeacherType());
         }
@@ -168,6 +187,7 @@ public class Ai2830WebsocketHandler extends TextWebSocketHandler {
             msg.setCourse_id(json.get("course_id")==null?null:json.get("course_id").asText());
             msg.setTeacher_type(json.get("teacher_type")==null?null:json.get("teacher_type").asText());
             msg.setType(json.get("type")==null?null:json.get("type").asText());
+            msg.setSectionPrefix(json.get("section_prefix")==null?null:json.get("section_prefix").asText());
         } catch (JsonProcessingException e) {
             log.warn("解析数据异常");
         }

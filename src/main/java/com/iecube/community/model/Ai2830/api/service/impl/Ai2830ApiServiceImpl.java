@@ -37,7 +37,7 @@ public class Ai2830ApiServiceImpl implements Ai2830ApiService {
         Map<String, Object> requestBodyMap = new HashMap<>();
         requestBodyMap.put("key",KEY);
         requestBodyMap.put("course_id","2830");
-        requestBodyMap.put("teacher_type","assistant");
+        requestBodyMap.put("teacher_type","teacher");
         RestTemplate restTemplate = new RestTemplate();
         // 创建 ObjectMapper 实例用于将 Java 对象转换为 JSON 字符串
         ObjectMapper objectMapper = new ObjectMapper();

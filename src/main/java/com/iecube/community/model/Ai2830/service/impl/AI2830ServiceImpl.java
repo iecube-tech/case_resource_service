@@ -32,6 +32,7 @@ public class AI2830ServiceImpl implements Ai2830Service {
             assistant.setStudentId(studentId);
             assistant.setTaskId(taskId);
             assistant.setType(type);
+            assistant.setVersion(version);
             int res = aiAssistantMapper.insert(assistant);
             if(res!=1){
                 throw new InsertException("新增数据异常");

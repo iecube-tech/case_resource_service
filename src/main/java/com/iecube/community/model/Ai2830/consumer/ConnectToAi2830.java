@@ -4,12 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iecube.community.model.Ai2830.dto.AI2830Msg;
 import com.iecube.community.model.Ai2830.dto.StreamAi2830Msg;
+import com.iecube.community.model.AiChatHistory.aiMessageEvent.NewMessageEvent;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -53,13 +55,15 @@ public class ConnectToAi2830 implements Runnable {
     private final ConcurrentHashMap<String, String> SocketIdToChatId;
     private final StringBuilder responseBuffer = new StringBuilder();
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ConnectToAi2830(
             ConcurrentHashMap<String, WebSocketSession> Ai2830ChatIdToSession,
             ConcurrentHashMap<String, String> SessionIdToAi2830ChatId,
             ConcurrentHashMap<String, Socket> Ai2830ChatIdToSocket,
             ConcurrentHashMap<String, String> SocketIdToChatId,
-            BlockingQueue<String> FrontNewAi2830ConnectChatId ) {
+            BlockingQueue<String> FrontNewAi2830ConnectChatId,
+            ApplicationEventPublisher eventPublisher) {
         this.Ai2830ChatIdToSession = Ai2830ChatIdToSession;
 //        this.SessionIdToAi2830ChatId = SessionIdToAi2830ChatId;
         this.Ai2830ChatIdToSocket = Ai2830ChatIdToSocket;
@@ -67,6 +71,7 @@ public class ConnectToAi2830 implements Runnable {
         log.info("ConnectToAi2830 --> start");
 
         this.frontNewAi2830ConnectChatId = FrontNewAi2830ConnectChatId;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -79,7 +84,7 @@ public class ConnectToAi2830 implements Runnable {
                 log.info("there are {} in (2830sokIo)SocketIdToChatId, {} in Ai2830ChatIdToSocket",SocketIdToChatId.size(),Ai2830ChatIdToSocket.size());
                 log.info("try new Ai2830 SocketIo:{}", chatId);
                 this.session = Ai2830ChatIdToSession.get(chatId);  // 对应的前端websocket
-                log.info("对饮的前端session：{}", this.session.getId());
+                log.info("对应的前端session：{}", this.session.getId());
                 socketIoConnect(chatId);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -144,6 +149,7 @@ public class ConnectToAi2830 implements Runnable {
         });
 
         socket.on("stream_start",args->{
+//            log.info("ai2830 stream_start");
             responseBuffer.setLength(0); // 清空缓冲区
             StreamAi2830Msg streamAi2830Msg = new StreamAi2830Msg();
             streamAi2830Msg.setType("activity-start");
@@ -155,6 +161,7 @@ public class ConnectToAi2830 implements Runnable {
         });
 
         socket.on("stream_token",args->{
+//            log.info("ai2830 stream_token");
             if (args.length > 0 && args[0] instanceof JSONObject) {
                 try {
                     JSONObject data = (JSONObject) args[0];
@@ -175,6 +182,7 @@ public class ConnectToAi2830 implements Runnable {
             }
         });
         socket.on("stream_end",args->{
+//            log.info("ai2830 stream_end");
             StreamAi2830Msg streamAi2830Msg = new StreamAi2830Msg(); // message 消息
             AI2830Msg msg = new AI2830Msg();
             msg.setMessage(responseBuffer.toString());
@@ -186,12 +194,19 @@ public class ConnectToAi2830 implements Runnable {
             stopMsg.setType("activity-stop");
             try {
                 session.sendMessage(new TextMessage(new ObjectMapper().writeValueAsString(streamAi2830Msg)));
+                eventPublisher.publishEvent(new NewMessageEvent(
+                        this,
+                        msg.getMessage(),
+                        msg.getDirection(),
+                        chatId
+                ));
                 session.sendMessage(new TextMessage(new ObjectMapper().writeValueAsString(stopMsg)));
             } catch (IOException e) {
                 log.error("转发AI2830消息json格式化异常: message stop : {}", e.getMessage());
             }
         });
         socket.on("error",args->{
+//            log.info("ai2830 error");
             if (args.length > 0) {
                 try{
                     JSONObject data = (JSONObject) args[0];
