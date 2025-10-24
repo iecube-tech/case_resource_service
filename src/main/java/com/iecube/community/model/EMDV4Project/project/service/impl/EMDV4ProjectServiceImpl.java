@@ -20,6 +20,7 @@ import com.iecube.community.model.project.mapper.ProjectMapper;
 import com.iecube.community.model.project.service.ProjectService;
 import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.mapper.StudentMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class EMDV4ProjectServiceImpl implements EMDV4ProjectService {
     @Autowired
@@ -62,20 +64,23 @@ public class EMDV4ProjectServiceImpl implements EMDV4ProjectService {
 
     @Override
     public Integer addProject(EMDV4ProjectQo emdv4ProjectQo, Integer teacherId) {
+        log.info("教师 {} 开始发布：{}", teacherId, emdv4ProjectQo);
         // 1. 创建project
         Project project = emdv4ProjectQoToProject(emdv4ProjectQo, teacherId);
         int res = projectMapper.insert(project);
         if(res!=1){
             throw new InsertException("新增课程数据异常");
         }
+        log.info("创建project完成");
         // 远程实验
         projectService.createRemote(project,emdv4ProjectQo.getRemoteQo());
+        log.info("远程信息设置完成");
         List<Integer> classGradeIdLis = emdv4ProjectQo.getGradeClassList().stream().filter(Objects::nonNull).map(ClassAndGrade::getId).collect(Collectors.toList());
 //        System.out.println("classGradeIdLis:"+classGradeIdLis);
         List<StudentDto> studentDtoList = studentMapper.findByGradeClassIdList(classGradeIdLis);
         // 2. 创建 EMDV4_projectTask(课程实验) 返回 List<EMDV4ProjectTask>
         List<EMDV4ProjectTask> projectTaskList = projectTaskService.projectTaskListCreate(project, emdv4ProjectQo, studentDtoList);
-
+        log.info("EMDV4_projectTask 设置完成");
         // 获取 projectTaskList 对应的详细的BookLab内容
         List<BookLabCatalog> labList = new ArrayList<>();
         projectTaskList.forEach(projectTask -> {
@@ -84,12 +89,15 @@ public class EMDV4ProjectServiceImpl implements EMDV4ProjectService {
 
         // 3. 创建 EMDV4_projectStudent(课程学生) 返回 List<EMDV4ProjectStudent>
         List<EMDV4ProjectStudent> projectStudentList = projectStudentService.createProjectStudents(project, studentDtoList);
+        log.info("EMDV4_projectStudent 设置完成");
 
         // 4. 创建 EMDV4_project_data_result(课程数据分析) // todo 先放着
         projectDataResultService.createEMDV4ProjectDataResultService(project.getId());
+        log.info("EMDV4_project_data_result 设置完成");
 
         // 5. 创建 EMDV4_project_studentTask
         List<Integer> tasksTagNum = projectStudentTaskService.createProjectStudentTask(projectTaskList,labList, projectStudentList);
+        log.info("EMDV4_project_studentTask 设置完成");
 
         // 6.更细学生 projectStudent 的共有几个tag 共有几个实验
         int projectTotalTagsNum=0;
@@ -97,9 +105,11 @@ public class EMDV4ProjectServiceImpl implements EMDV4ProjectService {
             projectTotalTagsNum = projectTotalTagsNum + i;
         }
         projectStudentService.updateProjectStudentTotalNum(project.getId(), tasksTagNum.size(), projectTotalTagsNum);
+        log.info("更新学生 projectStudent 的共有几个tag 共有几个实验完成");
 
         // 7.更新 projectTask共有几个学生
         projectTaskService.updateProjectTaskStudentNum(project.getId(), projectStudentList.size());
+        log.info("更新 projectTask 共有几个学生完成");
 
         return project.getId();
     }
