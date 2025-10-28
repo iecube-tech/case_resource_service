@@ -8,6 +8,8 @@ import com.iecube.community.model.auth.service.ex.InsertException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AiServiceImpl implements AiService {
 
@@ -56,5 +58,10 @@ public class AiServiceImpl implements AiService {
     public Boolean chatIdExist(String chatId) {
         AiAssistant assistant = aiAssistantMapper.getAiAssistantByChatId(chatId);
         return assistant!=null;
+    }
+
+    @Override
+    public List<String> getChatIdList() {
+        return aiAssistantMapper.getChatIdList();
     }
 }

@@ -28,4 +28,8 @@
         WHERE chat_id=#{chatId}
     </select>
 
+    <select id="getChatIdList" resultType="java.lang.String">
+        SELECT chat_id FROM ai_client_assistant
+    </select>
+
 </mapper>

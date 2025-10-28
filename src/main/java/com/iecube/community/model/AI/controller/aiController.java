@@ -10,6 +10,7 @@ import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Objects;
 
 @RestController
@@ -108,5 +109,10 @@ public class aiController extends BaseController {
         Integer studentId = currentUserId();
         JsonNode jsonNode = apiService.getJsonRes(artefactId, studentId, taskId, type);
         return new JsonResult<>(OK, jsonNode);
+    }
+
+    @GetMapping("/chat/list")
+    public JsonResult<List<String>> getChatList(){
+        return new JsonResult<>(OK, aiService.getChatIdList());
     }
 }

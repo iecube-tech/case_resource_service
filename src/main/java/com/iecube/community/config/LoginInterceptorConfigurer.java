@@ -46,6 +46,7 @@ public class LoginInterceptorConfigurer implements WebMvcConfigurer {
         patterns.add("/emd_task/dlog/upload/**/**");
         patterns.add("/device/connect");
         patterns.add("/dashboard");
+        patterns.add("/ai/chat/list");
 //        patterns.add("/ai/**/**");
 
         registry.addInterceptor(authInterceptor).addPathPatterns("/**").excludePathPatterns(patterns);
