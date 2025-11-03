@@ -467,22 +467,27 @@ public class TaskServiceImpl implements TaskService {
     public Void teacherModifyPST(ProjectStudentTaskQo projectStudentTaskQo) {
         Integer pstId = projectStudentTaskQo.getPSTId();
         // 教师提交的字段有  projectStudentTaskQo.getTaskEvaluate(); projectStudentTaskQo.getTaskGrade(); projectStudentTaskQo.getTaskTags();
-        taskMapper.updatePSTEvaluate(pstId,projectStudentTaskQo.getTaskEvaluate());
-        this.computeGrade(pstId, projectStudentTaskQo.getTaskGrade());
-        this.autoComputeProjectGrade(pstId);
+        if(projectStudentTaskQo.getTaskEvaluate()!=null){
+            taskMapper.updatePSTEvaluate(pstId,projectStudentTaskQo.getTaskEvaluate());
+        }
+        if(projectStudentTaskQo.getTaskGrade()!=null){
+            this.computeGrade(pstId, projectStudentTaskQo.getTaskGrade());
+//            this.computeGrade(pstId, projectStudentTaskQo.getTaskGrade());
+            this.autoComputeProjectGrade(pstId);
+        }
         taskMapper.updatePSTStatus(pstId,TEACHER_READ_OVER);
         List<Tag> oldTags = tagMapper.getTagsByPSTId(projectStudentTaskQo.getPSTId());
-        List<Tag> newTags = projectStudentTaskQo.getTaskTags();
-        if(oldTags.size()==0 && newTags.size()==0){
+        List<Tag> newTags = projectStudentTaskQo.getTaskTags()==null?new ArrayList<>():projectStudentTaskQo.getTaskTags();
+        if(oldTags.isEmpty() && newTags.isEmpty()){
 //            System.out.println("不处理");
             return null;
-        }else if(oldTags.size()==0 && newTags.size()>0){
+        }else if(oldTags.isEmpty() && !newTags.isEmpty()){
 //            System.out.println("直接添加");
             for (Tag newTag : newTags){
                 tagMapper.addTagToPST(pstId,newTag.getId());
             }
             return null;
-        } else if (oldTags.size()>0 && newTags.size()==0) {
+        } else if (oldTags.size()>0 && newTags.isEmpty()) {
 //            System.out.println("直接删除");
             for (Tag oldTag :oldTags){
                 tagMapper.deletePSTTag(pstId, oldTag.getId());
@@ -508,13 +513,16 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public void teacherModifyGroupPST(ProjectStudentTaskQo projectStudentTaskQo){
+//        System.out.println(projectStudentTaskQo);
         Integer pstId = projectStudentTaskQo.getPSTId();
+
         // 根据pstId获取小组内的所有pst
         ProjectStudentTask projectStudentTask = taskMapper.getProjectStudentTaskById(pstId);
+//        System.out.println(projectStudentTask);
         Integer studentId = projectStudentTask.getStudentId();
         Integer projectId = projectStudentTask.getProjectId();
         List<GroupStudent> allGroupStudent = taskStudentGroupMapper.getGroupStudentByStudentId(studentId, projectId);
-        if(allGroupStudent.size()==0){
+        if(allGroupStudent.isEmpty()){
             this.teacherModifyPST(projectStudentTaskQo);
         }else {
             List<ProjectStudentTask> allProjectStudentTask =
@@ -541,7 +549,7 @@ public class TaskServiceImpl implements TaskService {
             objectiveGrade=0;
         }
         Integer objectiveWeighting = questionBankMapper.getObjectiveWeighting(pstId);
-        double grade = objectiveGrade*objectiveWeighting/100 + reportGrade*(100-objectiveWeighting)/100;
+        double grade = (double) (objectiveGrade * objectiveWeighting) /100 + reportGrade*(100-objectiveWeighting)/100;
         taskMapper.updatePSTGrade(pstId, grade, reportGrade );
     }
 
@@ -559,6 +567,7 @@ public class TaskServiceImpl implements TaskService {
                 psNewGrade = psNewGrade + grade;
             }
         }
+        System.out.println(psNewGrade);
         projectMapper.updateProjectStudentGrade(ps.getPsId(),psNewGrade);
         return null;
     }

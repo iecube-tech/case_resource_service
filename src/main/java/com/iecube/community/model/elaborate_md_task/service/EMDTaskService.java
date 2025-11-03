@@ -37,4 +37,6 @@ public interface EMDTaskService {
     void upTaskStatus(Integer studentId, Integer taskId, int status);
 
     List<StudentTaskVo> emdCourseStudentTaskVoList(Integer projectId);
+
+    EMDStudentTask updateGrade(Long pstId, double grade);
 }

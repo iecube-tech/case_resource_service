@@ -12,6 +12,7 @@ public class LabModelVo {
     private String name;
     private String icon;
     private Integer sort;
+    private String stage;
     private int level=2;
     private boolean hasChildren;
     private List<SectionVo> sectionVoList;

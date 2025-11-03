@@ -1,5 +1,6 @@
 package com.iecube.community.model.task.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.iecube.community.model.pst_resource.entity.PSTResourceVo;
 import com.iecube.community.model.tag.entity.Tag;
 import lombok.Data;
@@ -12,15 +13,16 @@ import java.util.List;
  */
 @Data
 public class ProjectStudentTaskQo {
-    Integer PSTId;
-    Integer taskNum;
-    String taskName;
-    Double taskGrade;
-    List<Tag> taskTags;
-    String taskEvaluate;
-    String taskImprovement;
-    String taskContent;
-    Integer taskStatus;
-    List<PSTResourceVo> resources;
-    Integer taskResubmit;
+    @JsonProperty("PSTId")
+    private Integer PSTId;
+    private Integer taskNum;
+    private String taskName;
+    private Double taskGrade;
+    private List<Tag> taskTags;
+    private String taskEvaluate;
+    private String taskImprovement;
+    private String taskContent;
+    private Integer taskStatus;
+    private List<PSTResourceVo> resources;
+    private Integer taskResubmit;
 }

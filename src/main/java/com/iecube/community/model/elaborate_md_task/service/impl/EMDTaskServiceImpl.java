@@ -10,6 +10,7 @@ import com.iecube.community.model.elaborate_md.lab_model.entity.LabModel;
 import com.iecube.community.model.elaborate_md.lab_model.service.LabModelService;
 import com.iecube.community.model.elaborate_md.sectionalization.entity.Sectionalization;
 import com.iecube.community.model.elaborate_md.sectionalization.service.SectionalizationService;
+import com.iecube.community.model.elaborate_md_task.dto.PSTDto;
 import com.iecube.community.model.elaborate_md_task.entity.*;
 import com.iecube.community.model.elaborate_md_task.mapper.*;
 import com.iecube.community.model.elaborate_md_task.service.EMDTaskService;
@@ -22,6 +23,8 @@ import com.iecube.community.model.task.entity.Task;
 import com.iecube.community.model.task.entity.TaskVo;
 import com.iecube.community.model.task.mapper.TaskMapper;
 import com.iecube.community.model.task_e_md_proc.mapper.TaskEMdProcMapper;
+import com.iecube.community.model.task_student_group.entity.GroupStudent;
+import com.iecube.community.model.task_student_group.mapper.TaskStudentGroupMapper;
 import com.iecube.community.model.task_student_group.service.TaskStudentGroupService;
 import com.iecube.community.model.task_student_group.vo.GroupVo;
 import com.iecube.community.util.jwt.AuthUtils;
@@ -374,5 +377,36 @@ public class EMDTaskServiceImpl implements EMDTaskService {
     @Override
     public List<StudentTaskVo> emdCourseStudentTaskVoList(Integer projectId) {
         return emdStudentTaskMapper.emdCourseStudentTaskVo(projectId);
+    }
+
+    @Override
+    public EMDStudentTask updateGrade(Long pstId, double grade) {
+        if(pstId==null){
+            throw new UpdateException("pstId is null");
+        }
+        EMDStudentTask exitsPST = emdStudentTaskMapper.getById(pstId);
+        // todo 判断有没有小组
+//        GroupVo groupVo = taskStudentGroupService.getGroupVoByTaskStudent(exitsPST.getTaskId(),exitsPST.getStudentId());
+//        if(groupVo == null){
+//            // 更新单个学生的成绩
+//
+//        }else {
+//
+//        }
+        exitsPST.setGrade(grade);
+        emdStudentTaskMapper.upPSTGrade(pstId,grade);
+        // 计算课程成绩
+        this.computeProjectGrade(pstId);
+        return exitsPST;
+    }
+
+    public void computeProjectGrade(Long pstId) {
+        List<PSTDto> PSTDtoList = emdStudentTaskMapper.studentPSTList(pstId);
+        double pGrade = 0.0;
+        for (PSTDto pstDto : PSTDtoList) {
+            pGrade += (pstDto.getGrade()==null?0:pstDto.getGrade())*(pstDto.getWeighting()==null?0:pstDto.getWeighting()) / 100 ;
+        }
+        // 更新课程成绩
+        emdStudentTaskMapper.upPSGrade(pstId, pGrade);
     }
 }

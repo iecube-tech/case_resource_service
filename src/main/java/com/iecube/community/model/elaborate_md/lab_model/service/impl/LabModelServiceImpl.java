@@ -105,6 +105,7 @@ public class LabModelServiceImpl implements LabModelService {
             labModelVo.setParentId(labModel.getParentId());
             labModelVo.setSort(labModel.getSort());
             labModelVo.setHasChildren(labModel.isHasChildren());
+            labModelVo.setStage(labModel.getStage());
             labModelVo.setSectionVoList(sectionService.getSectionVoByLabModelId(labModel.getId()));
             labModelVoList.add(labModelVo);
         });

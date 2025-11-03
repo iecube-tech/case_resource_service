@@ -11,6 +11,13 @@
         <result property="endTime" column="end_time"></result>
     </resultMap>
 
+    <resultMap id="PSTDto" type="com.iecube.community.model.elaborate_md_task.dto.PSTDto">
+        <result property="studentId" column="student_id"></result>
+        <result property="taskId" column="task_id"></result>
+        <result property="startTime" column="start_time"></result>
+        <result property="endTime" column="end_time"></result>
+    </resultMap>
+
     <resultMap id="EMDStuTaskDetailDto" type="com.iecube.community.model.elaborate_md_task.dto.EMDStuTaskDetailDto">
         <result property="stuTaskId" column="stu_task_id"></result>
         <result property="stsId" column="sts_id"></result>
@@ -65,5 +72,41 @@
     <select id="getByStudentIdTaskId" resultMap="EMDStudentTask">
         SELECT * FROM e_md_student_task WHERE student_id=#{studentId} AND task_id=#{taskId}
     </select>
+
+    <select id="getById" resultMap="EMDStudentTask">
+        SELECT * FROM e_md_student_task WHERE id=#{pstId}
+    </select>
+
+    <update id="upPSTGrade">
+        UPDATE e_md_student_task SET grade=#{grade} WHERE id=#{pstId}
+    </update>
+
+
+    <!--     根据pstId获取该学生对应的该课程的所有PST-->
+    <select id="studentPSTList" resultMap="PSTDto">
+        SELECT pst.*,task.weighting
+        FROM e_md_student_task pst
+                 LEFT JOIN e_md_student_task pst2 ON pst.student_id=pst2.student_id
+                 LEFT JOIN task ON pst.task_id=task.id
+        WHERE pst.task_id in (
+            SELECT t2.id
+            FROM e_md_student_task
+                     LEFT JOIN task ON e_md_student_task.task_id=task.id
+                     LEFT JOIN task t2 ON task.project_id=t2.project_id
+            WHERE e_md_student_task.id=#{pstId}
+        ) AND pst2.id=#{pstId}
+    </select>
+
+
+    <!--     根据pstId 去更改对应的projectStudent的成绩-->
+    <update id="upPSGrade">
+        UPDATE project_student ps SET ps.grade=#{grade}
+        WHERE (ps.project_id, ps.student_id) = (
+            SELECT t.project_id, est.student_id
+            FROM e_md_student_task est
+                     INNER JOIN task t ON est.task_id = t.id
+            WHERE est.id = #{pstId}
+        )
+    </update>
 
 </mapper>

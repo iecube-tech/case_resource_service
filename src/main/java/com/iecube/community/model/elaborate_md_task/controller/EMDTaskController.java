@@ -5,6 +5,8 @@ import com.iecube.community.basecontroller.BaseController;
 import com.iecube.community.model.elaborate_md_task.check.Check;
 import com.iecube.community.model.elaborate_md_task.check.CheckProcessingService;
 import com.iecube.community.model.elaborate_md_task.entity.EMDSTMSBlock;
+import com.iecube.community.model.elaborate_md_task.entity.EMDStudentTask;
+import com.iecube.community.model.elaborate_md_task.qo.SetGradeQo;
 import com.iecube.community.model.elaborate_md_task.service.EMDTaskService;
 import com.iecube.community.model.elaborate_md_task.vo.EMDTaskDetailVo;
 import com.iecube.community.model.elaborate_md_task.vo.EMDTaskModelVo;
@@ -86,6 +88,12 @@ public class EMDTaskController extends BaseController {
     public JsonResult<Void> checkEMDTask(@RequestBody Check check) {
         checkProcessingService.addTask(check);
         return new JsonResult<>(OK);
+    }
+
+    @PostMapping("/grade")
+    public JsonResult<EMDStudentTask> setGrade(@RequestBody SetGradeQo SetGradeQo){
+        EMDStudentTask res = emdTaskService.updateGrade(SetGradeQo.getPstId(), SetGradeQo.getGrade());
+        return new JsonResult<>(OK, res);
     }
 
 
