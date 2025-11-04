@@ -157,6 +157,16 @@ public class ProjectServiceImpl implements ProjectService {
         project.setMdCourse(content.getMdCourse()); // 是否使用markdown的形式
         project.setUseRemote(projectDto.getUseRemote());
         project.setEmdCourse(content.getEmdCourse());
+        if(content.getMdCourse()!=null || content.getEmdCourse()!=null){
+            if(content.getMdCourse()!=null){
+                project.setVersion(2);
+            }
+            if(content.getEmdCourse()!=null){
+                project.setVersion(3);
+            }
+        }else{
+            project.setVersion(1);
+        }
         Integer row = projectMapper.insert(project);
         if (row != 1){
             throw new InsertException("插入数据异常");
@@ -190,6 +200,10 @@ public class ProjectServiceImpl implements ProjectService {
         List<PSTArticle> willAddPSTArticle = new ArrayList<>();
         for(Task task: projectDto.getTask()){
             task.setProjectId(project.getId());
+            task.setVersion(1);
+            if(task.getTaskMdDoc()!=null){
+                task.setVersion(2);
+            }
             // 创建项目任务  返回一个创建好的taskId
             Task createdTask = taskService.createTask(task, teacherId);
             // 项目学生任务关联
@@ -291,6 +305,7 @@ public class ProjectServiceImpl implements ProjectService {
         List<Task> EMDTaskList = new ArrayList<>();
         for(Task task: projectDto.getTask()){
             task.setProjectId(project.getId());
+            task.setVersion(3);
             Task createdTask = taskService.createTask(task, teacherId);
             EMDTaskList.add(createdTask);
         }

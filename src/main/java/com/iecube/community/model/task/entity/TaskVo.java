@@ -46,4 +46,5 @@ public class TaskVo {
     private Boolean useCoder;
     private Boolean useLabProc;
     private String coderType;
+    private Integer version;
 }

@@ -102,16 +102,16 @@
         INSERT INTO task (id, task_template_id, project_id, num, weighting,objective_weighting, class_hour, task_name,
                           task_cover, task_device, task_data_tables, task_start_time, task_end_time, creator,
                           create_time, last_modified_user, last_modified_time, step1_need_pass_score, step1_pass_score,
-                          use_coder, use_lab_proc, coder_type)
+                          version, use_coder, use_lab_proc, coder_type)
         VALUES (NULL,#{taskTemplateId}, #{projectId}, #{num}, #{weighting}, 0, #{classHour}, #{taskName},
                 #{taskCover}, #{taskDevice}, #{taskDataTables},#{taskStartTime},#{taskEndTime}, #{creator},
                 #{createTime}, #{lastModifiedUser}, #{lastModifiedTime}, #{step1NeedPassScore}, #{step1PassScore},
-                #{useCoder}, #{useLabProc}, #{coderType})
+                #{version}, #{useCoder}, #{useLabProc}, #{coderType})
     </insert>
 
     <select id="getTaskById" resultMap="Task">
             SELECT id,project_id,num,weighting,class_hour,task_name,task_cover,task_device,task_start_time,task_end_time,
-                   step1_need_pass_score, step1_pass_score, use_coder, use_lab_proc, coder_type
+                   step1_need_pass_score, step1_pass_score, version, use_coder, use_lab_proc, coder_type
             FROM task
             WHERE id=#{id}
     </select>
@@ -132,6 +132,7 @@
                task.class_hour AS class_hour,
                task.step1_pass_score,
                task.step1_need_pass_score,
+               task.version,
                task.use_coder,
                task.use_lab_proc,
                task.coder_type,
@@ -164,6 +165,7 @@
                task.class_hour AS class_hour,
                task.step1_pass_score,
                task.step1_need_pass_score,
+               task.version,
                task.use_coder,
                task.coder_type,
                task.use_lab_proc,
@@ -191,6 +193,7 @@
                task.num AS task_num, task.task_name AS task_name,
                task.step1_pass_score,
                task.step1_need_pass_score,
+               task.version,
                task.use_coder,
                task.coder_type,
                task.use_lab_proc,
@@ -241,7 +244,7 @@
 
     <select id="getProjectTasks" resultMap="TaskVo">
         SELECT
-            id,task_name,num,weighting,task_device,task_data_tables,step1_pass_score,step1_need_pass_score, use_coder,
+            id,task_name,num,weighting,task_device,task_data_tables,step1_pass_score,step1_need_pass_score, version, use_coder,
             coder_type, use_lab_proc
         from task WHERE project_id=#{projectId} ORDER BY num
     </select>
