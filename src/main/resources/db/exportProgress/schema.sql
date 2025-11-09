@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS EP_export_progerss_child_file(
                                                             `id` BINARY(32) NOT NULL COMMENT 'id_uuid',
     `export_progress_id` BINARY(32) NOT NULL COMMENT '任务ID（UUID）',
     `resource` INT NOT NULL COMMENT '文件信息',
-    `order` INT NOT NULL COMMENT "生成的时候位于第多少个任务",
+    `order` INT NULL COMMENT '生成的时候位于第多少个任务',
     `finished` BOOLEAN NOT NULL DEFAULT FALSE COMMENT '是否正常完成',
     `message`  VARCHAR(255) DEFAULT '' COMMENT '状态描述（如：生成第10个PDF）',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '任务执行时间',

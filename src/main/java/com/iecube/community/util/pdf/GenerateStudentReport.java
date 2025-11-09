@@ -302,7 +302,8 @@ public class GenerateStudentReport {
         HtmlRenderer renderer = HtmlRenderer.builder(options).build();
 
         String htmlWithoutCss  =  renderer.render(parser.parse(markdown));
-        String htmlWithCss = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"> <link rel=\"modulepreload\" href=\"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.esm.min.mjs\"\n" +
+        String htmlWithCss = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"> " +
+                "<link rel=\"modulepreload\" href=\"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.esm.min.mjs\"\n" +
                 "    id=\"md-editor-mermaid-m\">\n" +
                 "  <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css\"\n" +
                 "    id=\"md-editor-katexCss\">\n" +

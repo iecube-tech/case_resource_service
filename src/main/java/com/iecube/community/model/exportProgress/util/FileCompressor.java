@@ -14,7 +14,13 @@ import java.util.List;
 
 @Slf4j
 public class FileCompressor {
-
+    /**
+     * 压缩文件为.tar.gz
+     * @param files 文件列表
+     * @param outputFileName 输出的文件路径
+     * @return 压缩后的文件
+     * @throws IOException GzipCompressorOutputStream 抛出异常
+     */
     public static File compressToTarGz(List<File> files, String outputFileName) throws IOException {
         File tarGzFile = new File(outputFileName);
 

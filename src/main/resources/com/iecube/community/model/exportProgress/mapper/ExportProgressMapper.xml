@@ -31,7 +31,7 @@
         SELECT id, project_id, type, total_count, completed_count, percent, finished, message, error_msg,
                result_resource, create_time, update_time
         FROM EP_export_progress
-        WHERE project_id=#{projectId} AND `type`=#{type}
+        WHERE project_id=#{projectId}
     </select>
 
     <update id="updateById">
@@ -43,4 +43,8 @@
                                     result_resource=#{resultResource}
                                WHERE id=#{id}
     </update>
+
+    <delete id="delById">
+        DELETE FROM EP_export_progress WHERE id=#{id}
+    </delete>
 </mapper>

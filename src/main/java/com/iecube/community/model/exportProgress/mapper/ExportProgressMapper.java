@@ -3,6 +3,8 @@ package com.iecube.community.model.exportProgress.mapper;
 import com.iecube.community.model.exportProgress.entity.ExportProgress;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
+
 @Mapper
 public interface ExportProgressMapper {
 
@@ -10,7 +12,9 @@ public interface ExportProgressMapper {
 
     ExportProgress selectById(String id);
 
-    ExportProgress selectByProject(Integer projectId, String type);
+    List<ExportProgress> selectByProject(Integer projectId);
 
     void updateById(ExportProgress exportProgress);
+
+    void delById(String id);
 }

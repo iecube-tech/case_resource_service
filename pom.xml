@@ -228,6 +228,8 @@
                         <arg>-encoding</arg>
                         <arg>UTF-8</arg>
                     </compilerArgs>
+                    <source>16</source>
+                    <target>16</target>
                 </configuration>
             </plugin>
             <plugin>

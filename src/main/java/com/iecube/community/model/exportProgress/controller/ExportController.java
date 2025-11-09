@@ -18,7 +18,13 @@ public class ExportController extends BaseController {
 
     @GetMapping("/test")
     public JsonResult<ExportProgress> test(){
-        ExportProgress res = exportService.createExportTask(283, ExportProgress.Types.PROJECT_REPORT_EXPORT.getValue());
+        ExportProgress res = exportService.create(246, ExportProgress.Types.PROJECT_REPORT_EXPORT.getValue());
+        return new JsonResult<>(OK, res);
+    }
+
+    @GetMapping("/recreate")
+    public JsonResult<ExportProgress> recreate(){
+        ExportProgress res = exportService.reCreate(246, ExportProgress.Types.PROJECT_REPORT_EXPORT.getValue());
         return new JsonResult<>(OK, res);
     }
 }
