@@ -35,7 +35,7 @@ public class EMDV4ProjectStudentServiceImpl implements EMDV4ProjectStudentServic
         List<EMDV4ProjectStudent> emdV4ProjectStudentList = new ArrayList<>();
         studentDtoList.forEach(studentDto -> {
             EMDV4ProjectStudent ps = new EMDV4ProjectStudent();
-            ps.setGradeClass(project.getGradeClass());
+            ps.setGradeClass(studentDto.getGradeClass());
             ps.setProjectId(project.getId());
             ps.setStudentId(studentDto.getId());
             ps.setScore(0.0);

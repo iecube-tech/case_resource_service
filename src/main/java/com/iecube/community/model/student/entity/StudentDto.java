@@ -10,6 +10,7 @@ public class StudentDto {
     String studentName;
     Integer studentGrade;
     String studentClass;
+    Integer gradeClass;
     String major;
     String collage;
 //    String school;

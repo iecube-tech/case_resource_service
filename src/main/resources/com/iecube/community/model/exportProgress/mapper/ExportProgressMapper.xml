@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.exportProgress.mapper.ExportProgressMapper">
+
+    <resultMap id="ExportProgress" type="com.iecube.community.model.exportProgress.entity.ExportProgress">
+        <result column="project_id" property="projectId"></result>
+        <result column="total_count" property="totalCount"></result>
+        <result column="completed_count" property="completedCount"></result>
+        <result column="error_msg" property="errorMsg"></result>
+        <result column="result_resource" property="resultResource"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="update_time" property="updateTime"></result>
+    </resultMap>
+
+    <insert id="insert" keyProperty="id">
+        INSERT INTO EP_export_progress (id, project_id, `type`, total_count, completed_count, percent, finished, message, error_msg,
+                       result_resource, create_time, update_time)
+        VALUES (#{id}, #{projectId}, #{type}, #{totalCount}, #{completedCount}, #{percent}, #{finished}, #{message}, #{errorMsg},
+                #{resultResource}, #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="selectById" resultMap="ExportProgress">
+        SELECT id, project_id, type, total_count, completed_count, percent, finished, message, error_msg,
+               result_resource, create_time, update_time
+        FROM EP_export_progress
+        WHERE id=#{id}
+    </select>
+
+    <select id="selectByProject" resultMap="ExportProgress">
+        SELECT id, project_id, type, total_count, completed_count, percent, finished, message, error_msg,
+               result_resource, create_time, update_time
+        FROM EP_export_progress
+        WHERE project_id=#{projectId} AND `type`=#{type}
+    </select>
+
+    <update id="updateById">
+        UPDATE EP_export_progress SET  completed_count=#{completedCount},
+                                    percent=#{percent},
+                                    message=#{message},
+                                    error_msg=#{errorMsg},
+                                    finished=#{finished},
+                                    result_resource=#{resultResource}
+                               WHERE id=#{id}
+    </update>
+</mapper>

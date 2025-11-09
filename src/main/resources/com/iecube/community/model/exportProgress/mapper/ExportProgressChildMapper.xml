@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.exportProgress.mapper.ExportProgressChildMapper">
+
+    <insert id="insert">
+        INSERT INTO EP_export_progerss_child_file (`id`, `export_progress_id`, `resource`, `order`, `finished`, `message`, `create_time` )
+        VALUES (#{id}, #{exportProgressId}, #{resource}, #{order}, #{finished}, #{message}, #{createTime} )
+    </insert>
+</mapper>

@@ -20,6 +20,7 @@
         <result column="student_name" property="studentName"></result>
         <result column="student_grade" property="studentGrade"></result>
         <result column="student_class" property="studentClass"></result>
+        <result column="grade_class" property="gradeClass"></result>
     </resultMap>
 
     <insert id="addStudent" useGeneratedKeys="true" keyProperty="id">
@@ -30,7 +31,7 @@
     </insert>
 
     <select id="findStudentsLimitByTeacher" resultMap="StudentDto">
-        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.grade as student_grade,
+        SELECT Student.id, Student.student_id as student_id, Student.student_name, class_and_grade.id as grade_class, class_and_grade.grade as student_grade,
                class_and_grade.name as student_class, Major.name as major, Collage.name as collage, School.`name` as school
         FROM Student RIGHT JOIN Major ON Student.major_id=Major.id RIGHT JOIN Collage ON Major.collage_id=Collage.id
             RIGHT JOIN School ON Collage.school_id=School.id
@@ -42,7 +43,7 @@
     </select>
 
     <select id="findAllInStatusByTeacher" resultMap="StudentDto">
-        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.grade as student_grade,
+        SELECT Student.id, Student.student_id as student_id, Student.student_name, class_and_grade.id as grade_class, class_and_grade.grade as student_grade,
                class_and_grade.name as student_class, Major.name as major, Collage.name as collage, School.`name` as school
         FROM Student RIGHT JOIN Major ON Student.major_id=Major.id RIGHT JOIN Collage ON Major.collage_id=Collage.id
                      RIGHT JOIN School ON Collage.school_id=School.id
@@ -57,7 +58,7 @@
     </update>
 
     <select id="getById" resultMap="StudentDto">
-        SELECT Student.id, Student.email, Student.student_id, Student.student_name,class_and_grade.grade as student_grade,
+        SELECT Student.id, Student.email, Student.student_id, Student.student_name, class_and_grade.id as grade_class, class_and_grade.grade as student_grade,
                class_and_grade.name as student_class, Major.name as major, Collage.name as collage
         FROM ((Student INNER JOIN Major ON Student.major_id=Major.id) INNER JOIN Collage ON Major.collage_id=Collage.id)
                  INNER JOIN class_and_grade ON class_and_grade.id=Student.student_class
@@ -94,7 +95,7 @@
     </select>
 
     <select id="findAllStudentLimit" resultMap="StudentDto">
-        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.grade as student_grade,
+        SELECT Student.id, Student.student_id as student_id, Student.student_name, class_and_grade.id as grade_class, class_and_grade.grade as student_grade,
                class_and_grade.name as student_class, Major.name as major, Collage.name as collage, School.`name` as school
         FROM Student RIGHT JOIN Major ON Student.major_id=Major.id RIGHT JOIN Collage ON Major.collage_id=Collage.id RIGHT JOIN School ON Collage.school_id=School.id
                      RIGHT JOIN class_and_grade ON class_and_grade.id=Student.student_class
@@ -104,7 +105,7 @@
     </select>
 
     <select id="findAllStudent" resultMap="StudentDto">
-        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.grade as student_grade,
+        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.id as grade_class,class_and_grade.grade as student_grade,
                class_and_grade.name as student_class, Major.name as major, Collage.name as collage, School.`name` as school
         FROM Student RIGHT JOIN Major ON Student.major_id=Major.id RIGHT JOIN Collage ON Major.collage_id=Collage.id RIGHT JOIN School ON Collage.school_id=School.id
                      RIGHT JOIN class_and_grade ON class_and_grade.id=Student.student_class
@@ -113,7 +114,7 @@
     </select>
 
     <select id="findByGradeClass" resultMap="StudentDto">
-        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.grade as student_grade,
+        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.id as grade_class, class_and_grade.grade as student_grade,
                class_and_grade.name as student_class, Major.name as major, Collage.name as collage, School.`name` as school
         FROM Student RIGHT JOIN Major ON Student.major_id=Major.id RIGHT JOIN Collage ON Major.collage_id=Collage.id RIGHT JOIN School ON Collage.school_id=School.id
                      RIGHT JOIN class_and_grade ON class_and_grade.id=Student.student_class
@@ -122,7 +123,7 @@
     </select>
 
     <select id="findByGradeClassIdList" resultMap="StudentDto">
-        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.grade as student_grade,
+        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.id as grade_class, class_and_grade.grade as student_grade,
                class_and_grade.name as student_class, Major.name as major, Collage.name as collage, School.`name` as school
         FROM Student RIGHT JOIN Major ON Student.major_id=Major.id RIGHT JOIN Collage ON Major.collage_id=Collage.id RIGHT JOIN School ON Collage.school_id=School.id
                      RIGHT JOIN class_and_grade ON class_and_grade.id=Student.student_class
@@ -134,7 +135,7 @@
     </select>
 
     <select id="findByIdList" resultMap="StudentDto">
-        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.grade as student_grade,
+        SELECT Student.id, Student.student_id as student_id, Student.student_name,class_and_grade.id as grade_class, class_and_grade.grade as student_grade,
                class_and_grade.name as student_class, Major.name as major, Collage.name as collage, School.`name` as school
         FROM Student RIGHT JOIN Major ON Student.major_id=Major.id RIGHT JOIN Collage ON Major.collage_id=Collage.id RIGHT JOIN School ON Collage.school_id=School.id
                      RIGHT JOIN class_and_grade ON class_and_grade.id=Student.student_class

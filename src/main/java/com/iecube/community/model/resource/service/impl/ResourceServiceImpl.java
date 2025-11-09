@@ -51,7 +51,8 @@ public class ResourceServiceImpl implements ResourceService {
 
     private File target;
 
-    private Resource buildResourceDTO(String originalFilename, String fileName, String type) {
+    @Override
+    public Resource buildResourceDTO(String originalFilename, String fileName, String type) {
         Resource resource = new Resource();
         resource.setOriginFilename(originalFilename);
         resource.setFilename(fileName);
@@ -60,7 +61,8 @@ public class ResourceServiceImpl implements ResourceService {
         return resource;
     }
 
-    private Resource addResource(Resource resource, Integer createUser) {
+    @Override
+    public Resource addResource(Resource resource, Integer createUser) {
         resource.setCreator(createUser);
         resource.setCreateTime(new Date());
         resource.setLastModifiedUser(createUser);
@@ -71,7 +73,6 @@ public class ResourceServiceImpl implements ResourceService {
         }
         return resource;
     }
-
 
     private String SaveFile(MultipartFile file, String tag) throws IOException {
         String originalFilename = file.getOriginalFilename();

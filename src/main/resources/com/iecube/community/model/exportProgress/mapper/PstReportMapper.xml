@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.exportProgress.mapper.PstReportMapper">
+    <resultMap id="PstReportDTO" type="com.iecube.community.model.exportProgress.dto.PstReportDTO">
+        <result column="pst_id" property="pstId"></result>
+        <result column="pt_id" property="ptId"></result>
+        <result column="ps_id" property="psId"></result>
+        <result column="gc_name" property="gcName"></result>
+        <result column="student_id" property="studentId"></result>
+        <result column="student_name" property="studentName"></result>
+        <result column="t_name" property="taskName"></result>
+        <result column="t_weighting" property="taskWeighting"></result>
+        <result column="task_score" property="taskScore"></result>
+        <result column="task_total_score" property="taskTotalScore"></result>
+        <result column="ps_score" property="psScore"></result>
+        <result column="task_book_id" property="taskBookId"></result>
+    </resultMap>
+
+    <resultMap id="PstReportCommentDto" type="com.iecube.community.model.exportProgress.dto.PstReportCommentDto">
+        <result column="block_stage" property="blockStage"></result>
+        <result column="block_level" property="blockLevel"></result>
+        <result column="block_order" property="blockOrder"></result>
+        <result column="com_order" property="comOrder"></result>
+        <result column="total_score" property="totalScore"></result>
+    </resultMap>
+
+    <select id="getPSTReportListByProjectId" resultMap="PstReportDTO">
+        SELECT pst.id AS pst_id, pt.id AS pt_id, ps.id AS ps_id, pst.task_book_id, pst.total_score AS task_total_score, pst.score AS task_score,
+               pt.`name` AS t_name,  pt.weighting AS t_weighting,  ps.score AS ps_score,
+               s.student_id,s.student_name, cg.`name` AS gc_name
+        FROM EMDV4_project_studentTask pst
+                 LEFT JOIN EMDV4_projectStudent ps ON pst.project_student=ps.id
+                 LEFT JOIN EMDV4_projectTask pt ON pst.project_task=pt.id
+                 LEFT JOIN Student s ON ps.student_id=s.id
+                 LEFT JOIN class_and_grade cg ON s.student_class=cg.id
+        WHERE ps.project_id=#{projectId};
+    </select>
+
+    <select id="getSTComListByTaskBookId" resultMap="PstReportCommentDto">
+        WITH RECURSIVE task_tree AS (
+            -- 基准条件：查询目标节点的直接子节点
+            SELECT *
+            FROM EMDV4_student_task_book
+            WHERE p_id = #{taskBookId}  -- ? 是要查询的父节点 ID（如：1）
+            UNION ALL
+
+            -- 递归条件：查询子节点的子节点（关联自身）
+            SELECT  t.*
+            FROM EMDV4_student_task_book t
+                     INNER JOIN task_tree tt ON t.p_id = tt.id  -- 子节点的 p_id = 上一层的 id
+        )
+        -- 最终查询所有递归出来的子节点
+        SELECT tt.`stage` AS block_stage,tt.`level` AS block_level, tt.`order` AS block_order, co.`order` AS com_order,  co.`name`, co.`type`, co.`total_score`, co.`score`, co.`payload`
+        FROM task_tree tt
+                 LEFT JOIN EMDV4_component co ON co.block_id=tt.id
+        WHERE co.need_calculate=1
+        ORDER BY block_stage ASC, block_level ASC,block_order ASC, com_order ASC;
+    </select>
+</mapper>
