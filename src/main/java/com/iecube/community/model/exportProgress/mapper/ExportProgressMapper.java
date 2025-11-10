@@ -8,7 +8,7 @@ import java.util.List;
 @Mapper
 public interface ExportProgressMapper {
 
-    void insert(ExportProgress exportProgress);
+    int insert(ExportProgress exportProgress);
 
     ExportProgress selectById(String id);
 

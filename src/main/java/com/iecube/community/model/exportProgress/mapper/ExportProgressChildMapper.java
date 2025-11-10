@@ -6,4 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface ExportProgressChildMapper {
     void insert(ExportProgressChild exportProgressChild);
+    ExportProgressChild getById(String id);
+    void update(ExportProgressChild exportProgressChild);
+
 }

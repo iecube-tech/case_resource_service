@@ -2,9 +2,26 @@
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.iecube.community.model.exportProgress.mapper.ExportProgressChildMapper">
+    
+    <resultMap id="ExportProgressChild" type="com.iecube.community.model.exportProgress.entity.ExportProgressChild">
+        <result property="exportProgressId" column="export_progress_id"></result>
+        <result property="createTime" column="create_time"></result>
+    </resultMap>
 
     <insert id="insert">
         INSERT INTO EP_export_progerss_child_file (`id`, `export_progress_id`, `resource`, `order`, `finished`, `message`, `create_time` )
         VALUES (#{id}, #{exportProgressId}, #{resource}, #{order}, #{finished}, #{message}, #{createTime} )
     </insert>
+
+    <select id="getById" resultMap="ExportProgressChild">
+        SELECT *
+        FROM EP_export_progerss_child_file
+        WHERE id=#{id}
+    </select>
+
+    <update id="update">
+        UPDATE EP_export_progerss_child_file SET finished=#{finished},
+                                                 message=#{message}
+                                             WHERE id=#{id}
+    </update>
 </mapper>

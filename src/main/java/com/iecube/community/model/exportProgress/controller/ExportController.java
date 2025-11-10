@@ -5,9 +5,7 @@ import com.iecube.community.model.exportProgress.entity.ExportProgress;
 import com.iecube.community.model.exportProgress.service.ExportService;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/export")
@@ -16,15 +14,23 @@ public class ExportController extends BaseController {
     @Autowired
     private ExportService exportService;
 
-    @GetMapping("/test")
-    public JsonResult<ExportProgress> test(){
-        ExportProgress res = exportService.create(246, ExportProgress.Types.PROJECT_REPORT_EXPORT.getValue());
+    @GetMapping("/report/get/{projectId}")
+    public JsonResult<ExportProgress> getReport(@PathVariable Integer projectId){
+        ExportProgress res = exportService.create(projectId, ExportProgress.Types.PROJECT_REPORT_EXPORT.getValue(), currentUserId());
         return new JsonResult<>(OK, res);
     }
 
-    @GetMapping("/recreate")
-    public JsonResult<ExportProgress> recreate(){
-        ExportProgress res = exportService.reCreate(246, ExportProgress.Types.PROJECT_REPORT_EXPORT.getValue());
+    @GetMapping("/report/rate/{id}")
+    public JsonResult<ExportProgress> getReportRate(@PathVariable String id){
+        ExportProgress res = exportService.getExportProgress(id);
         return new JsonResult<>(OK, res);
     }
+
+    @PostMapping("/report/regen/{projectId}")
+    public JsonResult<ExportProgress> reGenReport(@PathVariable Integer projectId){
+        ExportProgress res = exportService.reCreate(projectId, ExportProgress.Types.PROJECT_REPORT_EXPORT.getValue(), currentUserId());
+        return new JsonResult<>(OK, res);
+    }
+
+
 }

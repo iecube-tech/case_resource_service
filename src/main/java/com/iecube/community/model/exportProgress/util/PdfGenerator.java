@@ -36,7 +36,9 @@ import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import lombok.extern.slf4j.Slf4j;
-
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 
 import java.io.*;
@@ -45,12 +47,13 @@ import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
+@Service
 public class PdfGenerator {
     public static PdfFont TitleFont;
     public static PdfFont TextFont;
     public static String fontPath = "/community/service/fonts/simsun.ttf";
-//    public static String fontPathW = "D:\\work\\iecube_community\\service\\community\\src\\main\\resources\\fonts\\simsun.ttf";
-    public static String fontPathW = "D:\\java_project\\case_resource_service\\src\\main\\resources\\fonts\\simsun.ttf";
+    public static String fontPathW = "D:\\work\\iecube_community\\service\\community\\src\\main\\resources\\fonts\\simsun.ttf";
+//    public static String fontPathW = "D:\\java_project\\case_resource_service\\src\\main\\resources\\fonts\\simsun.ttf";
 
     public static ObjectMapper objectMapper = new ObjectMapper();
 
@@ -61,17 +64,9 @@ public class PdfGenerator {
         return System.getProperty("os.name").toLowerCase().contains("windows");
     }
 
-    public static File generatePdf(String genFileDir, String fileName, List<PstReportCommentDto> PstReportCommentDtoList) throws IOException {
+    public File generatePdf(String genFileDir, String fileName, List<PstReportCommentDto> PstReportCommentDtoList) throws IOException {
         if(isWindows()){
             fontPath = fontPathW;
-        }
-        File directory = new File(genFileDir);
-        if (!directory.exists()) {
-            // 不存在则创建目录（mkdirs() 可创建多级目录，mkdir() 只能创建单级目录）
-            boolean isCreated = directory.mkdirs();
-            if (!isCreated) {
-                throw new IOException("创建PDF导出目录失败");
-            }
         }
         String filePath = genFileDir+"/" + fileName;
 

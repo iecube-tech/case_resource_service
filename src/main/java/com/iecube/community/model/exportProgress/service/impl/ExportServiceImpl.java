@@ -1,6 +1,7 @@
 package com.iecube.community.model.exportProgress.service.impl;
 
 import com.iecube.community.baseservice.ex.ServiceException;
+import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.model.exportProgress.dto.PstReportDTO;
 import com.iecube.community.model.exportProgress.entity.ExportProgress;
 import com.iecube.community.model.exportProgress.mapper.ExportProgressMapper;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 
@@ -37,15 +39,18 @@ public class ExportServiceImpl implements ExportService {
 
 
     private final ConcurrentHashMap<String, Boolean> cancelFlags;
+    private final ConcurrentHashMap<String, Integer> progressRate;
 
     @Autowired
     public ExportServiceImpl(ConcurrentHashMap<String, Boolean> cancelFlags,
+                             ConcurrentHashMap<String, Integer> progressRate,
                              ExportProgressMapper exportProgressMapper,
                              PstReportMapper pstReportMapper,
                              ProjectMapper projectMapper,
                              ResourceMapper resourceMapper,
                              ExportChildService exportChildService){
         this.cancelFlags=cancelFlags;
+        this.progressRate=progressRate;
         this.exportProgressMapper = exportProgressMapper;
         this.pstReportMapper = pstReportMapper;
         this.projectMapper = projectMapper;
@@ -54,25 +59,42 @@ public class ExportServiceImpl implements ExportService {
     }
 
 
+    /**
+     * 生成项目的导出报告文件压缩包
+     * @param projectId projectId
+     * @param type ExportProgress.Types.PROJECT_REPORT_EXPORT.getValue()
+     * @param currentUser currentUser
+     * @return ExportProgressVo 如果存在 则返回存在的信息， 如果不存在则生成 再返回信息
+     */
     @Override
-    @Transactional
-    public ExportProgressVo create(Integer projectId, String type){
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    public ExportProgressVo create(Integer projectId, String type, Integer currentUser){
         List<ExportProgress> exits = exportProgressMapper.selectByProject(projectId);
         if(exits!=null&& !exits.isEmpty()){
             for (ExportProgress progress: exits){
                 if(progress.getType().equals(type)){
                     ExportProgressVo vo = new ExportProgressVo();
                     BeanUtils.copyProperties(progress, vo);
+                    if(vo.getResultResource()!=null){
+                        vo.setResource(resourceMapper.getById(vo.getResultResource()));
+                    }
                     return vo;
                 }
             }
         }
-        return createExportTask(projectId, type);
+        return createExportTask(projectId, type, currentUser);
     }
 
+    /**
+     * 重新生成导出文件 会删除 覆盖已有文件
+     * @param projectId projectId
+     * @param type ExportProgress. Types. PROJECT_REPORT_EXPORT. getValue()
+     * @param currentUser currentUser
+     * @return ExportProgressVo 生成后的信息
+     */
     @Override
-    @Transactional
-    public ExportProgressVo reCreate(Integer projectId, String type){
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    public ExportProgressVo reCreate(Integer projectId, String type, Integer currentUser){
         List<ExportProgress> exits = exportProgressMapper.selectByProject(projectId);
         if(exits!=null&& !exits.isEmpty()){
             for (ExportProgress progress: exits){
@@ -81,11 +103,11 @@ public class ExportServiceImpl implements ExportService {
                 }
             }
         }
-        return createExportTask(projectId, type);
+        return createExportTask(projectId, type, currentUser);
     }
 
-    @Transactional
-    public ExportProgressVo createExportTask(Integer projectId, String type) {
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    public ExportProgressVo createExportTask(Integer projectId, String type, Integer currentUser) {
         Project project = projectMapper.findById(projectId);
         if(project == null) {
             throw new ServiceException("课程/项目不存在");
@@ -102,19 +124,22 @@ public class ExportServiceImpl implements ExportService {
         progress.setId(progressId);
         progress.setProjectId(projectId);
         progress.setType(type);
-        progress.setTotalCount(pstReportDTOList.size()); // 假设每次导出300个PDF // todo 根据Project的信息查询 pdf任务或excel任务
+        progress.setTotalCount(pstReportDTOList.size()); //根据Project的信息查询 pdf任务或excel任务
         progress.setCompletedCount(0);
         progress.setPercent(0);
         progress.setFinished(false);
         progress.setMessage("任务已创建，等待处理");
-        exportProgressMapper.insert(progress);
+        int res = exportProgressMapper.insert(progress);
+        if(res!=1){
+            throw new InsertException("新增数据异常");
+        }
 
         // 启动异步任务处理PDF生成
         if(type.equals(ExportProgress.Types.PROJECT_GRADE_EXPORT.getValue())){
             exportChildService.processGradeExportTask(progressId, projectId);
         }
         if(type.equals(ExportProgress.Types.PROJECT_REPORT_EXPORT.getValue())){
-            exportChildService.processReportExportTask(progressId, projectId, pstReportDTOList);
+            exportChildService.processReportExportTask(progressId, projectId, pstReportDTOList, currentUser);
         }
 
         ExportProgressVo vo = new ExportProgressVo();
@@ -137,7 +162,7 @@ public class ExportServiceImpl implements ExportService {
     }
 
     @Override
-    @Transactional
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public ExportProgressVo cancelExportTask(String taskId) {
         cancelFlags.put(taskId, true);
         return getExportProgress(taskId);

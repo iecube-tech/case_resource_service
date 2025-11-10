@@ -14,4 +14,10 @@ public class ProgressManager {
         // 用于存储任务取消状态
         return new ConcurrentHashMap<>();
     }
+
+    @Bean
+    public ConcurrentHashMap<String, Integer> progressRate(){
+        // 存储任务进度
+        return new ConcurrentHashMap<>();
+    }
 }
