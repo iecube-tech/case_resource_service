@@ -10,27 +10,28 @@ import com.iecube.community.model.exportProgress.mapper.ExportProgressMapper;
 import com.iecube.community.model.exportProgress.mapper.PstReportMapper;
 import com.iecube.community.model.exportProgress.service.ExportChildService;
 import com.iecube.community.model.exportProgress.util.FileCompressor;
-import com.iecube.community.model.exportProgress.util.PdfGenerator;
+import com.iecube.community.model.exportProgress.util.GradeExcelGenEmdV4;
+import com.iecube.community.model.exportProgress.util.PdfGeneratorEmdV4;
+import com.iecube.community.model.project.entity.Project;
 import com.iecube.community.model.resource.entity.Resource;
 import com.iecube.community.model.resource.service.ResourceService;
 import com.iecube.community.util.thread.IOThreadFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -46,7 +47,9 @@ public class ExportChildServiceImpl implements ExportChildService {
 
     private final ResourceService resourceService;
 
-    private final PdfGenerator pdfGenerator;
+    private final PdfGeneratorEmdV4 pdfGeneratorEmdV4;
+
+    private final GradeExcelGenEmdV4 gradeExcelGenEmdV4;
 
     private final ConcurrentHashMap<String, Integer> progressRate;
 
@@ -64,29 +67,96 @@ public class ExportChildServiceImpl implements ExportChildService {
                                   ExportProgressChildMapper childFileMapper,
                                   PstReportMapper pstReportMapper,
                                   ResourceService resourceService,
-                                  PdfGenerator pdfGenerator){
+                                  PdfGeneratorEmdV4 pdfGeneratorEmdV4,
+                                  GradeExcelGenEmdV4 gradeExcelGenEmdV4){
         this.cancelFlags=cancelFlags;
         this.progressRate=progressRate;
         this.exportProgressMapper = exportProgressMapper;
         this.childFileMapper = childFileMapper;
         this.pstReportMapper = pstReportMapper;
         this.resourceService = resourceService;
-        this.pdfGenerator = pdfGenerator;
+        this.pdfGeneratorEmdV4 = pdfGeneratorEmdV4;
+        this.gradeExcelGenEmdV4 = gradeExcelGenEmdV4;
     }
 
     @Async("exportTaskExecutor")
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
-    @Override
-    public void processGradeExportTask(String progressId, Integer projectId) {
-
+//    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    public void processGradeExportTask(String progressId, Project project, List<PstReportDTO> pstReportDTOList, Integer currentUser) {
+        String xlsxDir = this.files+"/";
+        String xlsxName = UUID.randomUUID().toString().replace("-", "") + ".xlsx";
+        log.info("开始处理导出成绩任务: taskId={}, projectId={}, file={}", progressId, project.getId(), xlsxName);
+        cancelFlags.put(progressId, false); // 初始化取消标志
+        try(
+            Workbook workbook = new XSSFWorkbook();
+            FileOutputStream fos = new FileOutputStream(xlsxDir+xlsxName);
+        ){
+            ExportProgress progress = exportProgressMapper.selectById(progressId);// 获取任务信息
+            if (progress == null) {
+                getError(progressId);
+                return;
+            }
+            // <实验一:[PstReportDTO], 实验二:[PstReportDTO], 实验三:[PstReportDTO], 实验四:[PstReportDTO]....>
+            Map<Long, List<PstReportDTO>> pstReportDTOListGroupByPT = pstReportDTOList.stream()
+                    .collect(
+                            Collectors.groupingBy(
+                                    PstReportDTO::getPtId,
+                                    Collectors.mapping(pst->pst, Collectors.collectingAndThen(
+                                            Collectors.toList(), // 先收集到 List
+                                            list -> {
+                                                // 对 List 按学号排序
+                                                list.sort(Comparator.comparing(PstReportDTO::getStudentId));
+                                                return list;
+                                            }
+                                    ))
+                            )
+                    );
+            // <学号1: [PstReportDTO], 学号2: [PstReportDTO], 学号3: [PstReportDTO] ......>
+            Map<String, List<PstReportDTO>> pstReportDTOGroupByStudentId = pstReportDTOList.stream()
+                    .collect(Collectors.groupingBy(PstReportDTO::getStudentId));
+            if(pstReportDTOListGroupByPT.isEmpty()){
+                log.error("没有成绩数据");
+                return;
+            }
+            log.info("PST数据整理完毕，开始生成课程成绩概览");
+            gradeExcelGenEmdV4.genSheetOverview(workbook, pstReportDTOListGroupByPT, pstReportDTOGroupByStudentId);
+            log.info("开始生成各个实验成绩概览");
+            AtomicInteger completedCount = new AtomicInteger(1);
+            pstReportDTOListGroupByPT.forEach((key, value) -> {
+                if (cancelFlags.getOrDefault(progressId, false)) {
+                    log.info("任务已取消: progressId={}", progressId);
+                    updateProgress(progressId, 1, "任务已取消", true);
+                    return;
+                }
+                Map<Long,List<PstReportCommentDto>> pstComponentsMap = new HashMap<>();
+                value.forEach(pstReportDTO -> {
+                    List<PstReportCommentDto> components = pstReportMapper.getSTComListByTaskBookId(pstReportDTO.getTaskBookId());
+                    pstComponentsMap.put(pstReportDTO.getPstId(), components);
+                });
+                // 生成taskView
+                updateProgress(progressId, completedCount.get(), "正在写入各个实验成绩概览，已写入"+completedCount.get()+"条数据",false);
+                log.info("正在写入各个实验成绩概览，已写入{}条数据", completedCount.get());
+                gradeExcelGenEmdV4.genTaskView(workbook, value.get(0).getTaskName(),value, pstComponentsMap);
+                completedCount.addAndGet(value.size());
+            });
+            workbook.write(fos);
+            Resource resource = resourceService.buildResourceDTO(project.getProjectName()+"_课程成绩.xlsx", xlsxName, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            Resource result = resourceService.addResource(resource, currentUser);
+            updateProgress(progressId, 1, "任务完成，文件已生成", true, result.getId());
+            log.info("成绩导出完成");
+        } catch (IOException e) {
+            log.error("成绩导出报告错误", e);
+            updateProgress(progressId, 0, "生成文件失败: " + e.getMessage(), true);
+        }
     }
 
     @Async("exportTaskExecutor")
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+//    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Override
-    public void processReportExportTask(String progressId, int projectId, List<PstReportDTO> pstReportDTOList, Integer currentUser){
+    public void processReportExportTask(String progressId, Project project, List<PstReportDTO> pstReportDTOList, Integer currentUser){
 
-        log.info("开始处理导出任务: taskId={}, projectId={}", progressId, projectId);
+        String zipDir = this.files +"/" ;
+        String zipName = UUID.randomUUID().toString().replace("-", "") + ".tar.gz";
+        log.info("开始处理导出报告任务: taskId={}, projectId={}, filename={}", progressId, project.getId(), zipName);
         cancelFlags.put(progressId, false); // 初始化取消标志
         try {
             ExportProgress progress = exportProgressMapper.selectById(progressId);// 获取任务信息
@@ -98,7 +168,7 @@ public class ExportChildServiceImpl implements ExportChildService {
             int totalCount = progress.getTotalCount();
             List<File> pdfFiles = new ArrayList<>();
 
-            File genDirectory = new File(this.genFileDir+"/"+projectId);
+            File genDirectory = new File(this.genFileDir+"/"+project.getId());
             if (!genDirectory.exists()) {
                 // 不存在则创建目录（mkdirs() 可创建多级目录，mkdir() 只能创建单级目录）
                 boolean isCreated = genDirectory.mkdirs();
@@ -125,7 +195,7 @@ public class ExportChildServiceImpl implements ExportChildService {
                     // 生成PDF文件 班级_学号_姓名_实验_成绩_pstId.pdf
 //                    String content = "这是第" + (i + 1) + "个PDF文件，项目ID: " + projectId;
                     List<PstReportCommentDto> PstReportCommentDtoList = pstReportMapper.getSTComListByTaskBookId(pstReportDTO.getTaskBookId());
-                    File pdfFile = pdfGenerator.generatePdf(genDirectory.getPath(), fileName, PstReportCommentDtoList);
+                    File pdfFile = pdfGeneratorEmdV4.generatePdf(genDirectory.getPath(), fileName, PstReportCommentDtoList);
                     pdfFiles.add(pdfFile);
                     // 创建子任务记录
                     createChildTask(progressId, true,fileName+"已生成", i + 1);
@@ -145,10 +215,8 @@ public class ExportChildServiceImpl implements ExportChildService {
             updateProgress(progressId, totalCount, "PDF生成完成，开始压缩", false);
             try {
                 // 压缩PDF文件
-                String zipDir = this.files +"/" ;
-                String zipName = UUID.randomUUID().toString().replace("-", "") + ".tar.gz";
                 FileCompressor.compressToTarGz(pdfFiles, zipDir+zipName);
-                Resource resource = resourceService.buildResourceDTO("学生报告.tar.gz", zipName, "TAR.GZ");
+                Resource resource = resourceService.buildResourceDTO(project.getProjectName()+"_学生报告.tar.gz", zipName, "TAR.GZ");
                 Resource result = resourceService.addResource(resource, currentUser);
                 // 更新任务状态为完成
                 updateProgress(progressId, totalCount, "任务完成，压缩包已生成", true, result.getId());
@@ -170,7 +238,7 @@ public class ExportChildServiceImpl implements ExportChildService {
 
 
     @Async("exportTaskExecutor")
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+//    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public void processReportExport(String progressId, int projectId, List<PstReportDTO> pstReportDTOList, Integer currentUser) {
         log.info("开始处理导出任务: taskId={}, projectId={}", progressId, projectId);
         cancelFlags.put(progressId, false); // 初始化取消标志
@@ -221,7 +289,7 @@ public class ExportChildServiceImpl implements ExportChildService {
                 CompletableFuture<File> future = CompletableFuture.supplyAsync(()->{
                     List<PstReportCommentDto> PstReportCommentDtoList = pstReportMapper.getSTComListByTaskBookId(pstReportDTO.getTaskBookId());
                     try{
-                        File pdf = pdfGenerator.generatePdf(genDirectory.getPath(), fileName, PstReportCommentDtoList);
+                        File pdf = pdfGeneratorEmdV4.generatePdf(genDirectory.getPath(), fileName, PstReportCommentDtoList);
                         synchronized (resultFileListRef) { // 加锁保证并发安全
                             resultFileListRef.get().add(pdf);
                         }
@@ -323,7 +391,7 @@ public class ExportChildServiceImpl implements ExportChildService {
         }
     }
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+//    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public void updateProgress(String taskId, int completedCount, String message, boolean finished, Integer resourceId) {
         ExportProgress progress = exportProgressMapper.selectById(taskId);
         if (progress == null) {
@@ -341,7 +409,7 @@ public class ExportChildServiceImpl implements ExportChildService {
         log.info("任务进度更新: taskId={}, percent={}%, message={}", taskId, percent, message);
     }
 
-    @Transactional
+//    @Transactional
     public void updateProgress(String taskId, int completedCount, String message, boolean finished) {
         ExportProgress progress = exportProgressMapper.selectById(taskId);
         if (progress == null) {
@@ -358,7 +426,7 @@ public class ExportChildServiceImpl implements ExportChildService {
         log.info("任务进度更新: taskId={}, percent={}%, message={}", taskId, percent, message);
     }
 
-    @Transactional
+//    @Transactional
     public void createChildTask(String taskId, Boolean success, String message, int order) {
         ExportProgressChild childFile = new ExportProgressChild();
         childFile.setId(UUID.randomUUID().toString().replace("-", ""));
@@ -370,7 +438,7 @@ public class ExportChildServiceImpl implements ExportChildService {
         childFileMapper.insert(childFile);
     }
 
-    @Transactional
+//    @Transactional
     public void createChildTask(String id, String taskId, Boolean success, String message, int order) {
         ExportProgressChild childFile = new ExportProgressChild();
         childFile.setId(id);
@@ -382,7 +450,7 @@ public class ExportChildServiceImpl implements ExportChildService {
         childFileMapper.insert(childFile);
     }
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+//    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public void updateChildTask(String id ,Boolean success, String message){
         ExportProgressChild child = childFileMapper.getById(id);
         child.setMessage(message);

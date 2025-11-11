@@ -22,7 +22,6 @@ import com.itextpdf.layout.font.FontProvider;
 import com.itextpdf.layout.property.HorizontalAlignment;
 import com.itextpdf.layout.property.TextAlignment;
 import com.itextpdf.layout.property.UnitValue;
-import com.itextpdf.tool.xml.XMLWorkerHelper;
 import com.vladsch.flexmark.ext.abbreviation.AbbreviationExtension;
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
 import com.vladsch.flexmark.ext.emoji.EmojiExtension;
@@ -33,11 +32,8 @@ import com.vladsch.flexmark.ext.gitlab.GitLabExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
-import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 
@@ -48,7 +44,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class PdfGenerator {
+public class PdfGeneratorEmdV4 {
     public static PdfFont TitleFont;
     public static PdfFont TextFont;
     public static String fontPath = "/community/service/fonts/simsun.ttf";

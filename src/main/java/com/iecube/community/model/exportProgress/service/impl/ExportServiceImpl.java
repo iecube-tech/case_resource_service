@@ -16,11 +16,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 
 
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,18 +39,15 @@ public class ExportServiceImpl implements ExportService {
 
 
     private final ConcurrentHashMap<String, Boolean> cancelFlags;
-    private final ConcurrentHashMap<String, Integer> progressRate;
 
     @Autowired
     public ExportServiceImpl(ConcurrentHashMap<String, Boolean> cancelFlags,
-                             ConcurrentHashMap<String, Integer> progressRate,
                              ExportProgressMapper exportProgressMapper,
                              PstReportMapper pstReportMapper,
                              ProjectMapper projectMapper,
                              ResourceMapper resourceMapper,
                              ExportChildService exportChildService){
         this.cancelFlags=cancelFlags;
-        this.progressRate=progressRate;
         this.exportProgressMapper = exportProgressMapper;
         this.pstReportMapper = pstReportMapper;
         this.projectMapper = projectMapper;
@@ -67,7 +64,7 @@ public class ExportServiceImpl implements ExportService {
      * @return ExportProgressVo 如果存在 则返回存在的信息， 如果不存在则生成 再返回信息
      */
     @Override
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+//    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public ExportProgressVo create(Integer projectId, String type, Integer currentUser){
         List<ExportProgress> exits = exportProgressMapper.selectByProject(projectId);
         if(exits!=null&& !exits.isEmpty()){
@@ -93,7 +90,7 @@ public class ExportServiceImpl implements ExportService {
      * @return ExportProgressVo 生成后的信息
      */
     @Override
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+//    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public ExportProgressVo reCreate(Integer projectId, String type, Integer currentUser){
         List<ExportProgress> exits = exportProgressMapper.selectByProject(projectId);
         if(exits!=null&& !exits.isEmpty()){
@@ -106,7 +103,7 @@ public class ExportServiceImpl implements ExportService {
         return createExportTask(projectId, type, currentUser);
     }
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+//    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public ExportProgressVo createExportTask(Integer projectId, String type, Integer currentUser) {
         Project project = projectMapper.findById(projectId);
         if(project == null) {
@@ -129,6 +126,7 @@ public class ExportServiceImpl implements ExportService {
         progress.setPercent(0);
         progress.setFinished(false);
         progress.setMessage("任务已创建，等待处理");
+        progress.setCreateTime(new Date());
         int res = exportProgressMapper.insert(progress);
         if(res!=1){
             throw new InsertException("新增数据异常");
@@ -136,10 +134,10 @@ public class ExportServiceImpl implements ExportService {
 
         // 启动异步任务处理PDF生成
         if(type.equals(ExportProgress.Types.PROJECT_GRADE_EXPORT.getValue())){
-            exportChildService.processGradeExportTask(progressId, projectId);
+            exportChildService.processGradeExportTask(progressId, project, pstReportDTOList, currentUser);
         }
         if(type.equals(ExportProgress.Types.PROJECT_REPORT_EXPORT.getValue())){
-            exportChildService.processReportExportTask(progressId, projectId, pstReportDTOList, currentUser);
+            exportChildService.processReportExportTask(progressId, project, pstReportDTOList, currentUser);
         }
 
         ExportProgressVo vo = new ExportProgressVo();
@@ -162,10 +160,21 @@ public class ExportServiceImpl implements ExportService {
     }
 
     @Override
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+//    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public ExportProgressVo cancelExportTask(String taskId) {
-        cancelFlags.put(taskId, true);
-        return getExportProgress(taskId);
+        ExportProgress progress = exportProgressMapper.selectById(taskId);
+        if (progress == null) {
+            return null;
+        }
+        if(!progress.getFinished() && progress.getType().equals(ExportProgress.Types.PROJECT_REPORT_EXPORT.getValue())){
+            cancelFlags.put(taskId, true);
+        }
+        ExportProgressVo response = new ExportProgressVo();
+        BeanUtils.copyProperties(progress, response);
+        if(progress.getResultResource()!=null){
+            response.setResource(resourceMapper.getById(response.getResultResource()));
+        }
+        return response;
     }
 
 }
