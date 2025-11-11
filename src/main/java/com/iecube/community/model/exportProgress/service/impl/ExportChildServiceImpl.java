@@ -120,7 +120,8 @@ public class ExportChildServiceImpl implements ExportChildService {
             log.info("PST数据整理完毕，开始生成课程成绩概览");
             gradeExcelGenEmdV4.genSheetOverview(workbook, pstReportDTOListGroupByPT, pstReportDTOGroupByStudentId);
             log.info("开始生成各个实验成绩概览");
-            AtomicInteger completedCount = new AtomicInteger(1);
+            updateProgress(progressId, 0, "已写入课程成绩概览",false);
+            AtomicInteger completedCount = new AtomicInteger(0);
             pstReportDTOListGroupByPT.forEach((key, value) -> {
                 if (cancelFlags.getOrDefault(progressId, false)) {
                     log.info("任务已取消: progressId={}", progressId);
@@ -135,15 +136,20 @@ public class ExportChildServiceImpl implements ExportChildService {
                 // 生成taskView
                 updateProgress(progressId, completedCount.get(), "正在写入各个实验成绩概览，已写入"+completedCount.get()+"条数据",false);
                 log.info("正在写入各个实验成绩概览，已写入{}条数据", completedCount.get());
-                gradeExcelGenEmdV4.genTaskView(workbook, value.get(0).getTaskName(),value, pstComponentsMap);
+                try {
+                    gradeExcelGenEmdV4.genTaskView(workbook, value.get(0).getTaskName(),value, pstComponentsMap);
+                } catch (Exception e) {
+                    log.error("成绩导出报告错误", e);
+                    updateProgress(progressId, 0, "生成文件失败: " + e.getMessage(), true);
+                }
                 completedCount.addAndGet(value.size());
             });
             workbook.write(fos);
             Resource resource = resourceService.buildResourceDTO(project.getProjectName()+"_课程成绩.xlsx", xlsxName, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             Resource result = resourceService.addResource(resource, currentUser);
-            updateProgress(progressId, 1, "任务完成，文件已生成", true, result.getId());
+            updateProgress(progressId, completedCount.get(), "任务完成，文件已生成", true, result.getId());
             log.info("成绩导出完成");
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("成绩导出报告错误", e);
             updateProgress(progressId, 0, "生成文件失败: " + e.getMessage(), true);
         }
