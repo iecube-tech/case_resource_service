@@ -73,7 +73,7 @@ public class BaseController {
         else if (e instanceof ServiceException) {
             result.setState(8000);
             result.setMessage(e.getMessage());
-            result.setCause(e.getCause().getMessage());
+            result.setCause(e.getCause()==null?"":e.getCause().getMessage());
         }
         return result;
     }

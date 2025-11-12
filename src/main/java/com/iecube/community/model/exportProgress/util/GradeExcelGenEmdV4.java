@@ -108,12 +108,18 @@ public class GradeExcelGenEmdV4 {
                 taskStartIndex.addAndGet(2);
             });
             // 处理第一行实验前中后
-            sheet.addMergedRegion(new CellRangeAddress(0,0, 4, 4+stageSizeMap.get(0)-1)); // 合并
-            sheet.addMergedRegion(new CellRangeAddress(0,0, 4+stageSizeMap.get(0), 4+stageSizeMap.get(0)+stageSizeMap.get(1)-1)); // 合并
-            sheet.addMergedRegion(new CellRangeAddress(0,0, 4+stageSizeMap.get(0)+stageSizeMap.get(1), 4+stageSizeMap.get(0)+stageSizeMap.get(1)+stageSizeMap.get(2)-1)); // 合并
-            headerRow1.createCell(4).setCellValue("实验前");
-            headerRow1.createCell(4+stageSizeMap.get(0)).setCellValue("实验中");
-            headerRow1.createCell(4+stageSizeMap.get(0)+stageSizeMap.get(1)).setCellValue("实验后");
+            if(stageSizeMap.get(0)>0){
+                sheet.addMergedRegion(new CellRangeAddress(0,0, 4,  4+stageSizeMap.get(0)-1 )); // 合并
+                headerRow1.createCell(4).setCellValue("实验前");
+            }
+            if(stageSizeMap.get(1)>0){
+                sheet.addMergedRegion(new CellRangeAddress(0,0, 4+stageSizeMap.get(0), 4+stageSizeMap.get(0)+stageSizeMap.get(1)-1)); // 合并
+                headerRow1.createCell(4+stageSizeMap.get(0)).setCellValue("实验中");
+            }
+            if(stageSizeMap.get(2)>0){
+                sheet.addMergedRegion(new CellRangeAddress(0,0, 4+stageSizeMap.get(0)+stageSizeMap.get(1),  4+stageSizeMap.get(0)+stageSizeMap.get(1)+stageSizeMap.get(2)-1 )); // 合并
+                headerRow1.createCell(4+stageSizeMap.get(0)+stageSizeMap.get(1)).setCellValue("实验后");
+            }
 
             // 写入数据
             for(int i=0; i<pstReportDTOList.size();i++){

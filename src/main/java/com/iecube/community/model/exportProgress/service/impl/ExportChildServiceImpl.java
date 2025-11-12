@@ -122,7 +122,7 @@ public class ExportChildServiceImpl implements ExportChildService {
             log.info("开始生成各个实验成绩概览");
             updateProgress(progressId, 0, "已写入课程成绩概览",false);
             AtomicInteger completedCount = new AtomicInteger(0);
-            pstReportDTOListGroupByPT.forEach((key, value) -> {
+            for(List<PstReportDTO> value : pstReportDTOListGroupByPT.values()){
                 if (cancelFlags.getOrDefault(progressId, false)) {
                     log.info("任务已取消: progressId={}", progressId);
                     updateProgress(progressId, 1, "任务已取消", true);
@@ -139,11 +139,14 @@ public class ExportChildServiceImpl implements ExportChildService {
                 try {
                     gradeExcelGenEmdV4.genTaskView(workbook, value.get(0).getTaskName(),value, pstComponentsMap);
                 } catch (Exception e) {
-                    log.error("成绩导出报告错误", e);
-                    updateProgress(progressId, 0, "生成文件失败: " + e.getMessage(), true);
+                    throw new Exception(e);
                 }
                 completedCount.addAndGet(value.size());
-            });
+            }
+
+//            pstReportDTOListGroupByPT.forEach((key, value) -> {
+//
+//            });
             workbook.write(fos);
             Resource resource = resourceService.buildResourceDTO(project.getProjectName()+"_课程成绩.xlsx", xlsxName, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             Resource result = resourceService.addResource(resource, currentUser);
@@ -152,6 +155,8 @@ public class ExportChildServiceImpl implements ExportChildService {
         } catch (Exception e) {
             log.error("成绩导出报告错误", e);
             updateProgress(progressId, 0, "生成文件失败: " + e.getMessage(), true);
+        }finally {
+            cancelFlags.remove(progressId);
         }
     }
 
