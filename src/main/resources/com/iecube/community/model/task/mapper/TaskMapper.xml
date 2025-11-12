@@ -145,6 +145,7 @@
                 AND
             project_task_student.project_id=#{projectId}
             )
+        ORDER BY task_num ASC
     </select>
 
     <select id="findStudentTaskByProjectId" resultMap="StudentTaskDetailVo">

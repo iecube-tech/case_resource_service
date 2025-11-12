@@ -495,6 +495,7 @@ public class ProjectServiceImpl implements ProjectService {
             });
             projectStudents.forEach(projectStudentVo -> {
                 projectStudentVo.setStudentTasks(studentIdTOTaskVoList.get(projectStudentVo.getId()));
+//                projectStudentVo.getStudentTasks().sort(Comparator.comparingInt(StudentTaskVo::getTaskNum));
             });
             return projectStudents;
         }

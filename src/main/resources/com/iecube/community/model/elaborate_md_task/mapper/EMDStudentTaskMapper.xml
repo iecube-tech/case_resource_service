@@ -54,7 +54,7 @@
                e_md_student_task.`status` as task_status, e_md_student_task.grade as task_grade
         FROM task INNER JOIN e_md_student_task ON task.id=e_md_student_task.task_id
         WHERE task.project_id=#{projectId}
-        ORDER BY student_id;
+        ORDER BY task_num;
     </select>
 
     <update id="updateStatus">
