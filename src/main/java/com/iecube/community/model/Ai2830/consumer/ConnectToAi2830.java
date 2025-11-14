@@ -149,7 +149,7 @@ public class ConnectToAi2830 implements Runnable {
         });
 
         socket.on("stream_start",args->{
-//            log.info("ai2830 stream_start");
+            log.info("ai2830 stream_start -> activity-start");
             responseBuffer.setLength(0); // 清空缓冲区
             StreamAi2830Msg streamAi2830Msg = new StreamAi2830Msg();
             streamAi2830Msg.setType("activity-start");
@@ -159,13 +159,13 @@ public class ConnectToAi2830 implements Runnable {
                 log.error("转发AI2830消息json格式化异常：activity-start {}", e.getMessage());
             }
         });
-
         socket.on("stream_token",args->{
 //            log.info("ai2830 stream_token");
             if (args.length > 0 && args[0] instanceof JSONObject) {
                 try {
                     JSONObject data = (JSONObject) args[0];
                     String token = data.getString("token");
+//                    System.out.println(token);
                     responseBuffer.append(token);
                     // System.out.print(token); // 实时输出token
                     StreamAi2830Msg streamAi2830Msg = new StreamAi2830Msg();
@@ -182,7 +182,7 @@ public class ConnectToAi2830 implements Runnable {
             }
         });
         socket.on("stream_end",args->{
-//            log.info("ai2830 stream_end");
+            log.info("ai2830 stream_end->activity-stop");
             StreamAi2830Msg streamAi2830Msg = new StreamAi2830Msg(); // message 消息
             AI2830Msg msg = new AI2830Msg();
             msg.setMessage(responseBuffer.toString());

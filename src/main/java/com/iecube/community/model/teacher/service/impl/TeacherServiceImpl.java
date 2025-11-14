@@ -115,7 +115,11 @@ public class TeacherServiceImpl implements TeacherService {
         if(!passwordDefaultEnable){
             this.sendActiveEmail(user.getUsername(), user.getEmail(),password);
         }
-
+        // 同步teacher_case
+        List<Integer> caseId = contentMapper.findCaseIdsByTeacherId(user.getCreator());
+        for (Integer c : caseId) {
+            contentMapper.teacherAddContent(user.getId(), c);
+        }
     }
 
     @Async
