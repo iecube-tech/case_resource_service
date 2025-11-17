@@ -14,4 +14,5 @@ public class AddStudentDto extends BaseEntity {
     Integer status;
     String password;
     String salt;
+    String msg;
 }

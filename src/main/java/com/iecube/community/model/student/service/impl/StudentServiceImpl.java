@@ -176,75 +176,81 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public List<AddStudentDto> importByExcel(InputStream in, Integer modifiedUser) {
         XSSFWorkbook workbook;
-        try {
+        try (in) {
             workbook = new XSSFWorkbook(in);
+            if (workbook.getNumberOfSheets() < 1) {
+                throw new UnprocessableException("至少包含一个Sheet");
+            }
+            List<EmailParams> toSendEmail = new ArrayList<>();
+            List<AddStudentDto> failedList = new ArrayList<>();
+            Sheet sheet = workbook.getSheetAt(0);
+            // 解析row
+            for (int rowNum = 3; rowNum < sheet.getLastRowNum(); rowNum++) {
+                Row row = sheet.getRow(rowNum);
+                if (row != null) {
+                    if (row.getLastCellNum() < 1) {
+                        continue;
+                    }
+                    AddStudentDto addStudentDto = new AddStudentDto();
+                    String password = defaultPassword;
+                    if (!passwordDefaultEnable) {
+                        password = this.getRandomString(getRandomNumberInRange(8, 16));
+                    }
+                    String sha256Password = SHA256.encryptStringWithSHA256(password);
+                    String md5Password = getMD5Password(sha256Password, addStudentDto.getSalt());
+                    addStudentDto.setPassword(md5Password);
+                    try{
+                        EnumMap<UserExcelHeaderEnum, String> rowData = this.getRowData(row);
+                        System.out.println(rowData);
+                        String studentId = rowData.get(UserExcelHeaderEnum.NUM);
+                        String studentName = rowData.get(UserExcelHeaderEnum.NAME);
+                        String email = rowData.get(UserExcelHeaderEnum.EMAIL);
+                        String school = rowData.get(UserExcelHeaderEnum.SCHOOL);
+                        String collage = rowData.get(UserExcelHeaderEnum.COLLAGE);
+                        String major = rowData.get(UserExcelHeaderEnum.MAJOR);
+                        Integer grade = Integer.valueOf(rowData.get(UserExcelHeaderEnum.GRADE));
+                        String gradeClass = rowData.get(UserExcelHeaderEnum.GRADE_CLASS);
+                        // schoolId
+                        Integer schoolId = this.getSchoolId(school);
+                        Integer collageId = this.getCollageId(collage, schoolId, modifiedUser);
+                        Integer majorId = this.getMajorId(major, collageId, modifiedUser);
+                        Integer gradeClassId = this.getGradeClassId(grade, gradeClass, majorId, modifiedUser);
+                        addStudentDto.setMajorId(majorId);
+                        addStudentDto.setStudentClass(gradeClassId);
+                        addStudentDto.setStudentId(studentId);
+                        addStudentDto.setStudentName(studentName);
+                        addStudentDto.setEmail(email);
+                        addStudentDto.setStatus(1);
+                        addStudentDto.setCreator(modifiedUser);
+                        addStudentDto.setCreateTime(new Date());
+                        addStudentDto.setLastModifiedUser(modifiedUser);
+                        addStudentDto.setLastModifiedTime(new Date());
+                        String salt = UUID.randomUUID().toString().toUpperCase();
+                        addStudentDto.setSalt(salt);
+                        this.saveStudent(addStudentDto);
+                        if (!passwordDefaultEnable) {
+                            toSendEmail.add(EmailParams.build(
+                                    EMAIL_SUBJECT,
+                                    this.buildText(this.userActivateEmail, addStudentDto.getStudentName(), password, DomainName),
+                                    addStudentDto.getEmail()
+                            ));
+                        }
+                    }catch (NumberFormatException e){
+                        addStudentDto.setMsg("导入文件第%s行存在空值,导致处理异常， 第%s行之前的信息已经全部处理".formatted(rowNum+1, rowNum+1));
+                        failedList.add(addStudentDto);
+                        break;
+                    }catch (StudentDuplicateException e){
+                        addStudentDto.setMsg("学号已存在");
+                        failedList.add(addStudentDto);
+                    }
+                }
+            }
+            this.sendEmail(toSendEmail);
+            return failedList;
         } catch (IOException e) {
             log.error("IO异常", e);
             throw new SystemException("IO异常");
         }
-        if (workbook.getNumberOfSheets() < 1) {
-            throw new UnprocessableException("至少包含一个Sheet");
-        }
-        List<EmailParams> toSendEmail = new ArrayList<>();
-        List<AddStudentDto> failedList = new ArrayList<>();
-        Sheet sheet = workbook.getSheetAt(0);
-        // 解析row
-        for (int rowNum = 3; rowNum <= sheet.getLastRowNum(); rowNum++) {
-            Row row = sheet.getRow(rowNum);
-            if (row != null) {
-                if (row.getLastCellNum() < 1) {
-                    continue;
-                }
-                AddStudentDto addStudentDto = new AddStudentDto();
-                EnumMap<UserExcelHeaderEnum, String> rowData = this.getRowData(row);
-                String studentId = rowData.get(UserExcelHeaderEnum.NUM);
-                String studentName = rowData.get(UserExcelHeaderEnum.NAME);
-                String email = rowData.get(UserExcelHeaderEnum.EMAIL);
-                String school = rowData.get(UserExcelHeaderEnum.SCHOOL);
-                String collage = rowData.get(UserExcelHeaderEnum.COLLAGE);
-                String major = rowData.get(UserExcelHeaderEnum.MAJOR);
-                Integer grade = Integer.valueOf(rowData.get(UserExcelHeaderEnum.GRADE));
-                String gradeClass = rowData.get(UserExcelHeaderEnum.GRADE_CLASS);
-                // schoolId
-                Integer schoolId = this.getSchoolId(school);
-                Integer collageId = this.getCollageId(collage, schoolId, modifiedUser);
-                Integer majorId = this.getMajorId(major, collageId, modifiedUser);
-                Integer gradeClassId = this.getGradeClassId(grade, gradeClass, majorId, modifiedUser);
-                addStudentDto.setMajorId(majorId);
-                addStudentDto.setStudentClass(gradeClassId);
-                addStudentDto.setStudentId(studentId);
-                addStudentDto.setStudentName(studentName);
-                addStudentDto.setEmail(email);
-                addStudentDto.setStatus(1);
-                addStudentDto.setCreator(modifiedUser);
-                addStudentDto.setCreateTime(new Date());
-                addStudentDto.setLastModifiedUser(modifiedUser);
-                addStudentDto.setLastModifiedTime(new Date());
-                String salt = UUID.randomUUID().toString().toUpperCase();
-                addStudentDto.setSalt(salt);
-                String password = defaultPassword;
-                if(!passwordDefaultEnable){
-                    password = this.getRandomString(getRandomNumberInRange(8,16));
-                }
-                String sha256Password = SHA256.encryptStringWithSHA256(password);
-                String md5Password = getMD5Password(sha256Password, addStudentDto.getSalt());
-                addStudentDto.setPassword(md5Password);
-                try{
-                    this.saveStudent(addStudentDto);
-                }catch (StudentDuplicateException e){
-                    failedList.add(addStudentDto);
-                }
-                if(!passwordDefaultEnable) {
-                    toSendEmail.add(EmailParams.build(
-                            EMAIL_SUBJECT,
-                            this.buildText(this.userActivateEmail, addStudentDto.getStudentName(), password, DomainName),
-                            addStudentDto.getEmail()
-                    ));
-                }
-            }
-        }
-        this.sendEmail(toSendEmail);
-        return failedList;
     }
 
     @Override
