@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.EMDV4Project.EMDV4Analysis.mapper.AnalysisProgressMapper">
+
+    <resultMap id="AnalysisProgress" type="com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProgress">
+        <result column="project_id" property="projectId"></result>
+        <result column="total_count" property="totalCount"></result>
+        <result column="completed_count" property="completedCount"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="update_time" property="updateTime"></result>
+    </resultMap>
+
+    <resultMap id="AnalysisProgressData" type="com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProgressData">
+        <result column="ap_id" property="apId"></result>
+    </resultMap>
+
+    <insert id="createAP">
+        INSERT INTO AP_analysis_progress (`id`,`project_id`,`total_count`,`completed_count`, `finished`,
+                                          `percent`,`message`,`create_time`,`update_time`)
+        VALUES (#{id}, #{projectId}, #{totalCount}, #{completedCount}, #{finished},
+                #{percent}, #{message}, #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="getAPById" resultMap="AnalysisProgress">
+        SELECT `id`,`project_id`,`total_count`,`completed_count`, `finished`,
+               `percent`,`message`,`create_time`,`update_time`
+        FROM AP_analysis_progress
+        WHERE id=#{id}
+    </select>
+
+    <select id="getApLatestByProjectId" resultMap="AnalysisProgress">
+        SELECT `id`,`project_id`,`total_count`,`completed_count`, `finished`,
+               `percent`,`message`,`create_time`,`update_time`
+        FROM AP_analysis_progress
+        WHERE project_id=#{projectId} ORDER BY create_time DESC LIMIT 1
+    </select>
+
+    <update id="updateAPById">
+        UPDATE AP_analysis_progress SET completed_count=#{completedCount},
+                                        finished=#{finished},
+                                        percent=#{percent},
+                                        message=#{message},
+                                        update_time=#{updateTime}
+                                    WHERE id=#{id}
+    </update>
+
+    <insert id="createAPD">
+        INSERT INTO AP_data (`id`,`ap_id`,`type`, `data`)
+        VALUES (#{id}, #{apId}, #{type}, #{data})
+    </insert>
+
+    <select id="getAPD" resultMap="AnalysisProgressData">
+        SELECT `id`,`ap_id`,`type`, `data`
+        FROM AP_data
+        WHERE `ap_id`=#{apId} AND type=#{type}
+    </select>
+
+
+</mapper>

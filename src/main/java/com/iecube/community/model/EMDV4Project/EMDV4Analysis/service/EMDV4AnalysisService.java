@@ -1,0 +1,11 @@
+package com.iecube.community.model.EMDV4Project.EMDV4Analysis.service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProgress;
+import org.json.JSONObject;
+
+public interface EMDV4AnalysisService {
+    AnalysisProgress createGenProgress(Integer projectId);
+
+    JsonNode getData(Integer projectId, String type);
+}

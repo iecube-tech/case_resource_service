@@ -192,7 +192,7 @@ public class EMDV4ProjectStudentTaskServiceImpl implements EMDV4ProjectStudentTa
     /**
      * 根据实验指导书的组件获取PST
      * @param component component组件
-     * @return PST
+     * @return PSTDto
      */
     @Override
     public EMDV4ProjectStudentTask getPSTByComponent(EMDV4Component component) {
@@ -212,7 +212,7 @@ public class EMDV4ProjectStudentTaskServiceImpl implements EMDV4ProjectStudentTa
      * 根据PT id 以及学生id列表获取同一个小组内的PSTList
      * @param ptId PT id
      * @param studentList 学生id列表
-     * @return PST 列表
+     * @return PSTDto 列表
      */
     @Override
     public List<EMDV4ProjectStudentTask> getListByPTAndStu(Long ptId, List<Integer> studentList) {

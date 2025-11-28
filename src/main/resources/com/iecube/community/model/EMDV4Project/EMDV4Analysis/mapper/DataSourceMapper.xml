@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.EMDV4Project.EMDV4Analysis.mapper.DataSourceMapper">
+
+    <resultMap id="PST" type="com.iecube.community.model.EMDV4Project.EMDV4Analysis.dto.PSTDto">
+        <result column="pst_id" property="pstId"></result>
+        <result column="pt_id" property="ptId"></result>
+        <result column="ps_id" property="psId"></result>
+        <result column="student_id" property="studentId"></result>
+        <result column="student_name" property="studentName"></result>
+        <result column="task_name" property="taskName"></result>
+        <result column="task_weighting" property="taskWeighting"></result>
+        <result column="task_score" property="taskScore"></result>
+        <result column="task_total_score" property="taskTotalScore"></result>
+        <result column="ps_score" property="psScore"></result>
+        <result column="start_time" property="startTime"></result>
+        <result column="end_time" property="endTime"></result>
+        <result column="book_icon" property="bookIcon"></result>
+        <result column="stage_icon" property="stageIcon"></result>
+    </resultMap>
+
+    <resultMap id="PSTAIDto" type="com.iecube.community.model.EMDV4Project.EMDV4Analysis.dto.PSTAIDto">
+        <result column="pt_id" property="ptId"></result>
+        <result column="task_name" property="taskName"></result>
+        <result column="student_id" property="studentId"></result>
+        <result column="student_name" property="studentName"></result>
+        <result column="chat_id" property="chatId"></result>
+        <result column="create_time" property="createTime"></result>
+    </resultMap>
+
+    <resultMap id="CompTargetTagDto" type="com.iecube.community.model.EMDV4Project.EMDV4Analysis.dto.CompTargetTagDto">
+        <result column="pst_id" property="pstId"></result>
+        <result column="student_id" property="studentId"></result>
+        <result column="student_name" property="studentName"></result>
+        <result column="pt_id" property="ptId"></result>
+        <result column="pt_name" property="ptName"></result>
+        <result column="ps_id" property="psId"></result>
+        <result column="comp_id" property="compId"></result>
+        <result column="comp_type" property="compType"></result>
+        <result column="comp_stage" property="compStage"></result>
+        <result column="comp_status" property="compStatus"></result>
+        <result column="comp_name" property="compName"></result>
+        <result column="comp_score" property="compScore"></result>
+        <result column="comp_total_score" property="compTotalScore"></result>
+        <result column="comp_payload" property="compPayload"></result>
+        <result column="tag_id" property="tagId"></result>
+        <result column="tag_name" property="tagName"></result>
+        <result column="target_id" property="targetId"></result>
+        <result column="target_name" property="targetName"></result>
+        <result column="target_desc" property="targetDesc"></result>
+        <result column="target_p_name" property="targetPName"></result>
+        <result column="target_r_name" property="targetRName"></result>
+        <result column="key_node" property="keyNode"></result>
+    </resultMap>
+
+    <select id="getProjectPSTWithStage" resultMap="PST">
+        SELECT pst.id AS pst_id, pt.id AS pt_id, ps.id AS ps_id, pt.`name` AS task_name, pst.`status` as `status`,
+               pst.total_score AS task_total_score, pst.score AS task_score,
+               pt.`name` AS t_name,  pt.weighting AS t_weighting,  ps.score AS ps_score,
+               s.student_id,s.student_name, cg.`name` AS gc_name,
+               tb.start_time, tb.end_time,tb.stage,book.icon AS book_icon, tb.icon AS stage_icon
+        FROM EMDV4_project_studentTask pst
+                 LEFT JOIN EMDV4_projectStudent ps ON pst.project_student=ps.id
+                 LEFT JOIN EMDV4_projectTask pt ON pst.project_task=pt.id
+                 LEFT JOIN Student s ON ps.student_id=s.id
+                 LEFT JOIN class_and_grade cg ON s.student_class=cg.id
+                 LEFT JOIN EMDV4_student_task_book tb ON tb.p_id=pst.task_book_id
+                 LEFT JOIN EMDV4_student_task_book book ON book.id=pst.task_book_id
+        WHERE ps.project_id=#{projectId}
+        ORDER BY `student_id`, `pt_id`, `stage`
+    </select>
+
+    <select id="getProjectPSTAIDTO" resultMap="PSTAIDto">
+        SELECT pt.id AS pt_id, pt.`name` AS task_name, s.student_id, s.student_name, aca.chat_id, ah.message, ah.role, ah.create_time
+        FROM ai_client_assistant aca
+                 LEFT JOIN EMDV4_projectTask pt ON aca.task_id=pt.id
+                 LEFT JOIN project p ON pt.project_id=p.id
+                 LEFT JOIN Student s ON s.id=aca.student_id
+                 LEFT JOIN ai_chat_history ah ON aca.chat_id=ah.chat_id
+        WHERE aca.type='chat' AND ah.chat_id is not NULL AND p.id=#{projectId}
+        ORDER BY pt_id, student_id, chat_id, create_time
+    </select>
+
+    <select id="getCompTargetTagDtoByProject" resultMap="CompTargetTagDto">
+        WITH RECURSIVE task_tree AS (
+            -- 基准条件：查询根节点 + 完整关联信息
+            SELECT
+                pst.id AS pst_id,
+                s.`student_name` AS student_name,
+                s.`student_id` AS student_id,
+                pst.project_student,
+                pst.task_book_id AS pst_task_book,
+                pt.id AS pt_id,
+                pt.`name` AS pt_name,
+                ps.id AS ps_id,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`name` AS block_name
+            FROM EMDV4_project_studentTask pst
+                     JOIN EMDV4_student_task_book block ON block.id = pst.task_book_id  -- 根节点关联
+                     JOIN EMDV4_projectStudent ps ON pst.project_student = ps.id
+                     JOIN Student s ON ps.student_id = s.id
+                     JOIN EMDV4_projectTask pt ON pst.project_task = pt.id
+            WHERE pt.project_id = #{projectId}  -- 目标课程ID
+
+            UNION ALL
+
+            -- 递归条件：查询子节点 + 继承根节点信息
+            SELECT
+                tt.pst_id,
+                tt.student_name,
+                tt.student_id,
+                tt.project_student,
+                tt.pst_task_book,
+                tt.pt_id,
+                tt.pt_name,
+                tt.ps_id,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`name` AS block_name
+            FROM EMDV4_student_task_book block
+                     JOIN task_tree tt ON block.p_id = tt.block_id  -- 子节点关联上一层
+        ),
+        target_tree AS(
+            SELECT
+                ct.id AS ct_id,
+                ct.p_id AS ct_p_id,
+                ct.`name` AS `ct_name`,
+                ct.`description` AS ct_description,
+                ct.`name` AS ct_p_name,
+                ct.`name` AS ct_r_name
+            FROM CT_Graduation_Requirement_Point_target ct
+            WHERE ct.p_id IS NULL
+
+            UNION ALL
+            SELECT
+                t.id AS ct_id,
+                t.p_id AS ct_p_id,
+                t.`name` AS `ct_name`,
+                t.`description` AS ct_description,
+                tat.`ct_name` AS ct_p_name,
+                tat.`ct_p_name` AS ct_r_name
+            FROM CT_Graduation_Requirement_Point_target t
+            JOIN target_tree tat ON tat.ct_id=t.p_id
+        )
+        -- 关联 EMDV4_component 表（叶子节点对应的组件）
+        SELECT
+            tt.pst_id,  -- 保留原有节点信息（project_student、学生姓名等）
+            tt.student_id,
+            tt.student_name,
+            tt.ps_id,
+            tt.pt_id,
+            tt.pt_name,
+            comp.id AS comp_id,
+            comp.stage AS comp_stage,
+            comp.`status` AS comp_status,
+            comp.`name` AS comp_name,
+            comp.score AS comp_score,
+            comp.total_score AS comp_total_score,
+            comp.payload AS comp_payload,
+            comp.type AS comp_type,
+            tag.id AS tag_id,
+            tag.`name` AS tag_name,
+            tag.key_node AS key_node,
+            target.ct_id AS target_id,
+            target.`ct_name` AS target_name,
+            target.`ct_description` AS target_desc,
+            target.`ct_p_name` AS target_p_name,
+            target.`ct_r_name` AS target_r_name
+        FROM task_tree tt
+-- 左关联组件表：如果叶子节点可能没有组件，用 LEFT JOIN；如果必有关联，用 JOIN
+                 LEFT JOIN EMDV4_component comp ON tt.block_id = comp.block_id
+                 LEFT JOIN BLT_tag tag ON comp.tag=tag.id
+                 LEFT JOIN BL_target blt ON blt.id=tag.BLT_id
+                 LEFT JOIN target_tree target ON target.ct_id=blt.target_id
+        WHERE comp.need_calculate=1
+        ORDER BY
+            tt.project_student,  -- 按学生分组
+            tt.pst_task_book,
+            tt.block_stage,
+            tt.block_level
+    </select>
+</mapper>
