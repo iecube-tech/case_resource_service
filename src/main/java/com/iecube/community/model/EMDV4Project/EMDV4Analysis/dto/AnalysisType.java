@@ -27,7 +27,11 @@ public enum AnalysisType {
     T_TASK_D_ABILITY("t_task_d_ability", "教师_实验分析_实验详情_能力分析"),
     T_TASK_D_QUES("t_task_d_ques", "教师_实验分析_实验详情_题目分析"),
     T_TASK_D_COURSE("t_task_d_course", "教师_实验分析_实验详情_过程分析"),
-    T_TASK_D_SUG("t_task_d_sug", "教师_实验分析_实验详情_教学建议");
+    T_TASK_D_SUG("t_task_d_sug", "教师_实验分析_实验详情_教学建议"),
+    STU_P_OVERVIEW("stu_p_overview", "学生_课程概览"),
+    STU_P_TASK("stu_p_task", "学生_实验列表"),
+    STU_P_TARGET("stu_p_target", "学生_课程目标"),
+    STU_P_SUG("stu_p_sug", "学生_学习建议");
 
 
     // 获取数据库存储值

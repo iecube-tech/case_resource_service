@@ -15,6 +15,7 @@ import com.iecube.community.model.EMDV4Project.EMDV4Analysis.exception.AnalysisP
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.mapper.AnalysisProgressMapper;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.mapper.DataSourceMapper;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.service.AnalysisDataGenService;
+import com.iecube.community.model.tag.entity.Tag;
 import com.iecube.community.util.uuid.UUIDGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1052,92 +1053,95 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         this.saveProgressData(type,progressId, jsonNodes);
     }
     private void T_TASK_D_ABILITY(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
-        //todo  要求 每个实验的 不是总的
-        Map<Integer, List<CompTargetTagDto>> tagCompMap = CompTargetTagDtoList.stream()
-                .collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
-        //能力掌握分布
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        CompTargetTagGroupByPT.forEach((ptId, ptCompList)->{
+            Map<Integer, List<CompTargetTagDto>> tagCompMap = ptCompList.stream()
+                    .collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
+            //能力掌握分布
 
-        ArrayNode abilityAvgRage = objectMapper.createArrayNode();
-        tagCompMap.forEach((tagId, tagCompList)->{
-            ObjectNode abilityRage = objectMapper.createObjectNode();
-            Map<Long, List<CompTargetTagDto>> stuTagCompMap = tagCompList.stream()
-                    .collect(Collectors.groupingBy(CompTargetTagDto::getPsId));
-            List<Double> rageList = new ArrayList<>();
+            ArrayNode abilityAvgRage = objectMapper.createArrayNode();
+            tagCompMap.forEach((tagId, tagCompList)->{
+                ObjectNode abilityRage = objectMapper.createObjectNode();
+                Map<Long, List<CompTargetTagDto>> stuTagCompMap = tagCompList.stream()
+                        .collect(Collectors.groupingBy(CompTargetTagDto::getPsId));
+                List<Double> rageList = new ArrayList<>();
 
-            stuTagCompMap.forEach((psId, stuTagCompList)->{
-                double score = stuTagCompList.stream()
-                        .filter(comp->comp.getCompScore()!=null)
-                        .mapToDouble(CompTargetTagDto::getCompScore)
-                        .sum();
-                double totalScore = stuTagCompList.stream()
-                        .filter(comp->comp.getCompTotalScore()!=null)
-                        .mapToDouble(CompTargetTagDto::getCompTotalScore)
-                        .sum();
-                double rage = numWith2Decimal(score*100 / totalScore);
-                rageList.add(rage);
+                stuTagCompMap.forEach((psId, stuTagCompList)->{
+                    double score = stuTagCompList.stream()
+                            .filter(comp->comp.getCompScore()!=null)
+                            .mapToDouble(CompTargetTagDto::getCompScore)
+                            .sum();
+                    double totalScore = stuTagCompList.stream()
+                            .filter(comp->comp.getCompTotalScore()!=null)
+                            .mapToDouble(CompTargetTagDto::getCompTotalScore)
+                            .sum();
+                    double rage = numWith2Decimal(score*100 / totalScore);
+                    rageList.add(rage);
+                });
+
+                OptionalDouble avgRage = rageList.stream().mapToDouble(Double::doubleValue).average();
+                abilityRage.put("tagId", tagId);
+                abilityRage.put("tagName", tagCompList.get(0).getTagName());
+                abilityRage.put("avgRage", avgRage.isPresent()?numWith2Decimal(avgRage.getAsDouble()):0);
+
+                // 掌握程度分布
+                ArrayNode rageDArray = objectMapper.createArrayNode();
+                Map<String, Integer> rageD = new HashMap<>();
+                rageD.put("<60",0);
+                rageD.put("60-70",0);
+                rageD.put("70-80",0);
+                rageD.put("80-90",0);
+                rageD.put("90-100",0);
+                rageList.forEach(rage->{
+                    if(rage<60){
+                        rageD.compute("<60", (k,v)->v==null?1:v+1);
+                    } else if (rage>=60 && rage<70) {
+                        rageD.compute("60-70", (k,v)->v==null?1:v+1);
+                    } else if (rage>=70 && rage<80) {
+                        rageD.compute("70-80", (k,v)->v==null?1:v+1);
+                    } else if (rage>=80 && rage<90) {
+                        rageD.compute("<80-90", (k,v)->v==null?1:v+1);
+                    } else if (rage>=90 && rage<=100) {
+                        rageD.compute("90-100", (k,v)->v==null?1:v+1);
+                    }
+                });
+                rageD.forEach((k,v)->{
+                    ObjectNode item = objectMapper.createObjectNode();
+                    item.put(k,v);
+                    rageDArray.add(item);
+                });
+                abilityRage.set("abilityDistribution", rageDArray);
+
+                //问题掌握情况
+                ArrayNode quesAchievedRage = objectMapper.createArrayNode();
+
+                Map<String,List<CompTargetTagDto>> quesTagCompMap = tagCompList.stream()
+                        .filter(comp->comp.getCompName()!=null)
+                        .collect(Collectors.groupingBy(CompTargetTagDto::getCompName));
+                quesTagCompMap.forEach((ques, quesList)->{
+                    ObjectNode item = objectMapper.createObjectNode();
+                    double score = quesList.stream()
+                            .filter(comp->comp.getCompScore()!=null)
+                            .mapToDouble(CompTargetTagDto::getCompScore)
+                            .sum();
+                    double totalScore = quesList.stream()
+                            .filter(comp->comp.getCompTotalScore()!=null)
+                            .mapToDouble(CompTargetTagDto::getCompTotalScore)
+                            .sum();
+                    double rage = numWith2Decimal(score*100/totalScore);
+                    item.put("name", ques);
+                    item.put("scoringRage", rage);
+                    item.put("type", quesList.get(0).getCompType());
+                    item.put("payload", quesList.get(0).getCompPayload());
+                    quesAchievedRage.add(item);
+                });
+                abilityRage.set("quesAchievedRage", quesAchievedRage);
+
+                abilityAvgRage.add(abilityRage);
             });
-
-            OptionalDouble avgRage = rageList.stream().mapToDouble(Double::doubleValue).average();
-            abilityRage.put("tagId", tagId);
-            abilityRage.put("tagName", tagCompList.get(0).getTagName());
-            abilityRage.put("avgRage", avgRage.isPresent()?numWith2Decimal(avgRage.getAsDouble()):0);
-
-            // 掌握程度分布
-            ArrayNode rageDArray = objectMapper.createArrayNode();
-            Map<String, Integer> rageD = new HashMap<>();
-            rageD.put("<60",0);
-            rageD.put("60-70",0);
-            rageD.put("70-80",0);
-            rageD.put("80-90",0);
-            rageD.put("90-100",0);
-            rageList.forEach(rage->{
-                if(rage<60){
-                    rageD.compute("<60", (k,v)->v==null?1:v+1);
-                } else if (rage>=60 && rage<70) {
-                    rageD.compute("60-70", (k,v)->v==null?1:v+1);
-                } else if (rage>=70 && rage<80) {
-                    rageD.compute("70-80", (k,v)->v==null?1:v+1);
-                } else if (rage>=80 && rage<90) {
-                    rageD.compute("<80-90", (k,v)->v==null?1:v+1);
-                } else if (rage>=90 && rage<=100) {
-                    rageD.compute("90-100", (k,v)->v==null?1:v+1);
-                }
-            });
-            rageD.forEach((k,v)->{
-                ObjectNode item = objectMapper.createObjectNode();
-                item.put(k,v);
-                rageDArray.add(item);
-            });
-            abilityRage.set("abilityDistribution", rageDArray);
-
-            //问题掌握情况
-            ArrayNode quesAchievedRage = objectMapper.createArrayNode();
-
-            Map<String,List<CompTargetTagDto>> quesTagCompMap = tagCompList.stream()
-                    .filter(comp->comp.getCompName()!=null)
-                    .collect(Collectors.groupingBy(CompTargetTagDto::getCompName));
-            quesTagCompMap.forEach((ques, quesList)->{
-                ObjectNode item = objectMapper.createObjectNode();
-                double score = quesList.stream()
-                        .filter(comp->comp.getCompScore()!=null)
-                        .mapToDouble(CompTargetTagDto::getCompScore)
-                        .sum();
-                double totalScore = quesList.stream()
-                        .filter(comp->comp.getCompTotalScore()!=null)
-                        .mapToDouble(CompTargetTagDto::getCompTotalScore)
-                        .sum();
-                double rage = numWith2Decimal(score*100/totalScore);
-                item.put("name", ques);
-                item.put("scoringRage", rage);
-                item.put("type", quesList.get(0).getCompType());
-                item.put("payload", quesList.get(0).getCompPayload());
-                quesAchievedRage.add(item);
-            });
-            abilityRage.set("quesAchievedRage", quesAchievedRage);
-
-            abilityAvgRage.add(abilityRage);
+            objectNode.set(ptId.toString(), abilityAvgRage);
         });
-        this.saveProgressData(type, progressId, abilityAvgRage);
+        this.saveProgressData(type, progressId, objectNode);
     }
     private void T_TASK_D_QUES(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
 
@@ -1197,12 +1201,196 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         });
         this.saveProgressData(type, progressId, objectNode);
     }
-    private void T_TASK_D_COURSE(AnalysisType type, String progressId, Integer projectId){
+    private void T_TASK_D_COURSE(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        PSTGroupByTaskWithStage.forEach((ptId, pstList)->{
+            ObjectNode taskNode = objectMapper.createObjectNode();
+            // 实验 -> 学生操作列表
+            ArrayNode stageTime = objectMapper.createArrayNode();
+            ArrayNode timeDistributionStage1 = objectMapper.createArrayNode();
+            Map<Integer, List<PSTDto>> stagePstMap = pstList.stream().collect(Collectors.groupingBy(PSTDto::getStage));
+            stagePstMap.forEach((stage, list)->{
+                ObjectNode timeNode = objectMapper.createObjectNode();
 
+                // 计算平均时间
+                List<Long> stageTimeList = list.stream()
+                        .filter(pst->pst.getStartTime()!=null & pst.getEndTime()!=null)
+                        .filter(pst->pst.getEndTime().after(pst.getStartTime()))
+                        .map(pst-> pst.getEndTime().getTime()-pst.getStartTime().getTime())
+                        .toList();
+                OptionalDouble avg  = stageTimeList.stream().mapToLong(Long::longValue).average();
+                long avgTime = avg.isPresent()?(long)Math.ceil(avg.getAsDouble()):0;
+                OptionalLong maxTime = stageTimeList.stream().mapToLong(Long::longValue).max();
+                OptionalLong minTime = stageTimeList.stream().mapToLong(Long::longValue).min();
+
+                timeNode.put("avg", avgTime);
+                timeNode.put("max", maxTime.isPresent()?maxTime.getAsLong():0);
+                timeNode.put("min", minTime.isPresent()?minTime.getAsLong():0);
+                stageTime.add(timeNode);
+                if(stage==1){
+                    // 计算时间分布
+                    Map<String, Integer> timeMap = new HashMap<>();
+                    timeMap.put("<45", 0);
+                    timeMap.put("45-80", 0);
+                    timeMap.put(">80", 0);
+                    stageTimeList.forEach(t->{
+                        if(t<2700000){
+                            timeMap.compute("<45",(k,v)->v==null?1:v+1);
+                        }else if(t>=2700000 && t<=4800000){
+                            timeMap.compute("45-80",(k,v)->v==null?1:v+1);
+                        } else{
+                            timeMap.compute(">80",(k,v)->v==null?1:v+1);
+                        }
+                    });
+                    timeMap.forEach((k,v)->{
+                        ObjectNode itemD = objectMapper.createObjectNode();
+                        itemD.put(k, v);
+                        timeDistributionStage1.add(itemD);
+                    });
+                }
+
+            });
+            taskNode.set("stageTime", stageTime);
+            taskNode.set("timeDistributionStage1",timeDistributionStage1);
+            objectNode.set(ptId.toString(), taskNode);
+        });
+        this.saveProgressData(type, progressId, objectNode);
     }
     private void T_TASK_D_SUG(AnalysisType type, String progressId, Integer projectId){
 
     }
+    private void STU_P_OVERVIEW(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
+        ObjectNode objectNode = objectMapper.createObjectNode();
+
+        Map<Long, Double> taskAvgScoreMap = new HashMap<>(); // 存放各个实验的平均成绩
+        // 计算班级各个实验平均成绩
+        PSTGroupByTask.forEach((ptId, list)->{
+            OptionalDouble avg = list.stream().filter(pst->pst.getTaskScore()!=null).mapToDouble(PSTDto::getTaskScore).average();
+            taskAvgScoreMap.put(ptId, avg.isPresent()?numWith2Decimal(avg.getAsDouble()):0);
+        });
+
+        Map<Integer, Double> targetRageMap = new HashMap<>();
+        CompTargetTagGroupByTarget.forEach((targetId, list)->{
+            double totalScore = list.stream()
+                    .filter(comp->comp.getCompTotalScore()!=null)
+                    .mapToDouble(CompTargetTagDto::getCompTotalScore)
+                    .sum();
+            double score = list.stream()
+                    .filter(comp->comp.getCompScore()!=null)
+                    .mapToDouble(CompTargetTagDto::getCompScore)
+                    .sum();
+            double rage = numWith2Decimal(score*100/totalScore);
+            targetRageMap.put(targetId, rage);
+        });
+
+        PSTGroupByStuWithStage.forEach((stuId, stuList)->{
+            ObjectNode stuNode = objectMapper.createObjectNode();
+            // 课程整体完成进度
+            int doneSize = stuList.stream().filter(pst->pst.getStatus()>=1).toList().size();
+            double projectRage = numWith2Decimal((double) doneSize*100/stuList.size());
+            Map<Long, List<PSTDto>> stuPtMap = stuList.stream().filter(pst->pst.getStage()==0).collect(Collectors.groupingBy(PSTDto::getPtId));
+            // 已完成的实验==》 各个实验的状态
+            ArrayNode taskArray = objectMapper.createArrayNode();
+
+            AtomicInteger hasDone = new AtomicInteger(1);  // 已完成的数量
+            stuPtMap.forEach((ptId, list)->{
+                ObjectNode taskNode = objectMapper.createObjectNode();
+                taskNode.put("ptId", ptId);
+                taskNode.put("ptName", list.get(0).getTaskName());
+                taskNode.put("ptScore", list.get(0).getTaskScore());
+                taskNode.put("ptAvgScore", taskAvgScoreMap.get(ptId));
+                if(list.stream().filter(pst->pst.getStatus()<=0).toList().isEmpty()){  // 没有status为0的，表示该实验已经已经完成
+                    taskNode.put("status", 1);
+                    hasDone.getAndIncrement();
+                }else {
+                    taskNode.put("status", 0);
+                }
+                taskArray.add(taskNode);
+            });
+
+            // 知识点掌握
+            List<CompTargetTagDto> stuComp = CompTargetTagGroupByStu.get(stuId);
+            List<CompTargetTagDto> compHasDone = stuComp.stream().filter(comp->comp.getCompStatus()>0).toList();
+
+            Map<Integer, List<CompTargetTagDto>> stuTargetCompMap = stuComp.stream()
+                    .collect(Collectors.groupingBy(CompTargetTagDto::getTargetId));
+
+            ArrayNode targetNode = objectMapper.createArrayNode();
+            stuTargetCompMap.forEach((targetId, list)->{
+                ObjectNode targetItem = objectMapper.createObjectNode();
+
+                double score = list.stream()
+                        .filter(comp->comp.getCompScore()!=null)
+                        .mapToDouble(CompTargetTagDto::getCompScore)
+                        .sum();
+                double totalScore = list.stream()
+                        .filter(comp->comp.getCompTotalScore()!=null)
+                        .mapToDouble(CompTargetTagDto::getCompTotalScore)
+                        .sum();
+                double rage = numWith2Decimal(score*100/totalScore);
+
+                targetItem.put("targetId", targetId);
+                targetItem.put("targetName", list.get(0).getTargetName());
+                targetItem.put("stuRage", rage);
+                targetItem.put("classRage", targetRageMap.get(targetId));
+                targetItem.put("difference", rage- targetRageMap.get(targetId));
+                targetNode.add(targetItem);
+            });
+
+
+            stuNode.put("projectRage", projectRage);
+            stuNode.set("taskList", taskArray);
+            stuNode.put("hadDoneSize", hasDone.get());
+            stuNode.put("tagSize", stuComp.size());
+            stuNode.put("tagDoneSize", compHasDone.size());
+            stuNode.put("tagHasNotDone", numWith2Decimal(stuComp.size()-compHasDone.size()));
+            stuNode.set("target", targetNode);
+            objectNode.set(stuId, stuNode);
+        });
+        this.saveProgressData(type, progressId, objectNode);
+    }
+    private void STU_P_TASK(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        PSTGroupByStu.forEach((stuId, pstList)->{
+            ObjectNode stuNode = objectMapper.createObjectNode();
+            ArrayNode taskNode  = objectMapper.createArrayNode();
+            Map<Long, List<PSTDto>> stuTaskMap = pstList.stream().collect(Collectors.groupingBy(PSTDto::getPtId));
+            stuTaskMap.forEach((ptId, list)->{
+                ObjectNode task = objectMapper.createObjectNode();
+                Map<Integer, List<CompTargetTagDto>> tagMap = CompTargetTagGroupByPT.get(ptId).stream()
+                        .collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
+
+                ArrayNode tagArray = objectMapper.createArrayNode();
+                tagMap.forEach((tagId, compList)->{
+                    if(compList.get(0).isKeyNode()){
+                        ObjectNode tagNode = objectMapper.createObjectNode();
+                        tagNode.put("tagId",tagId);
+                        tagNode.put("tagName", compList.get(0).getTagName());
+                        tagArray.add(tagNode);
+                    }
+                });
+                task.put("ptId", ptId);
+                task.put("ptName",list.get(0).getTaskName());
+                task.put("psId",list.get(0).getPsId());
+                task.put("doneTime",list.get(0).getEndTime()==null?null:list.get(0).getEndTime().toString());
+                task.put("score",list.get(0).getTaskScore()==null?0:list.get(0).getTaskScore());
+                task.set("tagList",tagArray);
+                task.put("status",list.get(0).getStatus());
+                taskNode.add(task);
+            });
+
+            stuNode.set("task",taskNode);
+            objectNode.set(stuId, stuNode);
+        });
+        this.saveProgressData(type, progressId, objectNode);
+    }
+    private void STU_P_TARGET(AnalysisType type, String progressId, Integer projectId){
+
+    }
+    private void STU_P_SUG(AnalysisType type, String progressId, Integer projectId){
+
+    }
+
 
     private void genChildData(Integer progetId, String progressId, AnalysisType analysisType) throws AnalysisProgressGenChildDataException{
         try{
@@ -1275,6 +1463,18 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 }
                 case T_TASK_D_SUG -> {
                     this.T_TASK_D_SUG(analysisType, progressId, progetId);
+                }
+                case STU_P_OVERVIEW -> {
+                    this.STU_P_OVERVIEW(analysisType, progressId, progetId);
+                }
+                case STU_P_TASK -> {
+                    this.STU_P_TASK(analysisType, progressId, progetId);
+                }
+                case STU_P_TARGET -> {
+                    this.STU_P_TARGET(analysisType, progressId, progetId);
+                }
+                case STU_P_SUG -> {
+                    this.STU_P_SUG(analysisType, progressId, progetId);
                 }
                 default -> throw new AnalysisProgressGenChildDataException("没有对应方法");
             }
