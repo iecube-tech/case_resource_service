@@ -15,7 +15,6 @@ import com.iecube.community.model.EMDV4Project.EMDV4Analysis.exception.AnalysisP
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.mapper.AnalysisProgressMapper;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.mapper.DataSourceMapper;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.service.AnalysisDataGenService;
-import com.iecube.community.model.tag.entity.Tag;
 import com.iecube.community.util.uuid.UUIDGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,6 +61,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
     private final ConcurrentHashMap<Integer, List<CompTargetTagDto>> CompTargetTagGroupByTarget = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, List<CompTargetTagDto>> CompTargetTagGroupByStu = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Long, List<CompTargetTagDto>> CompTargetTagGroupByPT = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, List<CompTargetTagDto>> CompTargetTagGroupByPST = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, String> targetName = new ConcurrentHashMap<>();
 
     @Async
@@ -105,6 +106,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         CompTargetTagGroupByTarget.putAll(CompTargetTagDtoList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getTargetId)));
         CompTargetTagGroupByStu.putAll(CompTargetTagDtoList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getStudentId)));
         CompTargetTagGroupByPT.putAll(CompTargetTagDtoList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getPtId)));
+        CompTargetTagGroupByPST.putAll(CompTargetTagDtoList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getPstId)));
 
         targetName.putAll(CompTargetTagDtoList.stream().collect(Collectors.toMap(CompTargetTagDto::getTargetId, CompTargetTagDto::getTargetName, (v1,v2)->v1)));
         log.info("数据清洗完成");
@@ -1288,11 +1290,11 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             // 课程整体完成进度
             int doneSize = stuList.stream().filter(pst->pst.getStatus()>=1).toList().size();
             double projectRage = numWith2Decimal((double) doneSize*100/stuList.size());
-            Map<Long, List<PSTDto>> stuPtMap = stuList.stream().filter(pst->pst.getStage()==0).collect(Collectors.groupingBy(PSTDto::getPtId));
+            Map<Long, List<PSTDto>> stuPtMap = stuList.stream().filter(pst->pst.getStage()==2).collect(Collectors.groupingBy(PSTDto::getPtId));
             // 已完成的实验==》 各个实验的状态
             ArrayNode taskArray = objectMapper.createArrayNode();
 
-            AtomicInteger hasDone = new AtomicInteger(1);  // 已完成的数量
+            AtomicInteger hasDone = new AtomicInteger(0);  // 已完成的数量
             stuPtMap.forEach((ptId, list)->{
                 ObjectNode taskNode = objectMapper.createObjectNode();
                 taskNode.put("ptId", ptId);
@@ -1384,11 +1386,200 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         });
         this.saveProgressData(type, progressId, objectNode);
     }
-    private void STU_P_TARGET(AnalysisType type, String progressId, Integer projectId){
+    private void STU_P_TARGET(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        // 计算班级课程目标达成度
+        Map<Integer, Double> targetRageMap = new HashMap<>();
+        CompTargetTagGroupByTarget.forEach((targetId, compList)->{
+            double score = compList.stream()
+                    .filter(comp->comp.getCompScore()!=null)
+                    .mapToDouble(CompTargetTagDto::getCompScore)
+                    .sum();
+            double totalScore = compList.stream()
+                    .filter(comp->comp.getCompTotalScore()!=null)
+                    .mapToDouble(CompTargetTagDto::getCompTotalScore)
+                    .sum();
+            double rage = numWith2Decimal(score*100/totalScore);
+            targetRageMap.put(targetId, rage);
+        });
+        // 每个学生
+        CompTargetTagGroupByStu.forEach((stuId, compList)->{
+            ObjectNode stuNode = objectMapper.createObjectNode();
+            ArrayNode targetRageArray = objectMapper.createArrayNode();
+            ObjectNode trendObject= objectMapper.createObjectNode(); // 趋势分析
+
+            Map<Integer, List<CompTargetTagDto>> stuTargetMap = compList.stream()
+                    .filter(comp->comp.getTagId()!=null)
+                    .collect(Collectors.groupingBy(CompTargetTagDto::getTargetId));
+
+            stuTargetMap.forEach((targetId, list)->{
+                ObjectNode targetNode = objectMapper.createObjectNode();
+                double score =list.stream()
+                        .filter(c->c.getCompScore()!=null)
+                        .mapToDouble(CompTargetTagDto::getCompScore)
+                        .sum();
+
+                double totalScore =list.stream()
+                        .filter(c->c.getCompTotalScore()!=null)
+                        .mapToDouble(CompTargetTagDto::getCompTotalScore)
+                        .sum();
+
+                double rage = numWith2Decimal(score*100/totalScore);
+
+                // 分析监测点
+                Map<Integer, List<CompTargetTagDto>> targetTagMap = list.stream()
+                        .collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
+
+                ArrayNode tagArray = objectMapper.createArrayNode();
+                targetTagMap.forEach((tagId, l)->{
+                    ObjectNode tagNode = objectMapper.createObjectNode();
+                    double s = l.stream()
+                            .filter(c->c.getCompScore()!=null)
+                            .mapToDouble(CompTargetTagDto::getCompScore)
+                            .sum();
+                    double ts = l.stream()
+                            .filter(c->c.getCompTotalScore()!=null)
+                            .mapToDouble(CompTargetTagDto::getCompTotalScore)
+                            .sum();
+                    double tagRage = numWith2Decimal(s*100/ts);
+
+                    tagNode.put("tagId",tagId);
+                    tagNode.put("tagName",l.get(0).getTagName());
+                    tagNode.put("rage", tagRage);
+                    tagArray.add(tagNode);
+                });
+                targetNode.put("targetId", targetId);
+                targetNode.put("targetName", list.get(0).getTargetName());
+                targetNode.put("rage", rage);
+                targetNode.put("classRage", targetRageMap.get(targetId));
+                targetNode.set("tag", tagArray);
+                targetRageArray.add(targetNode);
+
+                // 目标达成度趋势分析
+                ArrayNode trendNode = objectMapper.createArrayNode();
+                List<Long> ptIdList = list.stream()
+                        .map(CompTargetTagDto::getPtId)
+                        .distinct()
+                        .toList();
+                List<Long> ptIdList2 = new ArrayList<>();
+                ObjectNode object0 = objectMapper.createObjectNode();
+                object0.put("id",0);
+                object0.put("label","学期初");
+                object0.put("name","学期初");
+                object0.put("value",0);
+                trendNode.add(object0);
+                for(int i=0;i<ptIdList.size(); i++){
+                    // 实验数量递增
+                    ptIdList2.add(ptIdList.get(i));
+                    // 计算达成度
+                    List<CompTargetTagDto> comps = list.stream()  // target 的所有 comp
+                            .filter(comp-> ptIdList2.contains(comp.getPtId()))
+                            .filter(comp->comp.getCompScore()!=null)
+                            .toList();
+                    // 获取第i个实验的实验名称
+                    int finalI = i;
+                    List<CompTargetTagDto> comps2 = list.stream()
+                            .filter(comp-> Objects.equals(comp.getPtId(), ptIdList.get(finalI)))
+                            .toList();
+                    String taskName = comps2.get(0).getPtName();
+                    double curScore = comps.stream().mapToDouble(CompTargetTagDto::getCompScore).sum();
+                    double trend = numWith2Decimal(curScore*100 / totalScore);
+                    ObjectNode object = objectMapper.createObjectNode();
+                    object.put("id",i+1);
+                    object.put("label","第%s次实验".formatted(i+1));
+                    object.put("name",taskName);
+                    object.put("value",trend);
+                    trendNode.add(object);
+                }
+                double trend = numWith2Decimal(score*100 / totalScore);
+                ObjectNode object1 = objectMapper.createObjectNode();
+                object1.put("id",ptIdList.size()+1);
+                object1.put("label","当前");
+                object1.put("name","当前");
+                object1.put("value",trend);
+                trendNode.add(object1);
+                trendObject.set(targetId.toString(), trendNode);
+            });
+
+            stuNode.set("target", targetRageArray);
+            stuNode.set("trend", trendObject);
+            objectNode.set(stuId, stuNode);
+        });
+
+
+        this.saveProgressData(type, progressId, objectNode);
 
     }
     private void STU_P_SUG(AnalysisType type, String progressId, Integer projectId){
 
+    }
+    private void PST_DETAIL(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException, IllegalStateException {
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        PSTGroupByTask.forEach((ptId, taskPstList)->{
+            ObjectNode taskNode = objectMapper.createObjectNode();
+            Map<Long, PSTDto> taskStuPstMap = taskPstList.stream()
+                    .collect(Collectors.toMap(
+                            PSTDto::getPsId,
+                            Function.identity(),
+                            (existing, replacement) -> {
+                                throw new IllegalStateException("Duplicate psId: " + existing.getPsId() + "pstId:"+existing.getPstId());
+                    }));
+
+            taskStuPstMap.forEach((psId, pst)->{
+                ObjectNode stuNode = objectMapper.createObjectNode();
+                List<CompTargetTagDto> pstCompList = CompTargetTagGroupByPST.get(pst.getPstId());
+                Map<Integer, List<CompTargetTagDto>> pstTagMap = pstCompList.stream()
+                        .filter(c->c.getTagId()!=null)
+                        .collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
+                Map<Integer, List<CompTargetTagDto>> pstStageMap = pstCompList.stream()
+                        .filter(c->c.getCompStage()!=null)
+                        .collect(Collectors.groupingBy(CompTargetTagDto::getCompStage));
+
+                ArrayNode tagArray = objectMapper.createArrayNode();
+                pstTagMap.forEach((tagId, cList)->{
+                    ObjectNode tagNode = objectMapper.createObjectNode();
+                    double score = cList.stream()
+                            .filter(c->c.getCompScore()!=null)
+                            .mapToDouble(CompTargetTagDto::getCompScore)
+                            .sum();
+                    double totalScore = cList.stream()
+                            .filter(c->c.getCompTotalScore()!=null)
+                            .mapToDouble(CompTargetTagDto::getCompTotalScore)
+                            .sum();
+                    double rage=numWith2Decimal(score*100/totalScore);
+
+                    tagNode.put("tagId",tagId);
+                    tagNode.put("tagName", cList.get(0).getTagName());
+                    tagNode.put("rage", rage);
+                    tagArray.add(tagNode);
+                });
+                ArrayNode stageArray = objectMapper.createArrayNode();
+                pstStageMap.forEach((stage, cList)->{
+                    ObjectNode stageNode = objectMapper.createObjectNode();
+                    int errorSize = cList.stream()
+                            .filter(c->c.getCompScore()==null||c.getCompScore()<c.getCompTotalScore())
+                            .toList()
+                            .size();
+
+                    stageNode.put("stage", stage);
+                    stageNode.put("quesSize", cList.size());
+                    stageNode.put("quesErrorSize", errorSize);
+                    stageNode.put("quesCorrectSize", cList.size()-errorSize);
+                    stageNode.set("quesList", objectMapper.valueToTree(cList));
+                    stageArray.add(stageNode);
+                });
+                stuNode.set("tag",tagArray);
+                stuNode.set("stage", stageArray);
+                taskNode.set(psId.toString(), stuNode);
+            });
+            objectNode.set(ptId.toString(), taskNode);
+        });
+        this.saveProgressData(type, progressId, objectNode);
+    }
+    private void PST_SUG(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException{
+        ObjectNode objectNode = objectMapper.createObjectNode();
+
+        this.saveProgressData(type, progressId, objectNode);
     }
 
 
@@ -1475,6 +1666,12 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 }
                 case STU_P_SUG -> {
                     this.STU_P_SUG(analysisType, progressId, progetId);
+                }
+                case PST_DETAIL -> {
+                    this.PST_DETAIL(analysisType, progressId, progetId);
+                }
+                case PST_SUG -> {
+                    this.PST_SUG(analysisType, progressId, progetId);
                 }
                 default -> throw new AnalysisProgressGenChildDataException("没有对应方法");
             }

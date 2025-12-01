@@ -34,9 +34,9 @@ public class BaseController {
 
     @ExceptionHandler(ServiceException.class)
     public JsonResult<Void> handleException(Throwable e){
-        System.out.println(e.getMessage());
-        System.out.println(e.getStackTrace());
-        System.out.println(e);
+//        System.out.println(e.getMessage());
+//        System.out.println(e.getStackTrace());
+//        System.out.println(e);
         JsonResult<Void> result = new JsonResult<>(e);
         if(e instanceof SystemException) {
             result.setState(404);

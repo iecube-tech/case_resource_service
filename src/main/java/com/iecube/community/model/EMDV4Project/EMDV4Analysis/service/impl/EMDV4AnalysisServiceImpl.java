@@ -10,6 +10,8 @@ import com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProg
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.mapper.AnalysisProgressMapper;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.service.AnalysisDataGenService;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.service.EMDV4AnalysisService;
+import com.iecube.community.model.student.entity.StudentDto;
+import com.iecube.community.model.student.mapper.StudentMapper;
 import com.iecube.community.util.uuid.UUIDGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -27,6 +30,9 @@ public class EMDV4AnalysisServiceImpl implements EMDV4AnalysisService {
 
     @Autowired
     private AnalysisDataGenService dataGenService;
+
+    @Autowired
+    private StudentMapper studentMapper;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -73,5 +79,18 @@ public class EMDV4AnalysisServiceImpl implements EMDV4AnalysisService {
             log.error("project:{}[{}] 靠北！意外的异常", projectId, analysisType.getDesc(), e);
             throw new ServiceException("靠北！[%s]意外的异常".formatted(analysisType.getDesc()));
         }
+    }
+
+    @Override
+    public JsonNode getStuData(Integer projectId, String type, String studentId) {
+        JsonNode jsonNode = this.getData(projectId, type);
+        AnalysisType analysisType = AnalysisType.getByValue(type);
+        if(analysisType!=null && Objects.equals(analysisType.getTerminal(), "student")){
+            if(jsonNode.get(studentId)==null){
+                throw new ServiceException("没有找到该学生数据");
+            }
+            return jsonNode.get(studentId);
+        }
+        return jsonNode;
     }
 }

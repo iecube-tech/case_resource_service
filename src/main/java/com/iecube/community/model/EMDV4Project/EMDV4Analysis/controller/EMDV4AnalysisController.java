@@ -5,6 +5,7 @@ import com.iecube.community.basecontroller.BaseController;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProgress;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.service.EMDV4AnalysisService;
 import com.iecube.community.util.JsonResult;
+import com.iecube.community.util.jwt.CurrentUser;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -32,5 +33,12 @@ public class EMDV4AnalysisController extends BaseController {
     public JsonResult<JsonNode> getData(@PathVariable Integer projectId, @PathVariable  String type) {
         JsonNode res = service.getData(projectId, type);
         return new JsonResult<>(OK,res);
+    }
+
+    @GetMapping("/stu/{projectId}/{type}/{studentId}")
+    public JsonResult<JsonNode> getStuData(@PathVariable Integer projectId, @PathVariable  String type, @PathVariable String studentId) {
+        JsonNode res = service.getStuData(projectId, type, studentId);
+        return new JsonResult<>(OK,res);
+
     }
 }

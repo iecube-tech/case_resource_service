@@ -8,4 +8,6 @@ public interface EMDV4AnalysisService {
     AnalysisProgress createGenProgress(Integer projectId);
 
     JsonNode getData(Integer projectId, String type);
+
+    JsonNode getStuData(Integer projectId, String type, String studentId);
 }
