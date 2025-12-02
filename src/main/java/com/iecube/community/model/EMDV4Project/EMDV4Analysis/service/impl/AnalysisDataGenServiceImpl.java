@@ -80,6 +80,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 updateProgress(progress.getId(), i+1,true, "[%s] 数据生成失败，%s".formatted(i+1, e.getMessage()));
             }
         }
+        log.info("[{}] 数据分析成功",projectId);
         this.PSTWithStageList.clear();
     }
 
@@ -998,25 +999,31 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                     );
             taskStageCompMap.forEach((stage, cList)->{
                 ObjectNode node = objectMapper.createObjectNode();
-                OptionalDouble avg = cList.stream()
+                double score = cList.stream()
                         .filter(comp->comp.getCompScore()!=null)
                         .mapToDouble(CompTargetTagDto::getCompScore)
-                        .average();
+                        .sum();
+                double totalScore = cList.stream()
+                        .filter(comp->comp.getCompTotalScore()!=null)
+                        .mapToDouble(CompTargetTagDto::getCompTotalScore)
+                        .sum();
+                double avg = numWith2Decimal((score/cList.size())*100/(totalScore/cList.size()));
                 node.put("stage",stage);
                 node.put("label", "阶段%s".formatted(stage));
-                node.put("value", avg.isPresent()?numWith2Decimal(avg.getAsDouble()):0);
+                node.put("value", avg);
                 stageAvgScoreArrayNode.add(node);
             });
 
             // 实验下学生数据一览
-            ObjectNode stuNodes = objectMapper.createObjectNode();
+            ArrayNode stuNodes = objectMapper.createArrayNode();
             Map<Long, List<CompTargetTagDto>> taskStuCompMap = ComponentList.stream()
                     .filter(comp->comp.getPtId().equals(ptId))
                     .collect(
                             Collectors.groupingBy(
-                                    CompTargetTagDto::getPtId
+                                    CompTargetTagDto::getPsId
                             )
                     );
+
             taskStuCompMap.forEach((psId, sCompList)->{
                 ObjectNode stuNode = objectMapper.createObjectNode();
                 stuNode.put("psId", psId);
@@ -1045,11 +1052,12 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 });
                 stuNode.set("stageRage", stageRageNode);
 
-                stuNodes.set(psId.toString(),stuNode);
+                stuNodes.add(stuNode);
             });
 
             taskNode.set("scoreDistribution", scoreArrayNode);
             taskNode.set("stageAvgScore", stageAvgScoreArrayNode);
+            taskNode.set("students", stuNodes);
             try {
                 list.add(genAPD(type, progressId, taskNode, ptId, null, null));
             } catch (JsonProcessingException e) {
