@@ -35,9 +35,22 @@ public class EMDV4AnalysisController extends BaseController {
         return new JsonResult<>(OK,res);
     }
 
+    @GetMapping("/task/{projectId}/{type}/{ptId}")
+    public JsonResult<JsonNode> getTaskData(@PathVariable Integer projectId, @PathVariable  String type, @PathVariable Long ptId) {
+        JsonNode res = service.getTaskData(projectId, type, ptId);
+        return new JsonResult<>(OK,res);
+    }
+
     @GetMapping("/stu/{projectId}/{type}/{studentId}")
     public JsonResult<JsonNode> getStuData(@PathVariable Integer projectId, @PathVariable  String type, @PathVariable String studentId) {
         JsonNode res = service.getStuData(projectId, type, studentId);
+        return new JsonResult<>(OK,res);
+
+    }
+
+    @GetMapping("/pst/{projectId}/{type}/{ptId}/{psId}")
+    public JsonResult<JsonNode> getPSTData(@PathVariable Integer projectId, @PathVariable  String type, @PathVariable Long ptId, @PathVariable Long psId) {
+        JsonNode res = service.getPSTData(projectId, type, ptId, psId);
         return new JsonResult<>(OK,res);
 
     }

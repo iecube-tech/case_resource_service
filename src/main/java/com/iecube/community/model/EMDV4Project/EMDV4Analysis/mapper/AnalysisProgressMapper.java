@@ -4,6 +4,8 @@ import com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProg
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProgressData;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
+
 @Mapper
 public interface AnalysisProgressMapper {
 
@@ -13,5 +15,10 @@ public interface AnalysisProgressMapper {
     void updateAPById(AnalysisProgress ap);
 
     void createAPD(AnalysisProgressData progressData);
+    void batchCreatAPD(List<AnalysisProgressData> list);
     AnalysisProgressData getAPD(String apId, String type);
+    AnalysisProgressData getAPDWithPtId(String apId, String type, Long ptId);
+    AnalysisProgressData getAPDWithStudentId(String apId, String type, String studentId);
+    AnalysisProgressData getAPDWithPtIdAndPsId(String apId, String type, Long ptId, Long psId);
+
 }

@@ -952,8 +952,8 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
     private void T_TR_IS(AnalysisType type, String progressId, Integer projectId){
 
     }
-    private void T_TASK_D_OVERVIEW(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
-        ObjectNode jsonNodes = objectMapper.createObjectNode();
+    private void TASK_D_OVERVIEW(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
+        List<AnalysisProgressData> list = new ArrayList<>();
         PSTGroupByTask.forEach((ptId, taskPstList)->{
             ObjectNode taskNode = objectMapper.createObjectNode();
             // 班级实验成绩分布
@@ -1050,12 +1050,16 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
 
             taskNode.set("scoreDistribution", scoreArrayNode);
             taskNode.set("stageAvgScore", stageAvgScoreArrayNode);
-            jsonNodes.set(String.valueOf(ptId),taskNode);
+            try {
+                list.add(genAPD(type, progressId, taskNode, ptId, null, null));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         });
-        this.saveProgressData(type,progressId, jsonNodes);
+        progressMapper.batchCreatAPD(list);
     }
-    private void T_TASK_D_ABILITY(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
-        ObjectNode objectNode = objectMapper.createObjectNode();
+    private void TASK_D_ABILITY(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
+        List<AnalysisProgressData> list = new ArrayList<>();
         CompTargetTagGroupByPT.forEach((ptId, ptCompList)->{
             Map<Integer, List<CompTargetTagDto>> tagCompMap = ptCompList.stream()
                     .collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
@@ -1141,13 +1145,16 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
 
                 abilityAvgRage.add(abilityRage);
             });
-            objectNode.set(ptId.toString(), abilityAvgRage);
+            try {
+                list.add(genAPD(type, progressId, abilityAvgRage, ptId, null, null));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         });
-        this.saveProgressData(type, progressId, objectNode);
+        progressMapper.batchCreatAPD(list);
     }
-    private void T_TASK_D_QUES(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
-
-        ObjectNode objectNode = objectMapper.createObjectNode();
+    private void TASK_D_QUES(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
+        List<AnalysisProgressData> qlist = new ArrayList<>();
         CompTargetTagGroupByPT.forEach((ptId, ptTagList)->{
             ObjectNode ptNode = objectMapper.createObjectNode();
 
@@ -1198,13 +1205,16 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             });
             ptNode.set("tagOfQuesDistribution", ptTagArrayNode);
             ptNode.set("quesDetail", quesDetailArray);
-
-            objectNode.set(ptId.toString(), ptNode);
+            try {
+                qlist.add(genAPD(type, progressId, ptNode, ptId, null, null));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         });
-        this.saveProgressData(type, progressId, objectNode);
+        progressMapper.batchCreatAPD(qlist);
     }
-    private void T_TASK_D_COURSE(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
-        ObjectNode objectNode = objectMapper.createObjectNode();
+    private void TASK_D_COURSE(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
+        List<AnalysisProgressData> clist = new ArrayList<>();
         PSTGroupByTaskWithStage.forEach((ptId, pstList)->{
             ObjectNode taskNode = objectMapper.createObjectNode();
             // 实验 -> 学生操作列表
@@ -1254,16 +1264,19 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             });
             taskNode.set("stageTime", stageTime);
             taskNode.set("timeDistributionStage1",timeDistributionStage1);
-            objectNode.set(ptId.toString(), taskNode);
+            try {
+                clist.add(genAPD(type, progressId, taskNode, ptId, null, null));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         });
-        this.saveProgressData(type, progressId, objectNode);
+        progressMapper.batchCreatAPD(clist);
     }
-    private void T_TASK_D_SUG(AnalysisType type, String progressId, Integer projectId){
+    private void TASK_D_SUG(AnalysisType type, String progressId, Integer projectId){
 
     }
     private void STU_P_OVERVIEW(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
-        ObjectNode objectNode = objectMapper.createObjectNode();
-
+        List<AnalysisProgressData> sList = new ArrayList<>();
         Map<Long, Double> taskAvgScoreMap = new HashMap<>(); // 存放各个实验的平均成绩
         // 计算班级各个实验平均成绩
         PSTGroupByTask.forEach((ptId, list)->{
@@ -1347,12 +1360,16 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             stuNode.put("tagDoneSize", compHasDone.size());
             stuNode.put("tagHasNotDone", numWith2Decimal(stuComp.size()-compHasDone.size()));
             stuNode.set("target", targetNode);
-            objectNode.set(stuId, stuNode);
+            try {
+                sList.add(genAPD(type, progressId, stuNode, null, null, stuId));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         });
-        this.saveProgressData(type, progressId, objectNode);
+        progressMapper.batchCreatAPD(sList);
     }
     private void STU_P_TASK(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
-        ObjectNode objectNode = objectMapper.createObjectNode();
+        List<AnalysisProgressData> sList = new ArrayList<>();
         PSTGroupByStu.forEach((stuId, pstList)->{
             ObjectNode stuNode = objectMapper.createObjectNode();
             ArrayNode taskNode  = objectMapper.createArrayNode();
@@ -1382,12 +1399,16 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             });
 
             stuNode.set("task",taskNode);
-            objectNode.set(stuId, stuNode);
+            try {
+                sList.add(genAPD(type, progressId, stuNode, null, null, stuId));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         });
-        this.saveProgressData(type, progressId, objectNode);
+        progressMapper.batchCreatAPD(sList);
     }
     private void STU_P_TARGET(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
-        ObjectNode objectNode = objectMapper.createObjectNode();
+        List<AnalysisProgressData> sList = new ArrayList<>();
         // 计算班级课程目标达成度
         Map<Integer, Double> targetRageMap = new HashMap<>();
         CompTargetTagGroupByTarget.forEach((targetId, compList)->{
@@ -1503,20 +1524,21 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
 
             stuNode.set("target", targetRageArray);
             stuNode.set("trend", trendObject);
-            objectNode.set(stuId, stuNode);
+            try {
+                sList.add(genAPD(type, progressId, stuNode, null, null, stuId));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         });
-
-
-        this.saveProgressData(type, progressId, objectNode);
-
+        progressMapper.batchCreatAPD(sList);
     }
     private void STU_P_SUG(AnalysisType type, String progressId, Integer projectId){
 
     }
     private void PST_DETAIL(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException, IllegalStateException {
-        ObjectNode objectNode = objectMapper.createObjectNode();
+        List<AnalysisProgressData> sList = new ArrayList<>();
         PSTGroupByTask.forEach((ptId, taskPstList)->{
-            ObjectNode taskNode = objectMapper.createObjectNode();
+//            ObjectNode taskNode = objectMapper.createObjectNode();
             Map<Long, PSTDto> taskStuPstMap = taskPstList.stream()
                     .collect(Collectors.toMap(
                             PSTDto::getPsId,
@@ -1570,11 +1592,15 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 });
                 stuNode.set("tag",tagArray);
                 stuNode.set("stage", stageArray);
-                taskNode.set(psId.toString(), stuNode);
+//                taskNode.set(psId.toString(), stuNode);
+                try {
+                    sList.add(genAPD(type, progressId, stuNode, ptId, psId, null));
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
             });
-            objectNode.set(ptId.toString(), taskNode);
         });
-        this.saveProgressData(type, progressId, objectNode);
+        progressMapper.batchCreatAPD(sList);
     }
     private void PST_SUG(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException{
         ObjectNode objectNode = objectMapper.createObjectNode();
@@ -1640,20 +1666,20 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 case T_TR_IS -> {
                     this.T_TR_IS(analysisType, progressId, progetId);
                 }
-                case T_TASK_D_OVERVIEW -> {
-                    this.T_TASK_D_OVERVIEW(analysisType, progressId, progetId);
+                case TASK_D_OVERVIEW -> {
+                    this.TASK_D_OVERVIEW(analysisType, progressId, progetId);
                 }
-                case T_TASK_D_ABILITY -> {
-                    this.T_TASK_D_ABILITY(analysisType, progressId, progetId);
+                case TASK_D_ABILITY -> {
+                    this.TASK_D_ABILITY(analysisType, progressId, progetId);
                 }
-                case T_TASK_D_QUES -> {
-                    this.T_TASK_D_QUES(analysisType, progressId, progetId);
+                case TASK_D_QUES -> {
+                    this.TASK_D_QUES(analysisType, progressId, progetId);
                 }
-                case T_TASK_D_COURSE -> {
-                    this.T_TASK_D_COURSE(analysisType, progressId, progetId);
+                case TASK_D_COURSE -> {
+                    this.TASK_D_COURSE(analysisType, progressId, progetId);
                 }
-                case T_TASK_D_SUG -> {
-                    this.T_TASK_D_SUG(analysisType, progressId, progetId);
+                case TASK_D_SUG -> {
+                    this.TASK_D_SUG(analysisType, progressId, progetId);
                 }
                 case STU_P_OVERVIEW -> {
                     this.STU_P_OVERVIEW(analysisType, progressId, progetId);
@@ -1692,13 +1718,40 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         progressMapper.updateAPById(progress);
     }
 
-    private void saveProgressData(AnalysisType type, String progressId, JsonNode data) throws JsonProcessingException {
+    private void saveProgressData(AnalysisType type, String progressId, JsonNode data)
+            throws JsonProcessingException {
         AnalysisProgressData apd = new AnalysisProgressData();
         apd.setId(UUIDGenerator.generateUUID());
         apd.setApId(progressId);
         apd.setType(type.getValue());
         apd.setData(objectMapper.writeValueAsString(data));
         progressMapper.createAPD(apd);
+    }
+
+//    private void saveProgressDataWithPtPsId(AnalysisType type, String progressId, JsonNode data,Long ptId, Long psId, String studentId)
+//            throws JsonProcessingException {
+//        AnalysisProgressData apd = new AnalysisProgressData();
+//        apd.setId(UUIDGenerator.generateUUID());
+//        apd.setApId(progressId);
+//        apd.setType(type.getValue());
+//        apd.setData(objectMapper.writeValueAsString(data));
+//        apd.setPtId(ptId);
+//        apd.setPsId(psId);
+//        apd.setStudentId(studentId);
+//        progressMapper.createAPD(apd);
+//    }
+
+    private AnalysisProgressData genAPD(AnalysisType type, String progressId, JsonNode data,Long ptId, Long psId, String studentId)
+            throws JsonProcessingException{
+        AnalysisProgressData apd = new AnalysisProgressData();
+        apd.setId(UUIDGenerator.generateUUID());
+        apd.setApId(progressId);
+        apd.setType(type.getValue());
+        apd.setData(objectMapper.writeValueAsString(data));
+        apd.setPtId(ptId);
+        apd.setPsId(psId);
+        apd.setStudentId(studentId);
+        return apd;
     }
 
     /**

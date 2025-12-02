@@ -25,6 +25,9 @@ CREATE TABLE AP_data(
     `ap_id` VARCHAR(32) NOT NULL,
     `type` VARCHAR(255) NOT NULL,
     `data` JSON NULL,
+    `pt_id` BIGINT NUlL,
+    `ps_id` BIGINT NUlL,
+    `student_id` VARCHAR(32) NUlL,
     CONSTRAINT AP_id
         FOREIGN KEY (ap_id)
             REFERENCES AP_analysis_progress(id)

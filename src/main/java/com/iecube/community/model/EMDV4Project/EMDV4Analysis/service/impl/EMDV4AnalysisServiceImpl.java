@@ -10,15 +10,12 @@ import com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProg
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.mapper.AnalysisProgressMapper;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.service.AnalysisDataGenService;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.service.EMDV4AnalysisService;
-import com.iecube.community.model.student.entity.StudentDto;
 import com.iecube.community.model.student.mapper.StudentMapper;
 import com.iecube.community.util.uuid.UUIDGenerator;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.Objects;
 
@@ -82,15 +79,88 @@ public class EMDV4AnalysisServiceImpl implements EMDV4AnalysisService {
     }
 
     @Override
-    public JsonNode getStuData(Integer projectId, String type, String studentId) {
-        JsonNode jsonNode = this.getData(projectId, type);
-        AnalysisType analysisType = AnalysisType.getByValue(type);
-        if(analysisType!=null && Objects.equals(analysisType.getTerminal(), "student")){
-            if(jsonNode.get(studentId)==null){
-                throw new ServiceException("没有找到该学生数据");
-            }
-            return jsonNode.get(studentId);
+    public JsonNode getTaskData(Integer projectId, String type, Long ptId) {
+        AnalysisProgress progress = progressMapper.getApLatestByProjectId(projectId);
+        if(progress == null || !progress.getFinished()){
+            throw new ServiceException("数据暂未生成");
         }
-        return jsonNode;
+        AnalysisType analysisType = AnalysisType.getByValue(type);
+        if(analysisType == null){
+            throw new ServiceException("不存在的图表类型");
+        }
+        if(!Objects.equals(analysisType.getTerminal(), "task")){
+            throw new ServiceException("非匹配路径");
+        }
+        AnalysisProgressData apd = progressMapper.getAPDWithPtId(progress.getId(), analysisType.getValue(), ptId);
+        try {
+            return objectMapper.readTree(apd.getData());
+        } catch (NullPointerException e) {
+            log.error("project:{}[{}]返回数据异常", projectId, analysisType.getDesc(), e);
+            throw new ServiceException("[%s]数据未找到".formatted(analysisType.getDesc()));
+        }catch (JsonProcessingException e){
+            log.error("project:{}[{}]解析数据异常", projectId, analysisType.getDesc(), e);
+            throw new ServiceException("[%s]解析数据异常".formatted(analysisType.getDesc()));
+        }catch (Exception e){
+            log.error("project:{}[{}] 靠北！意外的异常", projectId, analysisType.getDesc(), e);
+            throw new ServiceException("靠北！[%s]意外的异常".formatted(analysisType.getDesc()));
+        }
     }
+
+    @Override
+    public JsonNode getStuData(Integer projectId, String type, String studentId) {
+        AnalysisProgress progress = progressMapper.getApLatestByProjectId(projectId);
+        if(progress == null || !progress.getFinished()){
+            throw new ServiceException("数据暂未生成");
+        }
+        AnalysisType analysisType = AnalysisType.getByValue(type);
+        if(analysisType == null){
+            throw new ServiceException("不存在的图表类型");
+        }
+        if(!Objects.equals(analysisType.getTerminal(), "student")){
+            throw new ServiceException("非匹配路径");
+        }
+        AnalysisProgressData apd = progressMapper.getAPDWithStudentId(progress.getId(), analysisType.getValue(), studentId);
+        try {
+            return objectMapper.readTree(apd.getData());
+        } catch (NullPointerException e) {
+            log.error("project:{}[{}]返回数据异常", projectId, analysisType.getDesc(), e);
+            throw new ServiceException("[%s]数据未找到".formatted(analysisType.getDesc()));
+        }catch (JsonProcessingException e){
+            log.error("project:{}[{}]解析数据异常", projectId, analysisType.getDesc(), e);
+            throw new ServiceException("[%s]解析数据异常".formatted(analysisType.getDesc()));
+        }catch (Exception e){
+            log.error("project:{}[{}] 靠北！意外的异常", projectId, analysisType.getDesc(), e);
+            throw new ServiceException("靠北！[%s]意外的异常".formatted(analysisType.getDesc()));
+        }
+    }
+
+    @Override
+    public JsonNode getPSTData(Integer projectId, String type, Long ptId, Long psId) {
+        AnalysisProgress progress = progressMapper.getApLatestByProjectId(projectId);
+        if(progress == null || !progress.getFinished()){
+            throw new ServiceException("数据暂未生成");
+        }
+        AnalysisType analysisType = AnalysisType.getByValue(type);
+        if(analysisType == null){
+            throw new ServiceException("不存在的图表类型");
+        }
+        if(!Objects.equals(analysisType.getTerminal(), "pst")){
+            throw new ServiceException("非匹配路径");
+        }
+        AnalysisProgressData apd = progressMapper.getAPDWithPtIdAndPsId(progress.getId(), analysisType.getValue(), ptId, psId);
+        try {
+            return objectMapper.readTree(apd.getData());
+        } catch (NullPointerException e) {
+            log.error("project:{}[{}]返回数据异常", projectId, analysisType.getDesc(), e);
+            throw new ServiceException("[%s]数据未找到".formatted(analysisType.getDesc()));
+        }catch (JsonProcessingException e){
+            log.error("project:{}[{}]解析数据异常", projectId, analysisType.getDesc(), e);
+            throw new ServiceException("[%s]解析数据异常".formatted(analysisType.getDesc()));
+        }catch (Exception e){
+            log.error("project:{}[{}] 靠北！意外的异常", projectId, analysisType.getDesc(), e);
+            throw new ServiceException("靠北！[%s]意外的异常".formatted(analysisType.getDesc()));
+        }
+    }
+
+
 }

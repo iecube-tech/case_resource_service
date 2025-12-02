@@ -9,5 +9,9 @@ public interface EMDV4AnalysisService {
 
     JsonNode getData(Integer projectId, String type);
 
+    JsonNode getTaskData(Integer projectId, String type, Long ptId);
+
     JsonNode getStuData(Integer projectId, String type, String studentId);
+
+    JsonNode getPSTData(Integer projectId, String type, Long ptId, Long psId);
 }

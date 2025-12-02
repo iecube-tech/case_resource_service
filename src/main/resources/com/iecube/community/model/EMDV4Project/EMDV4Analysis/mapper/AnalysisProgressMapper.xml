@@ -13,6 +13,9 @@
 
     <resultMap id="AnalysisProgressData" type="com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProgressData">
         <result column="ap_id" property="apId"></result>
+        <result column="pt_id" property="ptId"></result>
+        <result column="ps_id" property="psId"></result>
+        <result column="student_id" property="studentId"></result>
     </resultMap>
 
     <insert id="createAP">
@@ -46,15 +49,41 @@
     </update>
 
     <insert id="createAPD">
-        INSERT INTO AP_data (`id`,`ap_id`,`type`, `data`)
-        VALUES (#{id}, #{apId}, #{type}, #{data})
+        INSERT INTO AP_data (`id`,`ap_id`,`type`, `data`, `pt_id`, `ps_id`, `student_id`)
+        VALUES (#{id}, #{apId}, #{type}, #{data}, #{ptId}, #{psId}, #{studentId})
     </insert>
 
+    <insert id="batchCreatAPD">
+        INSERT INTO AP_data (`id`,`ap_id`,`type`, `data`, `pt_id`, `ps_id`, `student_id`)
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (#{item.id}, #{item.apId}, #{item.type}, #{item.data}, #{item.ptId}, #{item.psId}, #{item.studentId})
+        </foreach>
+    </insert>
+
+
     <select id="getAPD" resultMap="AnalysisProgressData">
-        SELECT `id`,`ap_id`,`type`, `data`
+        SELECT `id`,`ap_id`,`type`, `data`,  `pt_id`, `ps_id`, `student_id`
         FROM AP_data
         WHERE `ap_id`=#{apId} AND type=#{type}
     </select>
 
+    <select id="getAPDWithPtId" resultMap="AnalysisProgressData">
+        SELECT `id`,`ap_id`,`type`, `data`, `pt_id`, `ps_id`, `student_id`
+        FROM AP_data
+        WHERE `ap_id`=#{apId} AND type=#{type} AND pt_id=#{ptId}
+    </select>
+
+    <select id="getAPDWithStudentId" resultMap="AnalysisProgressData">
+        SELECT `id`,`ap_id`,`type`, `data`, `pt_id`, `ps_id`, `student_id`
+        FROM AP_data
+        WHERE `ap_id`=#{apId} AND type=#{type} AND student_id=#{studentId}
+    </select>
+
+    <select id="getAPDWithPtIdAndPsId" resultMap="AnalysisProgressData">
+        SELECT `id`,`ap_id`,`type`, `data`, `pt_id`, `ps_id`, `student_id`
+        FROM AP_data
+        WHERE `ap_id`=#{apId} AND type=#{type} AND pt_id=#{ptId} AND ps_id=#{psId}
+    </select>
 
 </mapper>

@@ -23,17 +23,17 @@ public enum AnalysisType {
     T_CT_OAS_TREND("t_ct_oas_trend", "教师_课程目标_课程目标达成度趋势", "teacher"),
     T_TR_OVERVIEW("t_tr_overview","教师_教学报告_整体教学效果报告", "teacher"),
     T_TR_IS("t_tr_is","教师_教学报告_教学改进建议", "teacher"), //Improvement suggestions
-    T_TASK_D_OVERVIEW("t_task_d_overview", "教师_实验分析_实验详情_实验概览", "teacher"),
-    T_TASK_D_ABILITY("t_task_d_ability", "教师_实验分析_实验详情_能力分析", "teacher"),
-    T_TASK_D_QUES("t_task_d_ques", "教师_实验分析_实验详情_题目分析", "teacher"),
-    T_TASK_D_COURSE("t_task_d_course", "教师_实验分析_实验详情_过程分析", "teacher"),
-    T_TASK_D_SUG("t_task_d_sug", "教师_实验分析_实验详情_教学建议", "teacher"),
+    TASK_D_OVERVIEW("task_d_overview", "教师_实验分析_实验详情_实验概览", "task"),
+    TASK_D_ABILITY("task_d_ability", "教师_实验分析_实验详情_能力分析", "task"),
+    TASK_D_QUES("task_d_ques", "教师_实验分析_实验详情_题目分析", "task"),
+    TASK_D_COURSE("task_d_course", "教师_实验分析_实验详情_过程分析", "task"),
+    TASK_D_SUG("task_d_sug", "教师_实验分析_实验详情_教学建议", "task"),
     STU_P_OVERVIEW("stu_p_overview", "学生_课程概览", "student"),
     STU_P_TASK("stu_p_task", "学生_实验列表", "student"),
     STU_P_TARGET("stu_p_target", "学生_课程目标", "student"),
     STU_P_SUG("stu_p_sug", "学生_学习建议", "student"),
-    PST_DETAIL("pst_detail", "实验_学生_详情", "teacher"),
-    PST_SUG("pst_sug", "实验_学生_改进建议", "teacher");
+    PST_DETAIL("pst_detail", "实验_学生_详情", "pst"),
+    PST_SUG("pst_sug", "实验_学生_改进建议", "pst");
 
 
     // 获取数据库存储值

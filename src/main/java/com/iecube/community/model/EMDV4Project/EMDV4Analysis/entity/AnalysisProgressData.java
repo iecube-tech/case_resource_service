@@ -8,4 +8,7 @@ public class AnalysisProgressData {
     private String apId;
     private String type;
     private String data;
+    private Long ptId;
+    private Long psId;
+    private String studentId;
 }
