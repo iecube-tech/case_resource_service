@@ -93,7 +93,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             }
         }
         log.info("[{}] 数据分析成功",projectId);
-        this.PSTWithStageList.clear();
+        clear();
     }
 
     @Async
@@ -108,7 +108,33 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         }catch (AnalysisProgressGenChildDataException e){
             log.error("[{}] 数据分析失败",type.getDesc() ,e);
             updateProgress(progress.getId(), 1,true, "[%s] 数据生成失败，%s".formatted(type.getDesc(), e.getMessage()));
+        }finally {
+            clear();
         }
+    }
+
+    private void clear(){
+        this.PSTWithStageList.clear();
+        this.PSTDtoWithoutStage.clear();
+        this.PSTGroupByPstId.clear();
+        this.PSTGroupByStu.clear();
+        this.PSTGroupByStuWithStage.clear();
+        this.PSTGroupByTask.clear();
+        this.PSTGroupByTaskWithStage.clear();
+        this.PSTAIDtoList.clear();
+        this.PSTAIGroupByChatId.clear();
+        this.PSTAIGroupByStu.clear();
+        this.PSTAIGroupByPt.clear();
+        this.ComponentList.clear();
+        this.CompTargetTagDtoList.clear();
+        this.CompTargetTagGroupByTarget.clear();
+        this.CompTargetTagGroupByStu.clear();
+        this.CompTargetTagGroupByPT.clear();
+        this.CompTargetTagGroupByPST.clear();
+        this.targetName.clear();
+        this.courseNode.removeAll();
+        this.studentsNode.removeAll();
+        this.thematic="";
     }
 
     private void dataClean(Integer projectId){
