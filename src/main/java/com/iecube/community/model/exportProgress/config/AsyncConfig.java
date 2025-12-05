@@ -17,7 +17,7 @@ public class AsyncConfig {
         int cpuCore = Runtime.getRuntime().availableProcessors();
         int corePoolSize = 2 * cpuCore + 1; // 核心线程数
         int maxPoolSize = 3* cpuCore; // 固定线程池（无扩容，减少线程切换开销）
-        int queueCapacity = 500; // 任务队列容量（根据业务调整，如100-1000，避免无界队列OOM）
+        int queueCapacity = 200; // 任务队列容量（根据业务调整，如100-1000，避免无界队列OOM）
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 //        executor.setCorePoolSize(16);
         executor.setCorePoolSize(corePoolSize);

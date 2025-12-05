@@ -19,7 +19,7 @@ public class EMDV4AnalysisController extends BaseController {
 
     @GetMapping("/test")
     public JsonResult<AnalysisProgress> gen() {
-        AnalysisProgress res = service.createGenProgress(246);
+        AnalysisProgress res = service.createGenProgressTest(246);
         return new JsonResult<>(OK, res);
     }
 

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.iecube.community.model.EMDV4Project.EMDV4Analysis.aiAgent.EvaluationAgent;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.dto.AnalysisType;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.dto.CompTargetTagDto;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.dto.PSTAIDto;
@@ -24,8 +25,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -39,6 +39,9 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
 
     @Autowired
     private AnalysisProgressMapper progressMapper;
+
+    @Autowired
+    private EvaluationAgent evaluationAgent;
 
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -54,6 +57,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
     private final List<PSTAIDto> PSTAIDtoList = new CopyOnWriteArrayList<>();  // project 下的所有 ai对话信息
     private final ConcurrentHashMap<String, List<PSTAIDto>> PSTAIGroupByChatId = new ConcurrentHashMap<>(); // <chatId List<PSTAIDto>>
     private final ConcurrentHashMap<String, List<PSTAIDto>> PSTAIGroupByStu = new ConcurrentHashMap<>();  // <studentId List<PSTAIDto>>
+    private final ConcurrentHashMap<Long, List<PSTAIDto>> PSTAIGroupByPt = new ConcurrentHashMap<>();  // <studentId List<PSTAIDto>>
 
     private final List<CompTargetTagDto> ComponentList = new CopyOnWriteArrayList<>();
 
@@ -63,6 +67,14 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
     private final ConcurrentHashMap<Long, List<CompTargetTagDto>> CompTargetTagGroupByPT = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Long, List<CompTargetTagDto>> CompTargetTagGroupByPST = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, String> targetName = new ConcurrentHashMap<>();
+
+    //课程数据总览
+    private final ObjectNode courseNode = objectMapper.createObjectNode();
+
+    //学生数据总览
+    private final ArrayNode studentsNode = objectMapper.createArrayNode();
+
+    private String thematic="";
 
     @Async
     @Override
@@ -84,6 +96,21 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         this.PSTWithStageList.clear();
     }
 
+    @Async
+    @Override
+    public void dataTest(Integer projectId,  AnalysisProgress progress){
+        this.dataClean(projectId); //数据清洗
+        AnalysisType type = AnalysisType.STU_P_TARGET;
+        try{
+            this.genChildData(projectId, progress.getId(), type);
+            log.info("[{}] 数据已生成", type.getDesc());
+            updateProgress(progress.getId(), 1,true, "[%s] 数据已生成".formatted(type.getDesc()));
+        }catch (AnalysisProgressGenChildDataException e){
+            log.error("[{}] 数据分析失败",type.getDesc() ,e);
+            updateProgress(progress.getId(), 1,true, "[%s] 数据生成失败，%s".formatted(type.getDesc(), e.getMessage()));
+        }
+    }
+
     private void dataClean(Integer projectId){
         log.info("正在清洗数据");
         this.PSTWithStageList.addAll(dataSourceMapper.getProjectPSTWithStage(projectId));
@@ -102,6 +129,8 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         // 对PSTAi 分组聚合
         PSTAIGroupByChatId.putAll(PSTAIDtoList.stream().collect(Collectors.groupingBy(PSTAIDto::getChatId)));
         PSTAIGroupByStu.putAll(PSTAIDtoList.stream().collect(Collectors.groupingBy(PSTAIDto::getStudentId)));
+        PSTAIGroupByPt.putAll(PSTAIDtoList.stream().collect(Collectors.groupingBy(PSTAIDto::getPtId)));
+
 
         // 对CompTargetTag 分组聚合
         CompTargetTagGroupByTarget.putAll(CompTargetTagDtoList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getTargetId)));
@@ -110,6 +139,303 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         CompTargetTagGroupByPST.putAll(CompTargetTagDtoList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getPstId)));
 
         targetName.putAll(CompTargetTagDtoList.stream().collect(Collectors.toMap(CompTargetTagDto::getTargetId, CompTargetTagDto::getTargetName, (v1,v2)->v1)));
+
+        //课程数据总览
+        // 1.课程成绩分布[{name:"", value:""}]
+        // 2.课程目标达成度 [{name:"", value:""}]
+        // 3. AI：3.1AI互动总次数  3.2AI互动实验分布 3.3AI学生使用率 {times:"", tasks:[{ptId:"", name:"", 使用率:"", 使用人数:"" }] }
+        // 4. 实验列表：[{ptId:"", name:"", 平均用时:"", 平均错误率:"", AI使用次数:"",AI交互记录:[], 能力标签成绩分布:[{标签:"", 分布:[{name:"", value:""}]], 实验得分分布:[{name:"", value:""}]  }]
+        // 5. 课程实验难度 String
+        ArrayNode courseGrades = objectMapper.createArrayNode();
+        Map<String, Integer> gradeMap = new HashMap<>();
+        PSTDtoWithoutStage.values().forEach(pst->{
+            if(pst.getPsScore()<60){
+                gradeMap.compute("<60",(k,v)->v==null?1:v+1);
+            } else if (pst.getPsScore()>=60&&pst.getPsScore()<70) {
+                gradeMap.compute("60-70",(k,v)->v==null?1:v+1);
+            } else if (pst.getPsScore()>=70&&pst.getPsScore()<80) {
+                gradeMap.compute("70-80",(k,v)->v==null?1:v+1);
+            } else if (pst.getPsScore()>=80&&pst.getPsScore()<90) {
+                gradeMap.compute("80-90",(k,v)->v==null?1:v+1);
+            } else if (pst.getPsScore()>=90&&pst.getPsScore()<=100) {
+                gradeMap.compute("90-100",(k,v)->v==null?1:v+1);
+            }
+        });
+        gradeMap.forEach((k,v)->{
+            ObjectNode gradeItem = objectMapper.createObjectNode();
+            gradeItem.put("name", k);
+            gradeItem.put("value", v);
+            courseGrades.add(gradeItem);
+        });
+        courseNode.set("courseGrades", courseGrades); // 1.课程成绩分布[{name:"", value:""}]
+        double tScore = CompTargetTagDtoList.stream()
+                .filter(c->c.getCompScore()!=null)
+                .mapToDouble(CompTargetTagDto::getCompScore)
+                .sum();
+        double tTotalScore = CompTargetTagDtoList.stream()
+                .filter(c->c.getCompTotalScore()!=null)
+                .mapToDouble(CompTargetTagDto::getCompTotalScore)
+                .sum();
+        double targetRage = numWith2Decimal(tScore*100/tTotalScore);
+        courseNode.put("targetRage", targetRage+"%");
+        ArrayNode courseTargets = objectMapper.createArrayNode();
+        CompTargetTagGroupByTarget.forEach((targetId, list)->{
+            String name = list.get(0).getTargetName();
+            double totalScore = list.stream()
+                    .filter(c->c.getCompTotalScore()!=null)
+                    .mapToDouble(CompTargetTagDto::getCompTotalScore)
+                    .sum();
+            double score = list.stream()
+                    .filter(c->c.getCompScore()!=null)
+                    .mapToDouble(CompTargetTagDto::getCompScore)
+                    .sum();
+            double rage = numWith2Decimal(score*100/totalScore);
+            ObjectNode targetItem = objectMapper.createObjectNode();
+            targetItem.put("name", name);
+            targetItem.put("value", rage+"%");
+            courseTargets.add(targetItem);
+        });
+        courseNode.set("courseTargets", courseTargets); // 2.课程目标达成度 [{name:"", value:""}]
+        ObjectNode aiNode = objectMapper.createObjectNode();
+        ArrayNode aiTaskArray = objectMapper.createArrayNode();
+        PSTAIGroupByPt.forEach((ptId, list)->{
+            String taskName = list.get(0).getTaskName();
+            int usedSize = list.stream().collect(Collectors.groupingBy(PSTAIDto::getStudentId)).size()/2;
+            int stuTotalSize = PSTGroupByStu.size()/2;
+            double rage = numWith2Decimal((double) (usedSize * 100) /stuTotalSize);
+            ObjectNode aiTaskItem = objectMapper.createObjectNode();
+            aiTaskItem.put("ptId", ptId);
+            aiTaskItem.put("name", taskName);
+            aiTaskItem.put("usedRage", rage+"%");
+            aiTaskItem.put("usedNum", usedSize);
+            aiTaskArray.add(aiTaskItem);
+        });
+        aiNode.put("times", PSTAIDtoList.size()/2);
+        aiNode.set("tasks",aiTaskArray);  // 3. AI：3.1AI互动总次数  3.2AI互动实验分布 3.3AI学生使用率 {times:"", tasks:[{ptId:"", name:"", 使用率:"", 使用人数:"" }] }
+        courseNode.set("ai", aiNode);
+        ArrayNode tasks = objectMapper.createArrayNode();
+        PSTGroupByTask.forEach((ptId, taskPstList)->{   //4. 实验列表：[{ptId:"", name:"", 平均用时:"", 平均错误率:"", AI使用次数:"",AI交互记录:[], 能力标签成绩分布:[{标签:"", 分布:[{name:"", value:""}]], 实验得分分布:[{name:"", value:""}]  }]
+            String taskName = taskPstList.get(0).getTaskName();
+            // 平均用时
+            List<PSTDto> ptStuPSTList = PSTGroupByTaskWithStage.get(ptId)
+                    .stream()
+                    .filter(Objects::nonNull)
+                    // 过滤无效数据：startTime/endTime 不能为 null，且 endTime 不能早于 startTime
+                    .filter(pstDto -> pstDto.getStartTime()!=null && pstDto.getEndTime()!=null && pstDto.getEndTime().after(pstDto.getStartTime()))
+                    .toList();  // 保证有效值
+            // 上述的列表中去除了空值，因此分子是会偏小，为确保结果更接近准确值， 要在分母中也去除空值的对象，由于ptStuPSTList中pst携带了stage的细分，所以分母表示的有效总人数就应该是 ptStuPSTList / stage种类
+            Map<Integer, List<PSTDto>> groupByStage = ptStuPSTList.stream().collect(Collectors.groupingBy(PSTDto::getStage));
+            double totalNum = Math.floor(numWith2Decimal((double) ptStuPSTList.size() /groupByStage.size()));
+            // 总用时
+            long totalMillis = ptStuPSTList.stream()
+                    // 计算单个对象的时间差（毫秒）：endTime.getTime() - startTime.getTime()
+                    .mapToLong(dto -> dto.getEndTime().getTime() - dto.getStartTime().getTime())
+                    // 累加总和
+                    .sum();
+            long millis = (long) Math.ceil(totalMillis/totalNum);  // 平均用时
+            // 场景4：同时获取分钟和剩余秒数（如2分30秒）
+            long minutes = (millis / 1000) / 60;
+            long seconds = (millis / 1000) % 60;
+            String avgMillis = "%s分%s秒".formatted(minutes, seconds);
+
+            // 平均错误率
+            List<CompTargetTagDto> ptStuComp = CompTargetTagGroupByPT.get(ptId);
+            // 做错误的题目总数 == 成绩不为满分的题目
+            List<CompTargetTagDto> errorPtStuComp = ptStuComp
+                    .stream()
+                    .filter(comp-> comp.getCompScore() < comp.getCompTotalScore())
+                    .toList();
+            double rageOfError = numWith2Decimal((double) errorPtStuComp.size()/taskPstList.size());
+
+            // ai
+            int aiUsedSize = PSTAIGroupByPt.get(ptId).size()/2;
+
+            //能力标签成绩分布
+            ArrayNode tagsNode = objectMapper.createArrayNode();
+            Map<Integer, List<CompTargetTagDto>> taskTagMap = CompTargetTagGroupByPT.get(ptId)
+                    .stream()
+                    .collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
+            taskTagMap.forEach((tagId, compList)->{
+                ObjectNode tagNode = objectMapper.createObjectNode();
+                Map<Long, List<CompTargetTagDto>> taskStudentTagMap = compList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getPsId));
+                List<Double> tagScoreList = new ArrayList<>();
+                taskStudentTagMap.values().forEach(list->{
+                    double score = list.stream().filter(c->c.getCompScore()!=null).mapToDouble(CompTargetTagDto::getCompScore).sum();
+                    double totalScore = list.stream().filter(c->c.getCompScore()!=null).mapToDouble(CompTargetTagDto::getCompTotalScore).sum();
+                    double rage = numWith2Decimal((score * 100) /totalScore);
+                    tagScoreList.add(rage);
+                });
+                ArrayNode distributeNode = objectMapper.createArrayNode();
+                Map<String, Integer> tagScoreMap = new HashMap<>();
+                tagScoreList.forEach(stuTagScore->{
+                    if(stuTagScore<60){
+                        tagScoreMap.compute("<60", (k,v)->v==null?1:v+1);
+                    }else if(stuTagScore>=60&&stuTagScore<70){
+                        tagScoreMap.compute("60-70", (k,v)->v==null?1:v+1);
+                    }else if(stuTagScore>=70&&stuTagScore<80){
+                        tagScoreMap.compute("70-80", (k,v)->v==null?1:v+1);
+                    }else if(stuTagScore>=80&&stuTagScore<90){
+                        tagScoreMap.compute("80-90", (k,v)->v==null?1:v+1);
+                    }else if(stuTagScore>=90&&stuTagScore<=100){
+                        tagScoreMap.compute("90-100", (k,v)->v==null?1:v+1);
+                    }
+                });
+                tagScoreMap.forEach((k,v)->{
+                    ObjectNode distNode = objectMapper.createObjectNode();
+                    distNode.put("name", k);
+                    distNode.put("value", v);
+                    distributeNode.add(distNode);
+                });
+                tagNode.put("name", compList.get(0).getTagName());
+                tagNode.set("distribute", distributeNode);
+                tagsNode.add(tagNode);
+            });
+
+            // 实验得分分布
+            ArrayNode scoreDistributeNode = objectMapper.createArrayNode();
+            Map<String, Integer> scoreMap = new HashMap<>();
+            taskPstList.forEach(pst->{
+                if(pst.getTaskScore()/pst.getTaskTotalScore()<0.6){
+                    scoreMap.compute("<60",(k,v)-> v==null?1:v+1);
+                } else if (pst.getTaskScore()/pst.getTaskTotalScore()>=0.6 && pst.getTaskScore()/pst.getTaskTotalScore()<0.7) {
+                    scoreMap.compute("60-70",(k,v)->v==null?1:v+1);
+                } else if (pst.getTaskScore()/pst.getTaskTotalScore()>=0.7 && pst.getTaskScore()/pst.getTaskTotalScore()<0.8) {
+                    scoreMap.compute("70-80",(k,v)->v==null?1:v+1);
+                } else if (pst.getTaskScore()/pst.getTaskTotalScore()>=0.8 && pst.getTaskScore()/pst.getTaskTotalScore()<0.9) {
+                    scoreMap.compute("80-90",(k,v)->v==null?1:v+1);
+                } else if (pst.getTaskScore()/pst.getTaskTotalScore()>=0.9 && pst.getTaskScore()/pst.getTaskTotalScore()<=1) {
+                    scoreMap.compute("90-100",(k,v)->v==null?1:v+1);
+                }
+            });
+            scoreMap.forEach((k,v)->{
+                ObjectNode distNode = objectMapper.createObjectNode();
+                distNode.put("name", k);
+                distNode.put("value", v);
+                scoreDistributeNode.add(distNode);
+            });
+
+            // 平均得分
+            OptionalDouble avgScore = taskPstList.stream().mapToDouble(PSTDto::getTaskScore).average();
+
+            ObjectNode taskNode = objectMapper.createObjectNode();
+            taskNode.put("ptId", ptId);
+            taskNode.put("name", taskName);
+            taskNode.put("avgScore", avgScore.isPresent()?numWith2Decimal(avgScore.getAsDouble()):0);
+            taskNode.put("avgUsedTime", avgMillis);
+            taskNode.put("avgRageOfError", rageOfError);
+            taskNode.put("aiUsedTimes", aiUsedSize);
+            taskNode.put("avgAiUsedTimes", numWith2Decimal((double)aiUsedSize/PSTGroupByStu.size()));
+            taskNode.set("scoreDistribute", scoreDistributeNode);
+            taskNode.set("tags", tagsNode);
+            tasks.add(taskNode);
+        });
+        courseNode.set("tasks", tasks);
+        //  courseNode.set(Difficulty) 课程实验难度  ai返回字符串
+        StringBuilder sb = new StringBuilder();
+        tasks.forEach(task->{
+            String desc = "实验：%s,平均得分：%s分，平均问题错误率：%s/100, 平均用时：%s，平均AI互动次数：%s; \n"
+                    .formatted(task.get("name").asText(),
+                            task.get("avgScore").asText(),
+                            task.get("avgRageOfError").asText(),
+                            task.get("avgUsedTime").asText(),
+                            task.get("avgAiUsedTimes").asText());
+            sb.append(desc);
+        });
+        CompletableFuture<String> future = evaluationAgent.evaluate(sb.toString(), "experiment_comparison_analysis");
+        String difficulty = future.join();
+//        System.out.println(difficulty);
+        courseNode.put("difficulty", difficulty);
+
+        //学生数据总览[学生]
+        // psId
+        // 1. 课程目标详情 [{目标名称:a，达成度:a，监测点：[{name:""，value:""}]}]
+        // 2. 实验列表[{ptId:"", 总分：a， 得分：a，AI互动次数：1，AI互动记录：[], 过程数据：[], 标签：[{name:""，value:""}]}]
+        PSTGroupByStu.forEach((stuId,pstList)->{
+            ObjectNode stuNode = objectMapper.createObjectNode();
+            ArrayNode targetsNode = objectMapper.createArrayNode();
+            Map<Integer, List<CompTargetTagDto>> stuTargetCompMap = CompTargetTagGroupByStu.get(stuId)
+                    .stream()
+                    .collect(Collectors.groupingBy(CompTargetTagDto::getTargetId));
+            stuTargetCompMap.forEach((targetId, compList)->{
+                ObjectNode targetNode = objectMapper.createObjectNode();
+                double score = compList.stream().filter(c->c.getCompScore()!=null).mapToDouble(CompTargetTagDto::getCompScore).sum();
+                double totalScore = compList.stream().filter(c->c.getCompTotalScore()!=null).mapToDouble(CompTargetTagDto::getCompTotalScore).sum();
+                double rage = numWith2Decimal(score*100/totalScore);
+
+                ArrayNode targetTagNodes = objectMapper.createArrayNode();
+                Map<Integer, List<CompTargetTagDto>> stuTargetTagCompMap = compList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
+                stuTargetTagCompMap.forEach((tagId, list)->{
+                    ObjectNode tagNode = objectMapper.createObjectNode();
+                    double tagScore = list.stream().filter(c->c.getCompScore()!=null).mapToDouble(CompTargetTagDto::getCompScore).sum();
+                    double tagTotalScore = list.stream().filter(c->c.getCompTotalScore()!=null).mapToDouble(CompTargetTagDto::getCompTotalScore).sum();
+                    double tagRage = numWith2Decimal(tagScore*100/tagTotalScore);
+                    tagNode.put("tagId", tagId);
+                    tagNode.put("name", list.get(0).getTagName());
+                    tagNode.put("value", tagRage);
+                    targetTagNodes.add(tagNode);
+                });
+                targetNode.put("name",compList.get(0).getTargetName());
+                targetNode.put("rage", rage+"%");
+                targetNode.set("tags", targetTagNodes);
+                targetsNode.add(targetNode);
+            });
+            ArrayNode stuTasks = objectMapper.createArrayNode();
+            Map<Long, PSTDto> stuTaskMap = pstList.stream()
+                    .collect(Collectors.toMap(
+                            PSTDto::getPtId,
+                            Function.identity(),
+                            (existing, replacement) -> {
+                                throw new IllegalStateException("Duplicate psId: " + existing.getPsId() + "pstId:"+existing.getPstId());
+                            }));
+            stuTaskMap.forEach((ptId, pst)->{
+                double score = numWith2Decimal(pst.getTaskScore()*100/pst.getTaskTotalScore());
+                int aiUsedTimes = PSTAIGroupByPt.get(ptId).stream().filter(a-> Objects.equals(a.getStudentId(), stuId)).toList().size();
+                Map<Integer, List<CompTargetTagDto>> pstTagMap = CompTargetTagGroupByPST.get(pst.getPstId())
+                        .stream()
+                        .collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
+
+                ArrayNode tagsNode = objectMapper.createArrayNode();
+                pstTagMap.forEach((tagId, list)->{
+                    double pstTagScore = list.stream().filter(c->c.getCompScore()!=null).mapToDouble(CompTargetTagDto::getCompScore).sum();
+                    double pstTagTotalScore = list.stream().filter(c->c.getCompTotalScore()!=null).mapToDouble(CompTargetTagDto::getCompTotalScore).sum();
+                    double pstTagRage = numWith2Decimal(pstTagScore*100/pstTagTotalScore);
+                    ObjectNode tagNode = objectMapper.createObjectNode();
+                    tagNode.put("tagId", tagId);
+                    tagNode.put("name", list.get(0).getTagName());
+                    tagNode.put("value", pstTagRage+"%");
+                    tagsNode.add(tagNode);
+                });
+                ObjectNode stuTaskNode = objectMapper.createObjectNode();
+                stuTaskNode.put("ptId", ptId);
+                stuTaskNode.put("psId", pst.getPsId());
+                stuTaskNode.put("pstId", pst.getPstId());
+                stuTaskNode.put("name", pst.getTaskName());
+                stuTaskNode.put("score",score);
+                stuTaskNode.put("aiUsedTimes", aiUsedTimes);
+                stuTaskNode.set("tags", tagsNode);
+                stuTasks.add(stuTaskNode);
+            });
+
+            stuNode.put("psId", pstList.get(0).getPsId());
+            stuNode.put("studentId", stuId);
+            stuNode.set("targets", targetsNode);
+            stuNode.set("tasks", stuTasks);
+            studentsNode.add(stuNode);
+        });
+
+        StringBuilder aiB = new StringBuilder();
+        sb.append("所有学生的AI互动记录：\n");
+        PSTAIDtoList.forEach(item->{
+            String message = "";
+            if(Objects.equals(item.getRole(), "user")){
+                message = "Q："+item.getMessage()+"\n";
+            }else {
+                message = "A："+item.getMessage()+"\n";
+            }
+            aiB.append(message);
+        });
+        CompletableFuture<String> thematicFuture = evaluationAgent.evaluate(aiB.toString(), "ai_assisted_teaching_analysis");
+        thematic = thematicFuture.join();
         log.info("数据清洗完成");
     }
 
@@ -320,7 +646,10 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         dataNode.put("totalUsed", aiUsedNum);
 
         jsonObject.set("data", dataNode);
-        jsonObject.set("thematic", objectMapper.createObjectNode());
+
+        // TODO AI互动主题分析 DONE
+        jsonObject.put("thematic", thematic);
+
         this.saveProgressData(type, progressId, jsonObject);
     }
     private void T_EA_OVERVIEW(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
@@ -475,10 +804,6 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
     }
     private void T_EA_ECA(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
         ObjectNode jsonNode = objectMapper.createObjectNode();
-        // 实验难度对比
-        ArrayNode difficultyNode= objectMapper.createArrayNode();
-        //TODO
-
         // 实验成绩对比
         ArrayNode gradeNode = objectMapper.createArrayNode();
         PSTGroupByTask.forEach((ptId, pstList)->{
@@ -493,7 +818,8 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             gradeNode.add(item);
         });
 
-        jsonNode.set("difficulty", difficultyNode);
+         //TODO AI 实验难度对比 DONE
+        jsonNode.put("difficulty", courseNode.get("difficulty").asText());
         jsonNode.set("grade", gradeNode);
         this.saveProgressData(type, progressId, jsonNode);
     }
@@ -947,11 +1273,58 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         });
         this.saveProgressData(type, progressId, arrayNode);
     }
-    private void T_TR_OVERVIEW(AnalysisType type, String progressId, Integer projectId){
+    private void T_TR_OVERVIEW(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
+        //TODO AI 1.报告生成 2. AI辅助教学分析 DONE
+        ObjectNode jsonNode = objectMapper.createObjectNode();
 
+        String desc = courseAgentDes();
+        CompletableFuture<String> reportF = evaluationAgent.evaluate(desc, "overall_teaching_effectiveness_report");
+        String report = reportF.join();
+
+        jsonNode.put("report", report);
+        jsonNode.put("aiAnalysis",thematic);
+        this.saveProgressData(type, progressId, jsonNode);
     }
-    private void T_TR_IS(AnalysisType type, String progressId, Integer projectId){
-
+    private void T_TR_IS(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException{
+        //TODO AI 教学改进建议 DONE
+        ObjectNode jsonNode = objectMapper.createObjectNode();
+        String desc = courseAgentDes()+"；实验难度："+courseNode.get("difficulty").asText();
+        CompletableFuture<String> sugF = evaluationAgent.evaluate(desc, "teaching_improvement_recommendations");
+        String sug = sugF.join();
+        jsonNode.put("suggestion", sug);
+        this.saveProgressData(type, progressId, jsonNode);
+    }
+    private String courseAgentDes(){
+        StringBuilder reB = new StringBuilder();
+        reB.append("实验得分分布：");
+        courseNode.get("tasks").forEach(task->{
+            StringBuilder taskDistDesc = new StringBuilder();
+            task.get("scoreDistribute").forEach(d->{
+                String distDesc = "%s分%s人".formatted(d.get("name").asText(), d.get("value").asText());
+                taskDistDesc.append(distDesc);
+            });
+            String desc = "实验_%s:%s".formatted(task.get("name").asText(), taskDistDesc.toString());
+            reB.append(desc);
+        });
+        reB.append("；AI助教互动总次数%s次,其中".formatted(courseNode.get("ai").get("times")));
+        courseNode.get("ai").get("tasks").forEach(task->{
+            String desc = "实验_%s:%s次，学生使用率%s".formatted(task.get("name").asText(),
+                    task.get("usedNum").asText(),
+                    task.get("usedRage").asText());
+            reB.append(desc);
+        });
+        reB.append("；课程成绩分布：");
+        courseNode.get("courseGrades").forEach(g->{
+            String desc = "%s分%s人".formatted(g.get("name").asText(), g.get("value").asText());
+            reB.append(desc);
+        });
+        reB.append("；课程目标达成度：");
+        courseNode.get("courseTargets").forEach(t->{
+            String desc = "课程目标：%s，达成度%s".formatted(t.get("name").asText(), t.get("value").asText());
+            reB.append(desc);
+        });
+        reB.append("；整体达成度%s".formatted(courseNode.get("targetRage").asText()));
+        return reB.toString();
     }
     private void TASK_D_OVERVIEW(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
         List<AnalysisProgressData> list = new ArrayList<>();
@@ -1114,7 +1487,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                     } else if (rage>=70 && rage<80) {
                         rageD.compute("70-80", (k,v)->v==null?1:v+1);
                     } else if (rage>=80 && rage<90) {
-                        rageD.compute("<80-90", (k,v)->v==null?1:v+1);
+                        rageD.compute("80-90", (k,v)->v==null?1:v+1);
                     } else if (rage>=90 && rage<=100) {
                         rageD.compute("90-100", (k,v)->v==null?1:v+1);
                     }
@@ -1270,8 +1643,24 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 }
 
             });
+            // TODO Ai辅助交互分析 DONE
+            StringBuilder desc = new StringBuilder();
+            desc.append("AI互动记录：");
+            PSTAIGroupByPt.get(ptId).forEach(item->{
+                String message = "";
+                if(Objects.equals(item.getRole(), "user")){
+                    message = "Q："+item.getMessage()+"\n";
+                }else {
+                    message = "A："+item.getMessage()+"\n";
+                }
+                desc.append(message);
+            });
+            CompletableFuture<String> aiAnalysisFuture = evaluationAgent.evaluate(desc.toString(), "ai_interaction_evaluation");
+            String aiAnalysis = aiAnalysisFuture.join();
+
             taskNode.set("stageTime", stageTime);
             taskNode.set("timeDistributionStage1",timeDistributionStage1);
+            taskNode.put("aiAnalysis",aiAnalysis);
             try {
                 clist.add(genAPD(type, progressId, taskNode, ptId, null, null));
             } catch (JsonProcessingException e) {
@@ -1281,7 +1670,82 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         progressMapper.batchCreatAPD(clist);
     }
     private void TASK_D_SUG(AnalysisType type, String progressId, Integer projectId){
+        //TODO AI 1. 主要表现及AI辅助影响 DONE
+        // TODO 教学改进建议 DONE
+        List<CompletableFuture<AnalysisProgressData>> singleDataFutureList = new ArrayList<>();
+        courseNode.get("tasks").forEach(task->{
+            long ptId = task.get("ptId").asLong();
+            StringBuilder taskDesc = new StringBuilder();
+            taskDesc.append("实验能力标签班级评分分布：");
+            task.get("tags").forEach(tag->{
+                StringBuilder tagB = new StringBuilder();
+                tagB.append(tag.get("name").asText()).append("：");
+                tag.get("distribute").forEach(d->{
+                    tagB.append("%s分%s人".formatted(d.get("name").asText(), d.get("value").asText()));
+                });
+                taskDesc.append(tagB);
+            });
+            StringBuilder aiDesc = new StringBuilder();
+            aiDesc.append("AI互动记录：");
+            PSTAIGroupByPt.get(ptId).forEach(item->{
+                String message = "";
+                if(Objects.equals(item.getRole(), "user")){
+                    message = "Q："+item.getMessage()+"\n";
+                }else {
+                    message = "A："+item.getMessage()+"\n";
+                }
+                aiDesc.append(message);
+            });
+            taskDesc.append(aiDesc);
 
+            StringBuilder scoreDesc = new StringBuilder();
+            scoreDesc.append("学生实验得分分布：");
+            task.get("scoreDistribute").forEach(d->{
+                scoreDesc.append("%s分%s人".formatted(d.get("name").asText(), d.get("value").asText()));
+            });
+            taskDesc.append(scoreDesc);
+            CompletableFuture<String> reportFuture= evaluationAgent.evaluate(taskDesc.toString(), "class_main_performance");
+            CompletableFuture<String> sugFuture=evaluationAgent.evaluate(taskDesc.toString(), "teaching_improvement_suggestions");
+            CompletableFuture<AnalysisProgressData> futureRes = CompletableFuture.allOf(reportFuture,sugFuture)
+                    .thenApply(v->{
+                        try{
+                            // 获取异步结果
+                            String report= reportFuture.join();
+                            String sug = sugFuture.join();
+                            ObjectNode jsonNode = objectMapper.createObjectNode();
+                            jsonNode.put("report", report);
+                            jsonNode.put("suggestion", sug);
+                            return genAPD(type, progressId, jsonNode, ptId, null, null);
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException("[%s][%s]数据失败：".formatted(type.getDesc(), ptId));
+                        }
+                    })
+                    .exceptionally(e->{ // 单个DTO处理异常兜底（不影响其他任务）
+                        log.error("[{}][{}]数据失败：",type.getDesc(), ptId, e);
+                        return null;
+                    });
+            singleDataFutureList.add(futureRes);
+        });
+        CompletableFuture<?>[] futuresArray = singleDataFutureList.toArray(new CompletableFuture[0]);
+        CompletableFuture<Void> allDone = CompletableFuture.allOf(futuresArray);
+        try{
+            allDone.get(300, TimeUnit.SECONDS);//超时时间 等待所有任务完成
+        } catch ( InterruptedException | ExecutionException |TimeoutException e) {
+            throw new RuntimeException("[%s]异步任务执行超时/异常".formatted(type.getDesc()), e);
+        }
+
+        List<AnalysisProgressData> finalDataList = new ArrayList<>();
+        for(CompletableFuture<AnalysisProgressData> future : singleDataFutureList){
+            AnalysisProgressData finalData = future.join();
+            if (finalData != null) { // 过滤异常的空数据
+                finalDataList.add(finalData);
+            }
+        }
+        if (!finalDataList.isEmpty()) {
+            progressMapper.batchCreatAPD(finalDataList);
+        } else {
+            log.error("[{}]无有效数据可保存", type.getDesc());
+        }
     }
     private void STU_P_OVERVIEW(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
         List<AnalysisProgressData> sList = new ArrayList<>();
@@ -1416,7 +1880,9 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         progressMapper.batchCreatAPD(sList);
     }
     private void STU_P_TARGET(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
-        List<AnalysisProgressData> sList = new ArrayList<>();
+        List<ObjectNode> sList = new ArrayList<>();
+
+        ArrayNode targetEavNodes = objectMapper.createArrayNode();
         // 计算班级课程目标达成度
         Map<Integer, Double> targetRageMap = new HashMap<>();
         CompTargetTagGroupByTarget.forEach((targetId, compList)->{
@@ -1482,8 +1948,17 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 targetNode.put("rage", rage);
                 targetNode.put("classRage", targetRageMap.get(targetId));
                 targetNode.set("tag", tagArray);
+                StringBuilder targetDesc = new StringBuilder();
+                targetDesc.append("课程目标1达成度").append(rage).append("%,对应监测点及其评分为:");
+                tagArray.forEach(tagNode->{
+                    targetDesc.append(tagNode.get("tagName").asText()).append(tagNode.get("rage").asText()).append("%");
+                });
                 targetRageArray.add(targetNode);
-
+                ObjectNode targetEvaNode = objectMapper.createObjectNode();
+                targetEvaNode.put("stuId",stuId);
+                targetEvaNode.put("targetId",targetId);
+                targetEvaNode.put("desc",targetDesc.toString());
+                targetEavNodes.add(targetEvaNode);
                 // 目标达成度趋势分析
                 ArrayNode trendNode = objectMapper.createArrayNode();
                 List<Long> ptIdList = list.stream()
@@ -1530,18 +2005,159 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 trendObject.set(targetId.toString(), trendNode);
             });
 
+            stuNode.put("stuId",stuId);
             stuNode.set("target", targetRageArray);
             stuNode.set("trend", trendObject);
+            sList.add(stuNode);
+//                sList.add(genAPD(type, progressId, stuNode, null, null, stuId));
+
+        });
+        // TODO 课程目标表现详情概述
+        List<CompletableFuture<ObjectNode>> futureList = new ArrayList<>();
+        targetEavNodes.forEach(stuTarget->{
+            CompletableFuture<String> futureStr = evaluationAgent.evaluate(stuTarget.get("desc").asText(), "student_course_objective_analysis");
+            CompletableFuture<ObjectNode> singleFinalFuture = CompletableFuture.allOf(futureStr)
+                    // 结果返回后，执行组装（异步执行）
+                    .thenApply(v -> {
+                        try {
+                            // 获取异步结果（join不抛检查异常）
+                            String res = futureStr.join();
+                            // 组装当前DTO的最终数据
+                            ObjectNode jsonNode = objectMapper.createObjectNode();
+                            jsonNode.put("stuId", stuTarget.get("stuId").asText());
+                            jsonNode.put("targetId", stuTarget.get("targetId").asText());
+                            jsonNode.put("res", res);
+                            return jsonNode;
+                        } catch (Exception e) {
+                            throw new RuntimeException("[%s][student:%s][target:%s]数据失败："
+                                    .formatted(type.getDesc(), stuTarget.get("stuId").asText(), stuTarget.get("targetId").asText()), e);
+                        }
+                    })
+                    // 单个DTO处理异常兜底（不影响其他任务）
+                    .exceptionally(e -> {
+                        log.error("[{}}][{}}]数据失败：",type.getDesc(), stuTarget.get("stuId").asText(), e);
+                        // 可返回空值/默认值，或抛异常终止整体流程
+                        return null;
+                    });
+            futureList.add(singleFinalFuture);
+        });
+        CompletableFuture<?>[] futuresArray = futureList.toArray(new CompletableFuture[0]);
+        CompletableFuture<Void> allDone = CompletableFuture.allOf(futuresArray);
+        try {
+            // 超时时间根据业务调整（比如总耗时不超过10秒）等待任务结束
+            allDone.get(600, TimeUnit.SECONDS);
+        } catch (InterruptedException | ExecutionException | java.util.concurrent.TimeoutException e) {
+            throw new RuntimeException("[%s]异步任务执行超时/异常".formatted(type.getDesc()), e);
+        }
+        List<ObjectNode> finalDataList = new ArrayList<>();
+        for (CompletableFuture<ObjectNode> future : futureList){
+            if(future!=null){
+                finalDataList.add(future.join());
+            }
+        }
+        for (ObjectNode targetNode : finalDataList) {
+            if(targetNode!=null){
+                for(ObjectNode stuNode : sList){
+                    ArrayNode stuTargetNodes = (ArrayNode) stuNode.get("target");
+                    for(JsonNode stuTargetNode:stuTargetNodes){
+                        if(Objects.equals(targetNode.get("stuId").asText(), stuNode.get("stuId").asText())
+                                && targetNode.get("targetId").asInt() == stuTargetNode.get("targetId").asInt() ){
+                            if (stuTargetNode instanceof ObjectNode) {
+                                // 本身已是 ObjectNode，直接强转
+                                ((ObjectNode) stuTargetNode).put("desc",targetNode.get("res").asText());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        List<AnalysisProgressData> finalList = new ArrayList<>();
+        sList.forEach(node->{
             try {
-                sList.add(genAPD(type, progressId, stuNode, null, null, stuId));
+                finalList.add( genAPD(type,progressId, node, null, null, node.get("stuId").asText()));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
         });
-        progressMapper.batchCreatAPD(sList);
+        progressMapper.batchCreatAPD(finalList);
+
+
+
     }
     private void STU_P_SUG(AnalysisType type, String progressId, Integer projectId){
+        //TODO AI 课程学习反馈 DONE
+        // TODO AI 能力提升计划 DONE
+        List<CompletableFuture<AnalysisProgressData>> singleDataFutureList = new ArrayList<>();
+        studentsNode.forEach(student->{
+            StringBuilder stuDesc = new StringBuilder();
+            stuDesc.append("实验得分与AI互动次数：");
+            student.get("tasks").forEach(task->{
+                stuDesc.append("实验_%s %s分 AI互动%s次".formatted(task.get("name").asText(),
+                        task.get("score").asText(),
+                        task.get("aiUsedTimes").asText()));
+            });
 
+            stuDesc.append("课程目标达成度：");
+            student.get("targets").forEach(target->{
+                stuDesc.append("课程目标：%s 达成度%s".formatted(target.get("name").asText(), target.get("rage").asText()));
+            });
+            // 2.1 并行发起两次异步调用（同一函数，不同参数）
+            CompletableFuture<String> res1Future = evaluationAgent.evaluate(stuDesc.toString(),"student_course_feedback");
+            CompletableFuture<String> res2Future = evaluationAgent.evaluate(stuDesc.toString(),"student_course_plan");
+            // 2.2 等待当前DTO的两个异步结果返回后，组装数据（异步组装，不阻塞循环）
+            CompletableFuture<AnalysisProgressData> singleFinalFuture = CompletableFuture.allOf(res1Future, res2Future)
+                    // 两个结果都返回后，执行组装（异步执行）
+                    .thenApply(v -> {
+                        try {
+                            // 获取两个异步结果（join不抛检查异常）
+                            String res1 = res1Future.join();
+                            String res2 = res2Future.join();
+                            // 组装当前DTO的最终数据
+                            ObjectNode jsonNode = objectMapper.createObjectNode();
+                            jsonNode.put("report", res1);
+                            jsonNode.put("suggestion", res2);
+                            return genAPD(type, progressId, jsonNode, null, null, student.get("studentId").asText());
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException("[%s][%s]数据失败：".formatted(type.getDesc(), student.get("studentId").asText()), e);
+                        }
+                    })
+                    // 单个DTO处理异常兜底（不影响其他任务）
+                    .exceptionally(e -> {
+                        log.error("[{}}][{}}]数据失败：",type.getDesc(), student.get("studentId").asText(), e);
+                        // 可返回空值/默认值，或抛异常终止整体流程
+                        return null;
+                    });
+            // 2.3 收集当前DTO的最终组装结果Future
+            singleDataFutureList.add(singleFinalFuture);
+        });
+
+        // 3. 等待所有DTO的异步处理完成（批量等待，非逐个阻塞）
+        // 3.1 转换为数组，方便allOf处理
+        CompletableFuture<?>[] futuresArray = singleDataFutureList.toArray(new CompletableFuture[0]);
+        // 3.2 等待所有异步任务完成（设置超时，避免无限等待）
+        CompletableFuture<Void> allDone = CompletableFuture.allOf(futuresArray);
+        try {
+            // 超时时间根据业务调整（比如总耗时不超过10秒）
+            allDone.get(600, TimeUnit.SECONDS);
+        } catch (InterruptedException | ExecutionException | java.util.concurrent.TimeoutException e) {
+            throw new RuntimeException("[%s]异步任务执行超时/异常".formatted(type.getDesc()), e);
+        }
+
+        // 4. 收集所有组装完成的有效数据
+        List<AnalysisProgressData> finalDataList = new ArrayList<>();
+        for (CompletableFuture<AnalysisProgressData> future : singleDataFutureList) {
+            AnalysisProgressData finalData = future.join();
+            if (finalData != null) { // 过滤异常的空数据
+                finalDataList.add(finalData);
+            }
+        }
+        // 5. 批量保存（核心：只执行一次批量操作）
+        if (!finalDataList.isEmpty()) {
+            progressMapper.batchCreatAPD(finalDataList);
+        } else {
+            log.error("[{}]无有效数据可保存", type.getDesc());
+        }
     }
     private void PST_DETAIL(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException, IllegalStateException {
         List<AnalysisProgressData> sList = new ArrayList<>();
@@ -1581,6 +2197,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                     tagNode.put("tagId",tagId);
                     tagNode.put("tagName", cList.get(0).getTagName());
                     tagNode.put("rage", rage);
+                    tagNode.put("size", cList.size());
                     tagArray.add(tagNode);
                 });
                 ArrayNode stageArray = objectMapper.createArrayNode();
@@ -1611,12 +2228,84 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         progressMapper.batchCreatAPD(sList);
     }
     private void PST_SUG(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException{
-        ObjectNode objectNode = objectMapper.createObjectNode();
+        //TODO AI pst改进建议 DONE
+        List<CompletableFuture<AnalysisProgressData>> futureList = new ArrayList<>();
+        studentsNode.forEach(student->{
+            long psId = student.get("psId").asLong();
+            student.get("tasks").forEach(stuTask->{
+                long ptId = stuTask.get("ptId").asLong();
+                StringBuilder pstDesc = new StringBuilder();
+                pstDesc.append("实验能力标签评分：");
+                stuTask.get("tags").forEach(tag->{
+                    pstDesc.append("%s%s".formatted(tag.get("name").asText(), tag.get("value").asText()));
+                });
+                pstDesc.append("AI互动记录：");
+                List<PSTAIDto> stuAiRecord = PSTAIGroupByStu.get(student.get("studentId").asText());
+                if(stuAiRecord!=null){
+                    List<PSTAIDto> taskAiRecord = stuAiRecord.stream().filter(r->r.getPtId().equals(ptId)).toList();
+                    if(!taskAiRecord.isEmpty()){
+                        taskAiRecord.forEach(pstaiDto->{
+                            if(Objects.equals(pstaiDto.getRole(), "user")){
+                                pstDesc.append("Q:").append(pstaiDto.getMessage());
+                            }else{
+                                pstDesc.append("A:").append(pstaiDto.getMessage());
+                            }
+                        });
+                    }else {
+                        pstDesc.append("无");
+                    }
+                }else{
+                    pstDesc.append("无");
+                }
+                CompletableFuture<String> strFuture = evaluationAgent.evaluate(pstDesc.toString(), "student_single");
+                CompletableFuture<AnalysisProgressData> singleFinalFuture = CompletableFuture.allOf(strFuture)
+                        // 两个结果都返回后，执行组装（异步执行）
+                        .thenApply(v -> {
+                            try {
+                                // 获取异步结果（join不抛检查异常）
+                                String res1 = strFuture.join();
+                                // 组装当前DTO的最终数据
+                                ObjectNode jsonNode = objectMapper.createObjectNode();
+                                jsonNode.put("suggestion", res1);
+                                return genAPD(type, progressId, jsonNode, ptId, psId, null);
+                            } catch (JsonProcessingException e) {
+                                throw new RuntimeException("[%s][student:%s][task:%s]数据失败："
+                                        .formatted(type.getDesc(), student.get("studentId").asText(), stuTask.get("name").asText()), e);
+                            }
+                        })
+                        // 单个DTO处理异常兜底（不影响其他任务）
+                        .exceptionally(e -> {
+                            log.error("[{}}][{}}]数据失败：",type.getDesc(), student.get("studentId"), e);
+                            // 可返回空值/默认值，或抛异常终止整体流程
+                            return null;
+                        });
+                futureList.add(singleFinalFuture);
+            });
+        });
+        CompletableFuture<?>[] futuresArray = futureList.toArray(new CompletableFuture[0]);
+        CompletableFuture<Void> allDone = CompletableFuture.allOf(futuresArray);
+        try {
+            // 超时时间根据业务调整（比如总耗时不超过10秒）
+            allDone.get(600, TimeUnit.SECONDS);
+        } catch (InterruptedException | ExecutionException | java.util.concurrent.TimeoutException e) {
+            throw new RuntimeException("[%s]异步任务执行超时/异常".formatted(type.getDesc()), e);
+        }
 
-        this.saveProgressData(type, progressId, objectNode);
+        // 4. 收集所有组装完成的有效数据
+        List<AnalysisProgressData> finalDataList = new ArrayList<>();
+        for (CompletableFuture<AnalysisProgressData> future : futureList) {
+            AnalysisProgressData finalData = future.join();
+            if (finalData != null) { // 过滤异常的空数据
+                finalDataList.add(finalData);
+            }
+        }
+        // 5. 批量保存（核心：只执行一次批量操作）
+        if (!finalDataList.isEmpty()) {
+            progressMapper.batchCreatAPD(finalDataList);
+        } else {
+            log.error("[{}]无有效数据可保存", type.getDesc());
+        }
     }
-
-
     private void genChildData(Integer progetId, String progressId, AnalysisType analysisType) throws AnalysisProgressGenChildDataException{
         try{
             switch (analysisType){
@@ -1714,7 +2403,6 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             throw new AnalysisProgressGenChildDataException(e.getMessage());
         }
     }
-
     private void updateProgress(String progressId, Integer completedCount, Boolean finished, String msg){
         AnalysisProgress progress = progressMapper.getAPById(progressId);
         progress.setCompletedCount(completedCount);
@@ -1735,19 +2423,6 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         apd.setData(objectMapper.writeValueAsString(data));
         progressMapper.createAPD(apd);
     }
-
-//    private void saveProgressDataWithPtPsId(AnalysisType type, String progressId, JsonNode data,Long ptId, Long psId, String studentId)
-//            throws JsonProcessingException {
-//        AnalysisProgressData apd = new AnalysisProgressData();
-//        apd.setId(UUIDGenerator.generateUUID());
-//        apd.setApId(progressId);
-//        apd.setType(type.getValue());
-//        apd.setData(objectMapper.writeValueAsString(data));
-//        apd.setPtId(ptId);
-//        apd.setPsId(psId);
-//        apd.setStudentId(studentId);
-//        progressMapper.createAPD(apd);
-//    }
 
     private AnalysisProgressData genAPD(AnalysisType type, String progressId, JsonNode data,Long ptId, Long psId, String studentId)
             throws JsonProcessingException{

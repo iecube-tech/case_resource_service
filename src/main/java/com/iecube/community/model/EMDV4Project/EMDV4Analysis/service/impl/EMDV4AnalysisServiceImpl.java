@@ -31,7 +31,7 @@ public class EMDV4AnalysisServiceImpl implements EMDV4AnalysisService {
     @Autowired
     private StudentMapper studentMapper;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public AnalysisProgress createGenProgress(Integer projectId){
@@ -50,6 +50,26 @@ public class EMDV4AnalysisServiceImpl implements EMDV4AnalysisService {
         progress.setMessage("数据生成任务已创建");
         progressMapper.createAP(progress);
         dataGenService.dataGen(projectId, progress);
+        return progress;
+    }
+
+    @Override
+    public AnalysisProgress createGenProgressTest(Integer projectId){
+        AnalysisProgress existProgress = progressMapper.getApLatestByProjectId(projectId);
+        if(existProgress != null && !existProgress.getFinished()){
+            return existProgress;
+        }
+        AnalysisProgress progress = new AnalysisProgress();
+        progress.setId(UUIDGenerator.generateUUID());
+        progress.setProjectId(projectId);
+        progress.setCreateTime(new Date());
+        progress.setTotalCount(AnalysisType.size());
+        progress.setPercent(0);
+        progress.setFinished(false);
+        progress.setCompletedCount(0);
+        progress.setMessage("数据生成任务已创建");
+        progressMapper.createAP(progress);
+        dataGenService.dataTest(projectId, progress);
         return progress;
     }
 

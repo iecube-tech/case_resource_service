@@ -7,6 +7,8 @@ import org.json.JSONObject;
 public interface EMDV4AnalysisService {
     AnalysisProgress createGenProgress(Integer projectId);
 
+    AnalysisProgress createGenProgressTest(Integer projectId);
+
     JsonNode getData(Integer projectId, String type);
 
     JsonNode getTaskData(Integer projectId, String type, Long ptId);
