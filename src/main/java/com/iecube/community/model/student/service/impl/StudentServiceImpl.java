@@ -197,6 +197,8 @@ public class StudentServiceImpl implements StudentService {
                         password = this.getRandomString(getRandomNumberInRange(8, 16));
                     }
                     String sha256Password = SHA256.encryptStringWithSHA256(password);
+                    String salt = UUID.randomUUID().toString().toUpperCase();
+                    addStudentDto.setSalt(salt);
                     String md5Password = getMD5Password(sha256Password, addStudentDto.getSalt());
                     addStudentDto.setPassword(md5Password);
                     try{
@@ -225,8 +227,6 @@ public class StudentServiceImpl implements StudentService {
                         addStudentDto.setCreateTime(new Date());
                         addStudentDto.setLastModifiedUser(modifiedUser);
                         addStudentDto.setLastModifiedTime(new Date());
-                        String salt = UUID.randomUUID().toString().toUpperCase();
-                        addStudentDto.setSalt(salt);
                         this.saveStudent(addStudentDto);
                         if (!passwordDefaultEnable) {
                             toSendEmail.add(EmailParams.build(
