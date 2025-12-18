@@ -29,7 +29,7 @@ public class EvaluationAgent {
 
 
     @Async("evaluationExecutor")
-    public CompletableFuture<String> evaluate(String details, String type) {
+    public CompletableFuture<String> evaluate(String details, String type, Integer projectId) {
         log.debug(type);
         String uri  = UriComponentsBuilder.fromHttpUrl(baseUrl+"/evaluation/generate").toUriString();
         HttpHeaders headers = new HttpHeaders();
@@ -45,10 +45,10 @@ public class EvaluationAgent {
             ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, httpEntity, String.class);
             CheckHttpResponse.CheckResult checkResult = new CheckHttpResponse().responseNormal(response);
             if(checkResult.isNormal()){
-                log.info("[{}]评价agent生成成功",type);
+                log.info("[{}][{}]评价agent生成成功",projectId, type);
                 return CompletableFuture.completedFuture(checkResult.getBodyData().get("content").asText());
             }else {
-                log.warn("[{}]评价agent生成失败",type);
+                log.warn("[{}][{}]评价agent生成失败",projectId, type);
                 throw new AiAPiResponseException("访问评价agent败(响应错误)："+checkResult.getErrorReason());
 
             }

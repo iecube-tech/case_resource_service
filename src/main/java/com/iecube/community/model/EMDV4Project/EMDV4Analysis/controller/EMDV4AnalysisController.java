@@ -2,11 +2,9 @@ package com.iecube.community.model.EMDV4Project.EMDV4Analysis.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.iecube.community.basecontroller.BaseController;
-import com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProgress;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.service.EMDV4AnalysisService;
+import com.iecube.community.model.EMDV4Project.EMDV4Analysis.vo.AnalysisInfo;
 import com.iecube.community.util.JsonResult;
-import com.iecube.community.util.jwt.CurrentUser;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,15 +15,21 @@ public class EMDV4AnalysisController extends BaseController {
     @Autowired
     private EMDV4AnalysisService service;
 
-    @GetMapping("/test")
-    public JsonResult<AnalysisProgress> gen() {
-        AnalysisProgress res = service.createGenProgressTest(246);
-        return new JsonResult<>(OK, res);
-    }
+//    @GetMapping("/test")
+//    public JsonResult<AnalysisProgress> gen() {
+//        AnalysisProgress res = service.createGenProgressTest(246);
+//        return new JsonResult<>(OK, res);
+//    }
 
-    @PostMapping("/gen/{projectId}")
-    public JsonResult<AnalysisProgress> genData(@PathVariable Integer projectId) {
-        AnalysisProgress res = service.createGenProgress(projectId);
+//    @PostMapping("/gen/{projectId}")
+//    public JsonResult<AnalysisProgress> genData(@PathVariable Integer projectId) {
+//        AnalysisProgress res = service.createGenProgress(projectId);
+//        return new JsonResult<>(OK, res);
+//    }
+
+    @GetMapping("/info")
+    public JsonResult<AnalysisInfo> getInfo(int projectId) {
+        AnalysisInfo res = service.getAnalysisInfo(projectId);
         return new JsonResult<>(OK, res);
     }
 
@@ -52,6 +56,11 @@ public class EMDV4AnalysisController extends BaseController {
     public JsonResult<JsonNode> getPSTData(@PathVariable Integer projectId, @PathVariable  String type, @PathVariable Long ptId, @PathVariable Long psId) {
         JsonNode res = service.getPSTData(projectId, type, ptId, psId);
         return new JsonResult<>(OK,res);
-
     }
+
+//    @GetMapping("/all")
+//    public JsonResult<Void> allEvaluation(){
+//        service.allEvaluationGen();
+//        return new JsonResult<>(OK);
+//    }
 }

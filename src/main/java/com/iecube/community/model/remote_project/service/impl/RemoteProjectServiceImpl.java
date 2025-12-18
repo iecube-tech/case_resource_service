@@ -118,6 +118,9 @@ public class RemoteProjectServiceImpl implements RemoteProjectService {
     @Override
     public RemoteProjectVo studentGetRemoteProject(Integer projectId){
         RemoteProject remoteProject = remoteProjectMapper.getByProjectId(projectId);
+        if(remoteProject==null){
+            return null;
+        }
         List<RemoteDeviceDto> deviceList = remoteProjectDeviceMapper.listByProjectId(projectId);
         List<LocalDate> dateList = remoteAppointmentMapper.listAppointmentDate(projectId);
         RemoteProjectVo remoteProjectVo = new RemoteProjectVo();

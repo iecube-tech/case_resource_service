@@ -76,44 +76,52 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
 
     private String thematic="";
 
-    @Async
+    @Async("EvaDispatch")
     @Override
-    public void dataGen(Integer projectId, AnalysisProgress progress){
-        this.dataClean(projectId); //数据清洗
+    public CompletableFuture<Void> dataGen(Integer projectId, AnalysisProgress progress){
+        try{
+            this.dataClean(projectId); //数据清洗
+        }catch (Exception e){
+            log.warn("{} 数据清洗失败", projectId);
+            updateProgress(progress.getId(), 0,false, "[%s] 数据清洗失败:[%s]".formatted(projectId, e.getMessage()));
+        }
+
 
         for(int i=0;i<Arrays.stream(AnalysisType.values()).toList().size();i++){
             AnalysisType type = AnalysisType.values()[i];
             try{
                 this.genChildData(projectId, progress.getId(), type);
-                log.info("[{}] 数据已生成", type.getDesc());
+                log.info("[{}][{}] 数据已生成", projectId, type.getDesc());
                 updateProgress(progress.getId(), i+1,i+1==Arrays.stream(AnalysisType.values()).toList().size(), "[%s] 数据已生成".formatted(i+1));
             }catch (AnalysisProgressGenChildDataException e){
-                log.error("[{}] 数据分析失败",type.getDesc() ,e);
-                updateProgress(progress.getId(), i+1,true, "[%s] 数据生成失败，%s".formatted(i+1, e.getMessage()));
+                log.error("[{}][{}] 数据分析失败",projectId, type.getDesc() ,e);
+                updateProgress(progress.getId(), i+1,i+1==Arrays.stream(AnalysisType.values()).toList().size(), "[%s] 数据生成失败，%s".formatted(i+1, e.getMessage()));
             }
         }
         log.info("[{}] 数据分析成功",projectId);
-        clear();
+        clear(projectId);
+        return CompletableFuture.completedFuture(null);
     }
 
-    @Async
+    @Async("EvaDispatch")
     @Override
     public void dataTest(Integer projectId,  AnalysisProgress progress){
         this.dataClean(projectId); //数据清洗
         AnalysisType type = AnalysisType.STU_P_TARGET;
         try{
             this.genChildData(projectId, progress.getId(), type);
-            log.info("[{}] 数据已生成", type.getDesc());
+            log.info("[{}][{}] 数据已生成", projectId, type.getDesc());
             updateProgress(progress.getId(), 1,true, "[%s] 数据已生成".formatted(type.getDesc()));
         }catch (AnalysisProgressGenChildDataException e){
-            log.error("[{}] 数据分析失败",type.getDesc() ,e);
+            log.error("[{}][{}] 数据分析失败",projectId, type.getDesc() ,e);
             updateProgress(progress.getId(), 1,true, "[%s] 数据生成失败，%s".formatted(type.getDesc(), e.getMessage()));
         }finally {
-            clear();
+            clear(projectId);
         }
     }
 
-    private void clear(){
+    private void clear(Integer projectId){
+        log.info("[{}] 开始清理缓存数据",projectId);
         this.PSTWithStageList.clear();
         this.PSTDtoWithoutStage.clear();
         this.PSTGroupByPstId.clear();
@@ -135,10 +143,11 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         this.courseNode.removeAll();
         this.studentsNode.removeAll();
         this.thematic="";
+        log.info("[{}] 缓存数据已清理",projectId);
     }
 
     private void dataClean(Integer projectId){
-        log.info("正在清洗数据");
+        log.info("[{}] 正在清洗数据", projectId);
         this.PSTWithStageList.addAll(dataSourceMapper.getProjectPSTWithStage(projectId));
         this.PSTAIDtoList.addAll(dataSourceMapper.getProjectPSTAIDTO(projectId));
         this.ComponentList.addAll(dataSourceMapper.getCompTargetTagDtoByProject(projectId));
@@ -265,7 +274,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             String avgMillis = "%s分%s秒".formatted(minutes, seconds);
 
             // 平均错误率
-            List<CompTargetTagDto> ptStuComp = CompTargetTagGroupByPT.get(ptId);
+            List<CompTargetTagDto> ptStuComp = CompTargetTagGroupByPT.get(ptId)==null?new ArrayList<>():CompTargetTagGroupByPT.get(ptId);
             // 做错误的题目总数 == 成绩不为满分的题目
             List<CompTargetTagDto> errorPtStuComp = ptStuComp
                     .stream()
@@ -274,7 +283,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             double rageOfError = numWith2Decimal((double) errorPtStuComp.size()/taskPstList.size());
 
             // ai
-            int aiUsedSize = PSTAIGroupByPt.get(ptId).size()/2;
+            int aiUsedSize =PSTAIGroupByPt.get(ptId)==null?0:PSTAIGroupByPt.get(ptId).size()/2;
 
             //能力标签成绩分布
             ArrayNode tagsNode = objectMapper.createArrayNode();
@@ -367,7 +376,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                             task.get("avgAiUsedTimes").asText());
             sb.append(desc);
         });
-        CompletableFuture<String> future = evaluationAgent.evaluate(sb.toString(), "experiment_comparison_analysis");
+        CompletableFuture<String> future = evaluationAgent.evaluate(sb.toString(), "experiment_comparison_analysis", projectId);
         String difficulty = future.join();
 //        System.out.println(difficulty);
         courseNode.put("difficulty", difficulty);
@@ -460,9 +469,9 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             }
             aiB.append(message);
         });
-        CompletableFuture<String> thematicFuture = evaluationAgent.evaluate(aiB.toString(), "ai_assisted_teaching_analysis");
+        CompletableFuture<String> thematicFuture = evaluationAgent.evaluate(aiB.toString(), "ai_assisted_teaching_analysis", projectId);
         thematic = thematicFuture.join();
-        log.info("数据清洗完成");
+        log.info("[{}] 数据清洗完成", projectId);
     }
 
     private void T_OVERVIEW_OVERVIEW(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException{
@@ -972,8 +981,14 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 ArrayNode ug = objectMapper.createArrayNode();
                 if (PSTAIGroupByStu.containsKey(stuPst.getStudentId())){
                     // 统计使用了几次
-                    aiUsedTimesList.add(PSTAIGroupByStu.get(stuPst.getStudentId()).size()/2);
-                    ug.add(PSTAIGroupByStu.get(stuPst.getStudentId()).size()/2);
+
+                    int usedSize = PSTAIGroupByStu.get(stuPst.getStudentId())
+                            .stream()
+                            .filter(pstaiDto -> pstaiDto.getPtId().equals(stuPst.getPtId()))
+                            .toList()
+                            .size()/2;
+                    aiUsedTimesList.add(usedSize);
+                    ug.add(usedSize);
                 }
                 else {
                     // 使用了0次
@@ -1219,8 +1234,8 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             ArrayNode achievementDistribution = objectMapper.createArrayNode();
             stuAchievementMap.forEach((k,v)->{
                 ObjectNode object = objectMapper.createObjectNode();
-                double rage = numWith2Decimal((double) v*100 /achievementList.size());
-                object.put(k,rage);
+//                double rage = numWith2Decimal((double) v*100 /achievementList.size());
+                object.put(k,v);
                 achievementDistribution.add(object);
             });
 
@@ -1304,7 +1319,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         ObjectNode jsonNode = objectMapper.createObjectNode();
 
         String desc = courseAgentDes();
-        CompletableFuture<String> reportF = evaluationAgent.evaluate(desc, "overall_teaching_effectiveness_report");
+        CompletableFuture<String> reportF = evaluationAgent.evaluate(desc, "overall_teaching_effectiveness_report", projectId);
         String report = reportF.join();
 
         jsonNode.put("report", report);
@@ -1315,7 +1330,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         //TODO AI 教学改进建议 DONE
         ObjectNode jsonNode = objectMapper.createObjectNode();
         String desc = courseAgentDes()+"；实验难度："+courseNode.get("difficulty").asText();
-        CompletableFuture<String> sugF = evaluationAgent.evaluate(desc, "teaching_improvement_recommendations");
+        CompletableFuture<String> sugF = evaluationAgent.evaluate(desc, "teaching_improvement_recommendations", projectId);
         String sug = sugF.join();
         jsonNode.put("suggestion", sug);
         this.saveProgressData(type, progressId, jsonNode);
@@ -1573,12 +1588,13 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 ObjectNode item = objectMapper.createObjectNode();
                 item.put("id", tagId);
                 item.put("name", list.get(0).getTagName());
-                item.put("value", list.size());
-                item.put("rage", numWith2Decimal((double) list.size()*100/allTagSize));
+                item.put("value", list.size()/PSTGroupByTask.get(ptId).size());
+//                item.put("rage", numWith2Decimal((double) list.size()*100/allTagSize));
                 ptTagArrayNode.add(item);
             });
 
             Map<String, List<CompTargetTagDto>> quesMap =  ptTagList.stream()
+                    .filter(comp-> !Objects.equals(comp.getCompType(), "TRACELINE") && !Objects.equals(comp.getCompType(), "TABLE"))
                     .collect(Collectors.groupingBy(CompTargetTagDto::getCompName));
 
             ArrayNode quesDetailArray = objectMapper.createArrayNode();
@@ -1681,7 +1697,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 }
                 desc.append(message);
             });
-            CompletableFuture<String> aiAnalysisFuture = evaluationAgent.evaluate(desc.toString(), "ai_interaction_evaluation");
+            CompletableFuture<String> aiAnalysisFuture = evaluationAgent.evaluate(desc.toString(), "ai_interaction_evaluation", projectId);
             String aiAnalysis = aiAnalysisFuture.join();
 
             taskNode.set("stageTime", stageTime);
@@ -1730,8 +1746,8 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 scoreDesc.append("%s分%s人".formatted(d.get("name").asText(), d.get("value").asText()));
             });
             taskDesc.append(scoreDesc);
-            CompletableFuture<String> reportFuture= evaluationAgent.evaluate(taskDesc.toString(), "class_main_performance");
-            CompletableFuture<String> sugFuture=evaluationAgent.evaluate(taskDesc.toString(), "teaching_improvement_suggestions");
+            CompletableFuture<String> reportFuture= evaluationAgent.evaluate(taskDesc.toString(), "class_main_performance", projectId);
+            CompletableFuture<String> sugFuture=evaluationAgent.evaluate(taskDesc.toString(), "teaching_improvement_suggestions", projectId);
             CompletableFuture<AnalysisProgressData> futureRes = CompletableFuture.allOf(reportFuture,sugFuture)
                     .thenApply(v->{
                         try{
@@ -2041,7 +2057,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         // TODO 课程目标表现详情概述
         List<CompletableFuture<ObjectNode>> futureList = new ArrayList<>();
         targetEavNodes.forEach(stuTarget->{
-            CompletableFuture<String> futureStr = evaluationAgent.evaluate(stuTarget.get("desc").asText(), "student_course_objective_analysis");
+            CompletableFuture<String> futureStr = evaluationAgent.evaluate(stuTarget.get("desc").asText(), "student_course_objective_analysis", projectId);
             CompletableFuture<ObjectNode> singleFinalFuture = CompletableFuture.allOf(futureStr)
                     // 结果返回后，执行组装（异步执行）
                     .thenApply(v -> {
@@ -2129,8 +2145,8 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 stuDesc.append("课程目标：%s 达成度%s".formatted(target.get("name").asText(), target.get("rage").asText()));
             });
             // 2.1 并行发起两次异步调用（同一函数，不同参数）
-            CompletableFuture<String> res1Future = evaluationAgent.evaluate(stuDesc.toString(),"student_course_feedback");
-            CompletableFuture<String> res2Future = evaluationAgent.evaluate(stuDesc.toString(),"student_course_plan");
+            CompletableFuture<String> res1Future = evaluationAgent.evaluate(stuDesc.toString(),"student_course_feedback", projectId);
+            CompletableFuture<String> res2Future = evaluationAgent.evaluate(stuDesc.toString(),"student_course_plan",projectId);
             // 2.2 等待当前DTO的两个异步结果返回后，组装数据（异步组装，不阻塞循环）
             CompletableFuture<AnalysisProgressData> singleFinalFuture = CompletableFuture.allOf(res1Future, res2Future)
                     // 两个结果都返回后，执行组装（异步执行）
@@ -2283,7 +2299,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 }else{
                     pstDesc.append("无");
                 }
-                CompletableFuture<String> strFuture = evaluationAgent.evaluate(pstDesc.toString(), "student_single");
+                CompletableFuture<String> strFuture = evaluationAgent.evaluate(pstDesc.toString(), "student_single",projectId);
                 CompletableFuture<AnalysisProgressData> singleFinalFuture = CompletableFuture.allOf(strFuture)
                         // 两个结果都返回后，执行组装（异步执行）
                         .thenApply(v -> {

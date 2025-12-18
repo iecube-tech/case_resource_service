@@ -18,6 +18,14 @@
         <result column="student_id" property="studentId"></result>
     </resultMap>
 
+    <resultMap id="AnalysisInfo" type="com.iecube.community.model.EMDV4Project.EMDV4Analysis.vo.AnalysisInfo">
+        <result property="projectName" column="project_name"></result>
+        <result property="semester" column="semester"></result>
+        <result property="studentCount" column="student_count"></result>
+        <result property="classNames" column="class_names"></result>
+        <result property="updateTime" column="progress_update_time"></result>
+    </resultMap>
+
     <insert id="createAP">
         INSERT INTO AP_analysis_progress (`id`,`project_id`,`total_count`,`completed_count`, `finished`,
                                           `percent`,`message`,`create_time`,`update_time`)
@@ -37,6 +45,13 @@
                `percent`,`message`,`create_time`,`update_time`
         FROM AP_analysis_progress
         WHERE project_id=#{projectId} ORDER BY create_time DESC LIMIT 1
+    </select>
+
+    <select id="getApLatestSuccessByProjectId" resultMap="AnalysisProgress">
+        SELECT `id`,`project_id`,`total_count`,`completed_count`, `finished`,
+               `percent`,`message`,`create_time`,`update_time`
+        FROM AP_analysis_progress
+        WHERE project_id=#{projectId} AND finished=1 AND percent=100 ORDER BY create_time DESC LIMIT 1
     </select>
 
     <update id="updateAPById">
@@ -84,6 +99,52 @@
         SELECT `id`,`ap_id`,`type`, `data`, `pt_id`, `ps_id`, `student_id`
         FROM AP_data
         WHERE `ap_id`=#{apId} AND type=#{type} AND pt_id=#{ptId} AND ps_id=#{psId}
+    </select>
+
+    <select id="getAnalysisInfo" resultMap="AnalysisInfo" >
+        SELECT
+            p.project_name,
+            p.semester,
+            -- 核心新增：统计该项目关联的学生数量（去重，避免重复关联）
+            IFNULL(COUNT(DISTINCT ps.student_id), 0) AS student_count,
+            -- 原有：拼接关联班级名
+            IFNULL(GROUP_CONCAT(DISTINCT cg.name SEPARATOR ','), '') AS class_names,
+            -- 进度表字段（可选保留，按需调整）
+            ap.percent AS progress_percent,
+            ap.finished AS progress_finished,
+            ap.create_time AS progress_create_time,
+            ap.update_time AS progress_update_time
+        FROM
+            project p
+-- 关联项目-学生中间表（LEFT JOIN 保证无学生时计数为0）
+                LEFT JOIN EMDV4_projectStudent ps ON p.id = ps.project_id
+-- 关联学生表
+                LEFT JOIN Student s ON ps.student_id = s.id
+-- 关联班级表
+                LEFT JOIN class_and_grade cg ON s.student_class = cg.id
+-- 关联进度表（仅匹配最新完成的1条记录）
+                LEFT JOIN (
+                SELECT * FROM AP_analysis_progress
+                WHERE
+                    project_id = #{projectId}
+                  AND percent = 100
+                  AND finished = 1
+                ORDER BY create_time DESC
+                    LIMIT 1
+            ) ap ON p.id = ap.project_id
+        WHERE
+            p.id = #{projectId}  -- 目标项目ID
+        GROUP BY
+            -- 分组字段需包含所有非聚合字段
+            p.id, p.project_name, p.semester,
+            ap.percent, ap.finished, ap.create_time,ap.update_time;
+    </select>
+
+    <select id="getEmdv4ProjectIdInTime" resultType="java.lang.Integer">
+        SELECT id FROM `project`
+                  WHERE version >=4
+                    AND NOW() BETWEEN DATE_ADD(start_time,INTERVAL 1 DAY) AND DATE_ADD(end_time,INTERVAL 1 DAY)
+                    AND is_delete=0
     </select>
 
 </mapper>
