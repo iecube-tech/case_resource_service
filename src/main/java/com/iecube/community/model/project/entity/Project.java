@@ -30,4 +30,5 @@ public class Project extends BaseEntity {
     private Integer version;
     private String semester;
     private Integer gradeClass;
+    private Boolean showTheGrade;
 }

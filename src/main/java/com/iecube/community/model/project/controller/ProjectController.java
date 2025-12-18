@@ -168,4 +168,16 @@ public class ProjectController extends ProjectBaseController {
         List<StudentDto> studentDtoList = projectService.getProjectStudents(projectId);
         return new JsonResult<>(OK,studentDtoList);
     }
+
+    @PostMapping("/grade/publish")
+    public JsonResult<Project> publishProjectGrade(Integer projectId){
+        Project res = projectService.publishGrade(projectId);
+        return new JsonResult<>(OK,res);
+    }
+
+    @GetMapping("/mygrade")
+    public JsonResult<List<Project>> studentGetGrade(){
+        List<Project> res = projectService.getStudentGrades(currentUserId());
+        return new JsonResult<>(OK, res);
+    }
 }

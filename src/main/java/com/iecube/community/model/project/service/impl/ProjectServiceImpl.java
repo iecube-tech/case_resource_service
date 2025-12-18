@@ -300,6 +300,34 @@ public class ProjectServiceImpl implements ProjectService {
         remoteProjectService.addRemoteProject(remoteProjectQo);
     }
 
+    /**
+     * 教师发布学生成绩 发布成绩后才可以在学生端显示
+     * @param projectId projectId
+     * @return Project
+     */
+    @Override
+    public Project publishGrade(Integer projectId){
+        Project project = projectMapper.findById(projectId);
+        if(project == null){
+            throw new ProjectNotFoundException("任务未找到");
+        }
+        if(project.getShowTheGrade()){
+            projectMapper.cancelPublishProjectGrade(projectId);
+        }else{
+            projectMapper.publishProjectGrade(projectId);
+        }
+        return this.findProjectById(projectId);
+    }
+
+    @Override
+    public List<Project> getStudentGrades(Integer studentId) {
+        List<Project> projectList = this.findProjectByStudentId(studentId);
+        List<Project> courseList = this.findCourseByStudentId(studentId);
+        projectList.addAll(courseList);
+        projectList.sort(Comparator.comparing(Project::getId));
+        return projectList.stream().filter(Project::getShowTheGrade).toList();
+    }
+
     private void createEMDTask(ProjectDto projectDto, Project project, Integer teacherId) {
         // projectDto 中 用户teacher携带的task ==> 创建task -> task表 &&  -> e_md_task_proc表
         List<Task> EMDTaskList = new ArrayList<>();
@@ -516,6 +544,7 @@ public class ProjectServiceImpl implements ProjectService {
         List<Project> courseList = projectMapper.findCourseByStudentId(id);
         List<Project> emdv4CourseList = projectMapper.findStuEMDV4Course(id);
         courseList.addAll(emdv4CourseList);
+        courseList.sort(Comparator.comparing(Project::getId));
         return courseList;
     }
 

@@ -45,4 +45,7 @@ public interface ProjectMapper {
     List<StudentDto> getProjectStudents(Integer projectId);
 
     List<Project> findStuEMDV4Course(Integer studentId);
+
+    void publishProjectGrade(Integer projectId);
+    void cancelPublishProjectGrade(Integer projectId);
 }

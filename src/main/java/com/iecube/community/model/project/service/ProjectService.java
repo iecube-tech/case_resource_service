@@ -41,4 +41,8 @@ public interface ProjectService {
     List<StudentDto> getProjectStudents(Integer projectId);
 
     void createRemote(Project project, RemoteQo remoteQo);
+
+    Project publishGrade(Integer projectId);
+
+    List<Project> getStudentGrades(Integer studentId);
 }

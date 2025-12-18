@@ -17,6 +17,7 @@
         <result column="use_remote" property="useRemote"></result>
         <result column="emd_course" property="emdCourse"></result>
         <result column="grade_class" property="gradeClass"></result>
+        <result column="show_the_grade" property="showTheGrade"></result>
     </resultMap>
 
     <resultMap id="ProjectStudentVo" type="com.iecube.community.model.project.entity.ProjectStudentVo">
@@ -58,7 +59,7 @@
         SELECT project.id,project.case_id, project.device_id, project.project_name, project.target,project.introduction,project.introduce,
                project.cover,project.start_time,project.end_time, project.use_group, project.group_limit,  project.md_course,
                project.use_remote,solution_or_case.emd_course, project.version,project.semester,project.grade_class, project.create_time,
-               project.creator,project.last_modified_time,project.last_modified_user
+               project.creator,project.last_modified_time,project.last_modified_user, project.show_the_grade
         FROM project INNER JOIN solution_or_case ON project.case_id=solution_or_case.id
         WHERE project.id=#{id}
     </select>
@@ -66,7 +67,7 @@
     <select id="findByPstId" resultMap="ProjectEntity">
         SELECT p.id, p.case_id,device_id, p.project_name, p.introduction, p.introduce, p.cover, p.target,
                p.start_time, p.end_time, p.creator, p.create_time, p.last_modified_user, p.last_modified_time,
-               p.use_group, p.group_limit, p.md_course, p.use_remote,p.version,p.semester,p.grade_class
+               p.use_group, p.group_limit, p.md_course, p.use_remote,p.version,p.semester,p.grade_class, p.show_the_grade
         FROM project p INNER JOIN project_task_student pst ON p.id=pst.project_id WHERE pst.id=#{pstId};
     </select>
 
@@ -104,7 +105,7 @@
     <select id="findByStudentId" resultMap="ProjectEntity">
         SELECT project.id, project.project_name,project.target,project.introduction,project.introduce,
                project.cover,project.start_time,project.end_time,project_student.grade, project.use_group, project.md_course,
-               project.use_remote,solution_or_case.emd_course,project.version,project.semester,project.grade_class
+               project.use_remote,solution_or_case.emd_course,project.version,project.semester,project.grade_class, project.show_the_grade
         FROM (project_student INNER JOIN project ON project_student.project_id=project.id) INNER JOIN solution_or_case
             ON project.case_id=solution_or_case.id
         WHERE project_student.student_id=#{id} AND project.is_delete=0 AND solution_or_case.third=0
@@ -113,7 +114,7 @@
     <select id="findCourseByStudentId" resultMap="ProjectEntity">
         SELECT project.id, project.project_name,project.target,project.introduction,project.introduce,
                project.cover,project.start_time,project.end_time,project_student.grade, project.use_group, project.md_course,
-               project.use_remote, solution_or_case.emd_course,project.version,project.semester,project.grade_class
+               project.use_remote, solution_or_case.emd_course,project.version,project.semester,project.grade_class, project.show_the_grade
         FROM (project_student INNER JOIN project ON project_student.project_id=project.id) INNER JOIN solution_or_case
                                                                                                       ON project.case_id=solution_or_case.id
         WHERE project_student.student_id=#{id} AND project.is_delete=0 AND solution_or_case.third=1
@@ -150,5 +151,13 @@
     <select id="findStuEMDV4Course" resultMap="ProjectEntity">
         SELECT p.* FROM `EMDV4_projectStudent` ps LEFT JOIN project  p ON ps.project_id=p.id WHERE ps.student_id=#{studentId} AND p.is_delete=0
     </select>
+
+    <update id="publishProjectGrade">
+        UPDATE project SET show_the_grade=1 WHERE id=#{projectId}
+    </update>
+
+    <update id="cancelPublishProjectGrade">
+        UPDATE project SET show_the_grade=0 WHERE id=#{projectId}
+    </update>
 
 </mapper>
