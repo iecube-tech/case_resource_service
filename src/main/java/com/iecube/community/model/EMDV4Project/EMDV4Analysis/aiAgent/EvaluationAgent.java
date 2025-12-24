@@ -1,6 +1,7 @@
 package com.iecube.community.model.EMDV4Project.EMDV4Analysis.aiAgent;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iecube.community.model.AI.ex.AiAPiResponseException;
 import com.iecube.community.util.xlsx.CheckHttpResponse;
@@ -29,7 +30,7 @@ public class EvaluationAgent {
 
 
     @Async("evaluationExecutor")
-    public CompletableFuture<String> evaluate(String details, String type, Integer projectId) {
+    public CompletableFuture<JsonNode> evaluate(String details, String type, Integer projectId) {
         log.debug(type);
         String uri  = UriComponentsBuilder.fromHttpUrl(baseUrl+"/evaluation/generate").toUriString();
         HttpHeaders headers = new HttpHeaders();
@@ -46,7 +47,7 @@ public class EvaluationAgent {
             CheckHttpResponse.CheckResult checkResult = new CheckHttpResponse().responseNormal(response);
             if(checkResult.isNormal()){
                 log.info("[{}][{}]评价agent生成成功",projectId, type);
-                return CompletableFuture.completedFuture(checkResult.getBodyData().get("content").asText());
+                return CompletableFuture.completedFuture(checkResult.getBodyData().get("content"));
             }else {
                 log.warn("[{}][{}]评价agent生成失败",projectId, type);
                 throw new AiAPiResponseException("访问评价agent败(响应错误)："+checkResult.getErrorReason());

@@ -2,6 +2,7 @@ package com.iecube.community.model.EMDV4Project.EMDV4Analysis.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.iecube.community.basecontroller.BaseController;
+import com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProgress;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.service.EMDV4AnalysisService;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.vo.AnalysisInfo;
 import com.iecube.community.util.JsonResult;
@@ -21,11 +22,11 @@ public class EMDV4AnalysisController extends BaseController {
 //        return new JsonResult<>(OK, res);
 //    }
 
-//    @PostMapping("/gen/{projectId}")
-//    public JsonResult<AnalysisProgress> genData(@PathVariable Integer projectId) {
-//        AnalysisProgress res = service.createGenProgress(projectId);
-//        return new JsonResult<>(OK, res);
-//    }
+    @PostMapping("/gen/{projectId}")
+    public JsonResult<AnalysisProgress> genData(@PathVariable Integer projectId) {
+        AnalysisProgress res = service.createGenProgress(projectId);
+        return new JsonResult<>(OK, res);
+    }
 
     @GetMapping("/info")
     public JsonResult<AnalysisInfo> getInfo(int projectId) {

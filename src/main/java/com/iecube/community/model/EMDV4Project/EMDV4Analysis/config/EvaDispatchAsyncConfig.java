@@ -11,12 +11,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 @EnableAsync
 @Configuration
-public class EvaDispatchAsyncConfig implements AsyncConfigurer {
+public class EvaDispatchAsyncConfig{
     /**
      * 自定义异步线程池
      */
     @Bean(name = "EvaDispatch")
-    @Override
     public Executor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(Runtime.getRuntime().availableProcessors() * 2); // 核心线程数
