@@ -10,6 +10,7 @@
         <result column="student_id" property="studentId"></result>
         <result column="student_name" property="studentName"></result>
         <result column="task_name" property="taskName"></result>
+        <result column="task_classhour" property="taskClasshour"></result>
         <result column="task_weighting" property="taskWeighting"></result>
         <result column="task_score" property="taskScore"></result>
         <result column="task_total_score" property="taskTotalScore"></result>
@@ -56,7 +57,7 @@
 
     <select id="getProjectPSTWithStage" resultMap="PST">
         SELECT pst.id AS pst_id, pt.id AS pt_id, ps.id AS ps_id, pt.`name` AS task_name, pst.`status` as `status`,
-               pst.total_score AS task_total_score, pst.score AS task_score,
+               pst.total_score AS task_total_score, pst.score AS task_score, pt.classhour AS task_classhour,
                pt.`name` AS t_name,  pt.weighting AS t_weighting,  ps.score AS ps_score,
                s.student_id,s.student_name, cg.`name` AS gc_name,
                tb.start_time, tb.end_time,tb.stage,book.icon AS book_icon, tb.icon AS stage_icon

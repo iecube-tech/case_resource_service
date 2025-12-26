@@ -3,4 +3,86 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.iecube.community.model.EMDV4Project.EMDV4_projectMonitor.mapper.EMDV4ProjectMonitorMapper">
 
+    <resultMap id="MonitorInfoVo" type="com.iecube.community.model.EMDV4Project.EMDV4_projectMonitor.vo.MonitorInfoVo">
+        <result column="project_name" property="projectName"></result>
+        <result column="start_time" property="startTime"></result>
+        <result column="end_time" property="endTime"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="stu_num" property="stuNum"></result>
+    </resultMap>
+
+    <resultMap id="TaskStepDto" type="com.iecube.community.model.EMDV4Project.EMDV4_projectMonitor.dto.TaskStepDto">
+        <result column="ps_id" property="psId"></result>
+        <result column="stu_id" property="stuId"></result>
+        <result column="stu_name" property="stuName"></result>
+        <result column="ps_score" property="psScore"></result>
+        <result column="pst_id" property="pstId"></result>
+        <result column="pt_id" property="ptId"></result>
+        <result column="pt_name" property="ptName"></result>
+        <result column="block_stage" property="blockStage"></result>
+        <result column="block_name" property="blockName"></result>
+        <result column="block_status" property="blockStatus"></result>
+    </resultMap>
+
+    <select id="getMonitorInfo" resultMap="MonitorInfoVo">
+        SELECT p.id, p.project_name, p.start_time, p.end_time, p.create_time, COUNT(*) AS stu_num
+        FROM project p LEFT JOIN EMDV4_projectStudent ps ON p.id=ps.project_id
+        WHERE p.id=#{projectId};
+    </select>
+
+    <select id="getAllStuTaskStep" resultMap="TaskStepDto">
+        WITH RECURSIVE task_tree AS (
+            -- 基准条件：查询根节点 + 完整关联信息
+            SELECT
+                pst.id AS pst_id,
+                pst.project_student,
+                pst.task_book_id AS pst_task_book,
+                pt.id AS pt_id,
+                pt.`name` AS pt_name,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`name` AS block_name,
+                block.`status` AS block_status
+            FROM EMDV4_project_studentTask pst
+                     JOIN EMDV4_student_task_book block ON block.id = pst.task_book_id  -- 根节点关联
+                     JOIN EMDV4_projectTask pt ON pst.project_task = pt.id
+            WHERE pt.project_id = #{projectId} -- 目标课程ID
+
+            UNION ALL
+
+            -- 递归条件：查询子节点 + 继承根节点信息
+            SELECT
+                tt.pst_id,
+                tt.project_student,
+                tt.pst_task_book,
+                tt.pt_id,
+                tt.pt_name,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`name` AS block_name,
+                block.`status` AS block_status
+            FROM EMDV4_student_task_book block
+                     JOIN task_tree tt ON block.p_id = tt.block_id  -- 子节点关联上一层
+        ),
+        pstu AS (
+           SELECT ps.id AS ps_id, ps.score AS ps_score, s.student_id AS stu_id, s.student_name AS stu_name
+           FROM project p
+                    LEFT JOIN EMDV4_projectStudent ps ON p.id=ps.project_id
+                    LEFT JOIN Student s ON s.id=ps.student_id
+           WHERE p.id=#{projectId}
+           ORDER BY ps.id
+        )
+        SELECT pstu.ps_id, pstu.stu_id, pstu.stu_name, pstu.ps_score,
+               task_tree.pst_id, task_tree.pt_id, task_tree.pt_name, task_tree.block_stage,
+               task_tree.block_name, task_tree.block_status
+        FROM pstu LEFT JOIN task_tree ON pstu.ps_id=task_tree.project_student
+        WHERE task_tree.block_level in (2)
+        ORDER BY ps_id, pt_id, block_stage
+    </select>
 </mapper>

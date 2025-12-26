@@ -13,6 +13,7 @@ public class PSTDto {
     private String studentId;
     private String studentName;
     private String taskName;
+    private Double taskClasshour;
     private Double taskWeighting;
     private Double taskScore;
     private Double taskTotalScore;
