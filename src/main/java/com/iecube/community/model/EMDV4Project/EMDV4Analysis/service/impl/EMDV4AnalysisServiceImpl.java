@@ -186,6 +186,15 @@ public class EMDV4AnalysisServiceImpl implements EMDV4AnalysisService {
         return progressMapper.getAnalysisInfo(projectId);
     }
 
+    @Override
+    public AnalysisInfo getStuInfo(Integer projectId, String studentId) {
+        AnalysisInfo res = progressMapper.getAnalysisInfo(projectId);
+        String studentName = progressMapper.getStuName(projectId, studentId);
+        res.setStudentName(studentName);
+        res.setStudentId(studentId);
+        return res;
+    }
+
 
     @Override
     public void allEvaluationGen(){

@@ -25,6 +25,8 @@ public interface AnalysisProgressMapper {
 
     AnalysisInfo getAnalysisInfo(Integer projectId);
 
+    String getStuName(Integer projectId, String studentId);
+
     List<Integer> getEmdv4ProjectIdInTime();
 
 }

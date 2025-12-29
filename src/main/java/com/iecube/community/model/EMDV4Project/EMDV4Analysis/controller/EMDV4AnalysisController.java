@@ -45,6 +45,12 @@ public class EMDV4AnalysisController extends BaseController {
         return new JsonResult<>(OK, res);
     }
 
+    @GetMapping("/stu/info")
+    public JsonResult<AnalysisInfo> getStuInfo(Integer projectId, String studentId){
+        AnalysisInfo res = service.getStuInfo(projectId, studentId);
+        return new JsonResult<>(OK, res);
+    }
+
     @GetMapping("/{projectId}/{type}")
     public JsonResult<JsonNode> getData(@PathVariable Integer projectId, @PathVariable  String type) {
         JsonNode res = service.getData(projectId, type);

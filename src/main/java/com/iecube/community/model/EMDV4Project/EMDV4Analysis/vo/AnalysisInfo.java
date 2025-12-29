@@ -9,4 +9,6 @@ public class AnalysisInfo {
     private String studentCount;
     private String classNames;
     private String updateTime;
+    private String studentName;
+    private String studentId;
 }

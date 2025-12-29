@@ -20,5 +20,7 @@ public interface EMDV4AnalysisService {
 
     AnalysisInfo getAnalysisInfo(Integer projectId);
 
+    AnalysisInfo getStuInfo(Integer projectId, String studentId);
+
     void allEvaluationGen();
 }

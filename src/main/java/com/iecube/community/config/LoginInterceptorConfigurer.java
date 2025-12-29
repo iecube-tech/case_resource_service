@@ -48,7 +48,7 @@ public class LoginInterceptorConfigurer implements WebMvcConfigurer {
         patterns.add("/dashboard");
         patterns.add("/ai/chat/list");
 //        patterns.add("/ai/**/**");
-        patterns.add("/emdv4/analysis/**");
+//        patterns.add("/emdv4/analysis/**");
         patterns.add("/emdv4/monitor/**");
 
         registry.addInterceptor(authInterceptor).addPathPatterns("/**").excludePathPatterns(patterns);
