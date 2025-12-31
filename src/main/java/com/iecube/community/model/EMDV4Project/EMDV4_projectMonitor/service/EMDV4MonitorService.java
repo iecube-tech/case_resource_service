@@ -5,4 +5,6 @@ import com.iecube.community.model.EMDV4Project.EMDV4_projectMonitor.vo.MonitorIn
 public interface EMDV4MonitorService {
 
     MonitorInfoVo getMonitorInfo(Integer projectId);
+
+    void getStuMonitorPaging(Integer page, Integer pageSize);
 }

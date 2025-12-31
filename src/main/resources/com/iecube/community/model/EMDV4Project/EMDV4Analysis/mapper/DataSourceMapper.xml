@@ -37,6 +37,8 @@
         <result column="pt_id" property="ptId"></result>
         <result column="pt_name" property="ptName"></result>
         <result column="ps_id" property="psId"></result>
+        <result column="block_level" property="blockLevel"></result>
+        <result column="block_order" property="blockOrder"></result>
         <result column="comp_id" property="compId"></result>
         <result column="comp_type" property="compType"></result>
         <result column="comp_stage" property="compStage"></result>
@@ -45,6 +47,7 @@
         <result column="comp_score" property="compScore"></result>
         <result column="comp_total_score" property="compTotalScore"></result>
         <result column="comp_payload" property="compPayload"></result>
+        <result column="comp_order" property="compOrder"></result>
         <result column="tag_id" property="tagId"></result>
         <result column="tag_name" property="tagName"></result>
         <result column="target_id" property="targetId"></result>
@@ -100,6 +103,7 @@
                 block.source_id AS block_source,
                 block.stage AS block_stage,
                 block.`level` AS block_level,
+                block.`order` AS block_order,
                 block.`name` AS block_name
             FROM EMDV4_project_studentTask pst
                      JOIN EMDV4_student_task_book block ON block.id = pst.task_book_id  -- 根节点关联
@@ -125,6 +129,7 @@
                 block.source_id AS block_source,
                 block.stage AS block_stage,
                 block.`level` AS block_level,
+                block.`order` AS block_order,
                 block.`name` AS block_name
             FROM EMDV4_student_task_book block
                      JOIN task_tree tt ON block.p_id = tt.block_id  -- 子节点关联上一层
@@ -159,6 +164,8 @@
             tt.ps_id,
             tt.pt_id,
             tt.pt_name,
+            tt.block_level,
+            tt.block_order,
             comp.id AS comp_id,
             comp.stage AS comp_stage,
             comp.`status` AS comp_status,
@@ -167,6 +174,7 @@
             comp.total_score AS comp_total_score,
             comp.payload AS comp_payload,
             comp.type AS comp_type,
+            comp.`order` AS comp_order,
             tag.id AS tag_id,
             tag.`name` AS tag_name,
             tag.key_node AS key_node,
@@ -186,6 +194,8 @@
             tt.project_student,  -- 按学生分组
             tt.pst_task_book,
             tt.block_stage,
-            tt.block_level
+            tt.block_level,
+            tt.block_order,
+            comp.`order`
     </select>
 </mapper>

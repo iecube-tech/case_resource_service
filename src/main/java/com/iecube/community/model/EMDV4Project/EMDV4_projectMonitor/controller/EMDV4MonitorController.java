@@ -20,4 +20,5 @@ public class EMDV4MonitorController extends BaseController {
     public JsonResult<MonitorInfoVo> getMonitorInfo(Integer projectId) {
         return new JsonResult<>(OK, mdv4MonitorService.getMonitorInfo(projectId));
     }
+
 }

@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 @Service
 @Slf4j
@@ -642,7 +643,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         Double rageOfAiUsed = numWith2Decimal((double) (PSTAIGroupByChatId.size() * 100) / PSTGroupByPstId.size());
         ObjectNode aiUsedNode = objectMapper.createObjectNode();
         aiUsedNode.put("value", rageOfAiUsed);
-        aiUsedNode.put("label", "Ai使用率");
+        aiUsedNode.put("label", "AI使用率");
 
         // 课程目标达成度 = 课程目标相关题目的总得分 / 课程目标相关题目的总分
         double targetScore = CompTargetTagDtoList.stream().filter(Objects::nonNull).mapToDouble(CompTargetTagDto::getCompScore).sum();
@@ -699,6 +700,14 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                                     (com1,com2)->com1,
                                     LinkedHashMap::new)
                     );
+            Map<Integer, CompTargetTagDto> sortedTaskTagMap = taskTagMap.entrySet().stream()  // 根据tagId 升序
+                    .sorted(Map.Entry.comparingByKey())
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            Map.Entry::getValue,
+                            (oldVal, newVal) -> oldVal, // 键重复时取旧值
+                            LinkedHashMap::new // 用LinkedHashMap存储，保证有序
+                    ));
             PSTDto lastDonePst = pstList.stream().filter(pstDto -> pstDto.getEndTime()!=null).max(Comparator.comparing(PSTDto::getEndTime)).orElse(null);
             List<PSTDto> statusHasDoneList = pstList.stream().filter(Objects::nonNull).filter(pstdto->pstdto.getStatus().equals(1)).toList();
             String taskName = pstList.get(0).getTaskName();
@@ -722,7 +731,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             }
             overviewNode.put("avgScore", avgScore.isPresent() ? numWith2Decimal(avgScore.getAsDouble()) : 0);
             ArrayNode arrayNode = objectMapper.createArrayNode();
-            taskTagMap.values().forEach(com->{
+            sortedTaskTagMap.values().forEach(com->{
                 if(com.isKeyNode()){
                     arrayNode.add(com.getTagName());
                 }
@@ -735,7 +744,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
     }
     private void T_EA_ED(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
         ArrayNode jsonNode = objectMapper.createArrayNode();
-        PSTGroupByTask.forEach((key, pstList)->{
+        PSTGroupByTask.forEach((ptId, pstList)->{
             ObjectNode objectNode = objectMapper.createObjectNode();
 
             String taskName = pstList.get(0).getTaskName();
@@ -750,7 +759,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             // 实验总分
             double totalScore = pstList.get(0).getTaskTotalScore();
             // 平均用时
-            List<PSTDto> ptStuPSTList = PSTGroupByTaskWithStage.get(key)
+            List<PSTDto> ptStuPSTList = PSTGroupByTaskWithStage.get(ptId)
                     .stream()
                     .filter(Objects::nonNull)
                     // 过滤无效数据：startTime/endTime 不能为 null，且 endTime 不能早于 startTime
@@ -758,17 +767,18 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                     .toList();  // 保证有效值
                 // 上述的列表中去除了空值，因此分子是会偏小，为确保结果更接近准确值， 要在分母中也去除空值的对象，由于ptStuPSTList中pst携带了stage的细分，所以分母表示的有效总人数就应该是 ptStuPSTList / stage种类
             Map<Integer, List<PSTDto>> groupByStage = ptStuPSTList.stream().collect(Collectors.groupingBy(PSTDto::getStage));
-            double totalNum = Math.floor(numWith2Decimal((double) ptStuPSTList.size() /groupByStage.size()));
-                // 总用时
-            long totalMillis = ptStuPSTList.stream()
+            // double totalNum = Math.floor(numWith2Decimal((double) ptStuPSTList.size() /groupByStage.size()));
+            // 实验操作阶平均用时
+            OptionalDouble averageOption = ptStuPSTList.stream()
+                    .filter(pstDto->pstDto.getStage().equals(1))
                     // 计算单个对象的时间差（毫秒）：endTime.getTime() - startTime.getTime()
                     .mapToLong(dto -> dto.getEndTime().getTime() - dto.getStartTime().getTime())
-                    // 累加总和
-                    .sum();
-            long avgMillis = (long) Math.ceil(totalMillis/totalNum);  // 平均用时
+                    .filter(res-> res <= 120*60*1000)
+                    .average(); // 过滤大于120分钟的无效数据
+            // long avgMillis = (long)totalMillisStream.average().getAsDouble();  // 平均用时
 
             // 平均错误率
-            List<CompTargetTagDto> ptStuComp = CompTargetTagGroupByPT.get(key);
+            List<CompTargetTagDto> ptStuComp = CompTargetTagGroupByPT.get(ptId);
             // 做错误的题目总数 == 成绩不为满分的题目
             List<CompTargetTagDto> errorPtStuComp = ptStuComp
                     .stream()
@@ -779,7 +789,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             overviewNode.put("stuNumOfTotal", stuNumOfTotal);
             overviewNode.put("avgScore", avgScore.isPresent() ? numWith2Decimal(avgScore.getAsDouble()) : 0);
             overviewNode.put("totalScore", totalScore);
-            overviewNode.put("avgMillis", avgMillis);
+            overviewNode.put("avgMillis", averageOption.isPresent() ? (long) averageOption.getAsDouble() : 0);
             overviewNode.put("rageOfError", rageOfError);
 
             // 成绩分布 distributionOfGrade
@@ -829,7 +839,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 abilityNode.add(item);
             });
 
-            objectNode.put("ptId", key);
+            objectNode.put("ptId", ptId);
             objectNode.put("ptName", taskName);
             objectNode.set("overview", overviewNode);
             objectNode.set("distributionOfGrade", distributionNode);
@@ -855,7 +865,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         });
 
          //TODO AI 实验难度对比 DONE
-        jsonNode.put("difficulty", courseNode.get("difficulty").asText());
+        jsonNode.set("difficulty", courseNode.get("difficulty"));
         jsonNode.set("grade", gradeNode);
         this.saveProgressData(type, progressId, jsonNode);
     }
@@ -912,7 +922,24 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             jsonNode.set("orderByScore", orderNode);
             arrayNode.add(jsonNode);
         });
-        this.saveProgressData(type, progressId, arrayNode);
+        // 1. 把 ArrayNode 转成 List<ObjectNode> 集合
+        List<ObjectNode> nodeList = new ArrayList<>();
+        for (JsonNode jsonNode : arrayNode) {
+            nodeList.add((ObjectNode) jsonNode);
+        }
+        // 2. 核心排序：按 ObjectNode 的 age 字段 升序
+        nodeList.sort(new Comparator<ObjectNode>() {
+            @Override
+            public int compare(ObjectNode o1, ObjectNode o2) {
+                // 取两个节点的指定字段值，做差值比较实现升序
+                long age1 = o1.get("psId").asLong();
+                long age2 = o2.get("psId").asLong();
+                return (int) (age1 - age2); // 升序：前小后大
+            }
+        });
+        ArrayNode sortedArrayNode = objectMapper.createArrayNode();
+        nodeList.forEach(sortedArrayNode::add);
+        this.saveProgressData(type, progressId, sortedArrayNode);
     }
     private void T_STU_BEHAVIOUR(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
         ArrayNode arrayNode = objectMapper.createArrayNode();
@@ -1457,7 +1484,6 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                                     CompTargetTagDto::getPsId
                             )
                     );
-
             taskStuCompMap.forEach((psId, sCompList)->{
                 ObjectNode stuNode = objectMapper.createObjectNode();
                 stuNode.put("psId", psId);
@@ -1468,7 +1494,11 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                         .filter(comp->comp.getCompScore()!=null)
                         .mapToDouble(CompTargetTagDto::getCompScore)
                         .sum();
-                stuNode.put("score", score);
+                double stuTotalScore=sCompList.stream()
+                        .filter(comp->comp.getCompTotalScore()!=null)
+                        .mapToDouble(CompTargetTagDto::getCompTotalScore)
+                        .sum();
+                stuNode.put("score", numWith2Decimal(score*100 / stuTotalScore));
                 Map<Integer, List<CompTargetTagDto>> pstStageMap = sCompList.stream()
                         .collect(Collectors.groupingBy(CompTargetTagDto::getCompStage));
                 ObjectNode stageRageNode = objectMapper.createObjectNode();
@@ -1639,6 +1669,9 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 item.put("errorNum", errorDone.size());
                 item.put("rightNum", rightDone.size());
                 item.put("notDoneNum", notDone.size());
+                item.put("blockLevel", qList.get(0).getBlockLevel());
+                item.put("blockOrder", qList.get(0).getBlockOrder());
+                item.put("compOrder", qList.get(0).getCompOrder());
                 item.put("tagId", qList.get(0).getTagId());
                 item.put("tagName", qList.get(0).getTagName());
                 item.put("stage", qList.get(0).getCompStage());
@@ -1646,8 +1679,46 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 item.put("payload",qList.get(0).getCompPayload());
                 quesDetailArray.add(item);
             });
+            List<ObjectNode> nodeList = new ArrayList<>();
+            for (JsonNode jsonNode : quesDetailArray) {
+                nodeList.add((ObjectNode) jsonNode);
+            }
+            // 2. 核心：多字段组合排序（匿名内部类实现Comparator）
+            nodeList.sort(new Comparator<ObjectNode>() {
+                @Override
+                public int compare(ObjectNode o1, ObjectNode o2) {
+                    // 第1优先级：age 升序
+                    int stage1 = o1.get("stage").asInt();
+                    int stage2 = o2.get("stage").asInt();
+                    if (stage1 != stage2) {
+                        return stage1 - stage2; // 升序：前小后大
+                    }
+
+                    // age相同 → 第2优先级：level 降序
+                    int level1 = o1.get("blockLevel").asInt();
+                    int level2 = o2.get("blockLevel").asInt();
+                    if (level1 != level2) {
+                        return level1 - level2; //升序：前小后大
+                    }
+
+                    // level相同 → 第3优先级：name 升序
+                    int blockO1 = o1.get("blockOrder").asInt();
+                    int blockO2 = o2.get("blockOrder").asInt();
+                    if (blockO1 != blockO2) {
+                        return blockO1 - blockO2; //升序：前小后大
+                    }
+
+                    int compO1 = o1.get("compOrder").asInt();
+                    int compO2 = o2.get("compOrder").asInt();
+                    return compO1 - compO2;
+                }
+            });
+            // 3. 排序后的List 转回 ArrayNode
+            ArrayNode sortedArrayNode = objectMapper.createArrayNode();
+            nodeList.forEach(sortedArrayNode::add);
+
             ptNode.set("tagOfQuesDistribution", ptTagArrayNode);
-            ptNode.set("quesDetail", quesDetailArray);
+            ptNode.set("quesDetail", sortedArrayNode);
             try {
                 qlist.add(genAPD(type, progressId, ptNode, ptId, null, null));
             } catch (JsonProcessingException e) {
@@ -2276,7 +2347,14 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                     stageNode.put("quesSize", cList.size());
                     stageNode.put("quesErrorSize", errorSize);
                     stageNode.put("quesCorrectSize", cList.size()-errorSize);
-                    stageNode.set("quesList", objectMapper.valueToTree(cList));
+                    List<CompTargetTagDto> sortedComp = cList.stream()
+                            .filter(comp-> !Objects.equals(comp.getCompType(), "TRACELINE") && !Objects.equals(comp.getCompType(), "TABLE"))
+                            .sorted(Comparator.comparing(CompTargetTagDto::getCompStage)
+                                    .thenComparing(CompTargetTagDto::getBlockLevel)
+                                    .thenComparing(CompTargetTagDto::getBlockOrder)
+                                    .thenComparing(CompTargetTagDto::getCompOrder)
+                            ).collect(Collectors.toList());
+                    stageNode.set("quesList", objectMapper.valueToTree(sortedComp));
                     stageArray.add(stageNode);
                 });
                 stuNode.set("tag",tagArray);

@@ -10,6 +10,8 @@ public class CompTargetTagDto {
     private Long psId;
     private Long ptId;
     private String ptName;
+    private Integer blockLevel;
+    private Integer blockOrder;
     private String compId;
     private String compType;
     private Integer compStage;
@@ -18,6 +20,7 @@ public class CompTargetTagDto {
     private Double compScore;
     private Double compTotalScore;
     private String compPayload;
+    private Integer compOrder;
     private Integer tagId;
     private String tagName;
     private Integer targetId;

@@ -36,6 +36,11 @@ public class EMDV4MonitorServiceImpl implements EMDV4MonitorService {
         return res;
     }
 
+    @Override
+    public void getStuMonitorPaging(Integer page, Integer pageSize) {
+
+    }
+
     private List<MonitorInfoVo.TaskInfo> taskOverview(Integer projectId) {
         List<MonitorInfoVo.TaskInfo> resList = new ArrayList<>();
 
