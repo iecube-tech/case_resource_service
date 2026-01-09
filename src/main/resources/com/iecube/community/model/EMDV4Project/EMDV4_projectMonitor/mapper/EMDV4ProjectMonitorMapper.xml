@@ -24,10 +24,35 @@
         <result column="block_status" property="blockStatus"></result>
     </resultMap>
 
+    <resultMap id="StuMonitor" type="com.iecube.community.model.EMDV4Project.EMDV4_projectMonitor.dto.StuMonitor">
+        <result property="psId" column="ps_id"></result>
+        <result property="psScore" column="ps_score"></result>
+        <result property="stuId" column="stu_id"></result>
+        <result property="stuName" column="stu_name"></result>
+        <result property="pstId" column="pst_id"></result>
+        <result property="ptId" column="pt_id"></result>
+        <result property="ptName" column="pt_name"></result>
+        <result property="blockStage" column="block_stage"></result>
+        <result property="blockLevel" column="block_level"></result>
+        <result property="blockOrder" column="block_order"></result>
+        <result property="blockName" column="block_name"></result>
+        <result property="blockStatus" column="block_status"></result>
+        <result property="blockStartTime" column="block_start_time"></result>
+        <result property="blockEndTime" column="block_end_time"></result>
+        <result property="blockScore" column="block_score"></result>
+        <result property="blockTotalScore" column="block_total_score"></result>
+        <result property="blockWeighting" column="block_weighting"></result>
+    </resultMap>
+
+
     <select id="getMonitorInfo" resultMap="MonitorInfoVo">
         SELECT p.id, p.project_name, p.start_time, p.end_time, p.create_time, COUNT(*) AS stu_num
         FROM project p LEFT JOIN EMDV4_projectStudent ps ON p.id=ps.project_id
         WHERE p.id=#{projectId};
+    </select>
+
+    <select id="getTotalStuNum" resultType="java.lang.Integer">
+        SELECT COUNT(id) FROM EMDV4_projectStudent ps WHERE ps.project_id=#{projectId}
     </select>
 
     <select id="getAllStuTaskStep" resultMap="TaskStepDto">
@@ -84,5 +109,490 @@
         FROM pstu LEFT JOIN task_tree ON pstu.ps_id=task_tree.project_student
         WHERE task_tree.block_level in (2)
         ORDER BY ps_id, pt_id, block_stage
+    </select>
+
+    <select id="getStuMonitorPaging" resultMap="StuMonitor">
+        WITH RECURSIVE task_tree AS (
+            -- 基准条件：查询根节点 + 完整关联信息
+            SELECT
+                pst.id AS pst_id,
+                pst.project_student,
+                pst.task_book_id AS pst_task_book,
+                pt.id AS pt_id,
+                pt.`name` AS pt_name,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`order` AS block_order,
+                block.`name` AS block_name,
+                block.`status` AS block_status,
+                block.start_time AS block_start_time,
+                block.end_time AS block_end_time,
+                block.score AS block_score,
+                block.total_score AS block_total_score,
+                block.weighting AS block_weighting
+            FROM EMDV4_project_studentTask pst
+                     JOIN EMDV4_student_task_book block ON block.id = pst.task_book_id  -- 根节点关联
+                      -- JOIN EMDV4_projectStudent ps ON pst.project_student = ps.id
+                      -- JOIN Student s ON ps.student_id = s.id
+                     JOIN EMDV4_projectTask pt ON pst.project_task = pt.id
+            WHERE pt.project_id = #{projectId} -- 目标课程ID
+
+            UNION ALL
+
+            -- 递归条件：查询子节点 + 继承根节点信息
+            SELECT
+                tt.pst_id,
+                tt.project_student,
+                tt.pst_task_book,
+                tt.pt_id,
+                tt.pt_name,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`order` AS block_order,
+                block.`name` AS block_name,
+                block.`status` AS block_status,
+                block.start_time AS block_start_time,
+                block.end_time AS block_end_time,
+                block.score AS block_score,
+                block.total_score AS block_total_score,
+                block.weighting AS block_weighting
+            FROM EMDV4_student_task_book block
+                     JOIN task_tree tt ON block.p_id = tt.block_id  -- 子节点关联上一层
+        ),
+        pstu AS (
+           SELECT ps.id AS ps_id, ps.score AS ps_score, s.student_id AS stu_id, s.student_name AS stu_name
+           FROM project p
+                    LEFT JOIN EMDV4_projectStudent ps ON p.id=ps.project_id
+                    LEFT JOIN Student s ON s.id=ps.student_id
+           WHERE p.id=#{projectId}
+           ORDER BY ps.id
+            limit #{offset},#{pageSize}
+        )
+        SELECT pstu.ps_id, pstu.stu_id, pstu.stu_name, pstu.ps_score, task_tree.pst_id, task_tree.pt_id,
+               task_tree.pt_name, task_tree.block_stage, task_tree.block_level, task_tree.block_order,
+               task_tree.block_name, task_tree.block_status,
+               task_tree.block_start_time, task_tree.block_end_time, task_tree.block_score,
+               task_tree.block_total_score, task_tree.block_weighting
+        FROM pstu LEFT JOIN task_tree ON pstu.ps_id=task_tree.project_student
+        WHERE task_tree.block_level in (1,2)
+        ORDER BY ps_id, pt_id, block_stage
+    </select>
+
+    <select id="getStuMonitorAll" resultMap="StuMonitor">
+        WITH RECURSIVE task_tree AS(
+            -- 基准条件：查询根节点 + 完整关联信息
+            SELECT
+                pst.id AS pst_id,
+                s.`student_name` AS stu_name,
+                s.`student_id` AS stu_id,
+                ps.score AS ps_score,
+                pst.project_student AS ps_id,
+                pst.task_book_id AS pst_task_book,
+                pt.id AS pt_id,
+                pt.`name` AS pt_name,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`order` AS block_order,
+                block.`name` AS block_name,
+                block.`status` AS block_status,
+                block.start_time AS block_start_time,
+                block.end_time AS block_end_time,
+                block.score AS block_score,
+                block.total_score AS block_total_score,
+                block.weighting AS block_weighting
+            FROM EMDV4_project_studentTask pst
+                     JOIN EMDV4_student_task_book block ON block.id = pst.task_book_id  -- 根节点关联
+                     JOIN EMDV4_projectStudent ps ON pst.project_student = ps.id
+                     JOIN Student s ON ps.student_id = s.id
+                     JOIN EMDV4_projectTask pt ON pst.project_task = pt.id
+            WHERE pt.project_id = #{projectId}
+
+            UNION ALL
+
+            -- 递归条件：查询子节点 + 继承根节点信息
+            SELECT
+                tt.pst_id,
+                tt.stu_name,
+                tt.stu_id,
+                tt.ps_score,
+                tt.ps_id AS ps_id,
+                tt.pst_task_book,
+                tt.pt_id,
+                tt.pt_name,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`order` AS block_order,
+                block.`name` AS block_name,
+                block.`status` AS block_status,
+                block.start_time AS block_start_time,
+                block.end_time AS block_end_time,
+                block.score AS block_score,
+                block.total_score AS block_total_score,
+                block.weighting AS block_weighting
+            FROM EMDV4_student_task_book block
+                     JOIN task_tree tt ON block.p_id = tt.block_id  -- 子节点关联上一层
+        )
+        SELECT * FROM task_tree
+        WHERE block_level in (1,2)
+        ORDER BY ps_id, pst_id, pt_id, block_stage, block_level, block_order;
+    </select>
+
+    <select id="getTaskStuMonitorPaging" resultMap="StuMonitor">
+        WITH RECURSIVE task_tree AS(
+            -- 基准条件：查询根节点 + 完整关联信息
+            SELECT
+                pst.id AS pst_id,
+                pst.project_student,
+                pst.task_book_id AS pst_task_book,
+                pt.id AS pt_id,
+                pt.`name` AS pt_name,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`order` AS block_order,
+                block.`name` AS block_name,
+                block.`status` AS block_status,
+                block.start_time AS block_start_time,
+                block.end_time AS block_end_time,
+                block.score AS block_score,
+                block.total_score AS block_total_score,
+                block.weighting AS block_weighting
+            FROM EMDV4_project_studentTask pst
+                     JOIN EMDV4_student_task_book block ON block.id = pst.task_book_id  -- 根节点关联
+                      -- JOIN EMDV4_projectStudent ps ON pst.project_student = ps.id
+                      -- JOIN Student s ON ps.student_id = s.id
+                     JOIN EMDV4_projectTask pt ON pst.project_task = pt.id
+            WHERE pt.project_id = 246 -- 目标课程ID
+
+            UNION ALL
+
+            -- 递归条件：查询子节点 + 继承根节点信息
+            SELECT
+                tt.pst_id,
+                tt.project_student,
+                tt.pst_task_book,
+                tt.pt_id,
+                tt.pt_name,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`order` AS block_order,
+                block.`name` AS block_name,
+                block.`status` AS block_status,
+                block.start_time AS block_start_time,
+                block.end_time AS block_end_time,
+                block.score AS block_score,
+                block.total_score AS block_total_score,
+                block.weighting AS block_weighting
+            FROM EMDV4_student_task_book block
+                     JOIN task_tree tt ON block.p_id = tt.block_id  -- 子节点关联上一层
+        ),
+        pstu AS (
+            SELECT ps.id AS ps_id, ps.score AS ps_score, s.student_id AS stu_id, s.student_name AS stu_name
+            FROM project p
+                    LEFT JOIN EMDV4_projectStudent ps ON p.id=ps.project_id
+                    LEFT JOIN Student s ON s.id=ps.student_id
+            WHERE p.id=#{projectId}
+            ORDER BY ps.id
+            limit #{offset},#{pageSize}
+        )
+        -- ============ 核心筛选：查询叶子节点 ============
+        SELECT pstu.ps_id, pstu.stu_id, pstu.stu_name, pstu.ps_score, task_tree.pst_id, task_tree.pt_id,
+               task_tree.pt_name, task_tree.block_stage, task_tree.block_level, task_tree.block_order,
+               task_tree.block_name, task_tree.block_status,
+               task_tree.block_start_time, task_tree.block_end_time, task_tree.block_score,
+               task_tree.block_total_score, task_tree.block_weighting
+        FROM pstu
+                 LEFT JOIN task_tree ON pstu.ps_id=task_tree.project_student
+                 LEFT JOIN EMDV4_student_task_book b ON task_tree.block_id = b.p_id
+        WHERE task_tree.pt_id = #{ptId}  -- 筛选pt_id=134的目标数据
+            AND (b.id IS NULL OR task_tree.block_level in (1,2))
+        ORDER BY ps_id, block_stage, block_level, block_order;
+    </select>
+
+    <select id="getTaskStuMonitorAll" resultMap="StuMonitor">
+        WITH RECURSIVE task_tree AS(
+            -- 基准条件：查询根节点 + 完整关联信息
+            SELECT
+                pst.id AS pst_id,
+                s.`student_name` AS stu_name,
+                s.`student_id` AS stu_id,
+                ps.score AS ps_score,
+                pst.project_student AS ps_id,
+                pst.task_book_id AS pst_task_book,
+                pt.id AS pt_id,
+                pt.`name` AS pt_name,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`order` AS block_order,
+                block.`name` AS block_name,
+                block.`status` AS block_status,
+                block.start_time AS block_start_time,
+                block.end_time AS block_end_time,
+                block.score AS block_score,
+                block.total_score AS block_total_score,
+                block.weighting AS block_weighting
+            FROM EMDV4_project_studentTask pst
+                     JOIN EMDV4_student_task_book block ON block.id = pst.task_book_id  -- 根节点关联
+                     JOIN EMDV4_projectStudent ps ON pst.project_student = ps.id
+                     JOIN Student s ON ps.student_id = s.id
+                     JOIN EMDV4_projectTask pt ON pst.project_task = pt.id
+            WHERE  pt.id=#{ptId}  -- 目标课程/实验 ID
+
+            UNION ALL
+
+            -- 递归条件：查询子节点 + 继承根节点信息
+            SELECT
+                tt.pst_id,
+                tt.stu_name,
+                tt.stu_id,
+                tt.ps_score,
+                tt.ps_id,
+                tt.pst_task_book,
+                tt.pt_id,
+                tt.pt_name,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`order` AS block_order,
+                block.`name` AS block_name,
+                block.`status` AS block_status,
+                block.start_time AS block_start_time,
+                block.end_time AS block_end_time,
+                block.score AS block_score,
+                block.total_score AS block_total_score,
+                block.weighting AS block_weighting
+            FROM EMDV4_student_task_book block
+                     JOIN task_tree tt ON block.p_id = tt.block_id  -- 子节点关联上一层
+        )
+            -- ============ 核心筛选：查询叶子节点 ============
+        SELECT task_tree.*
+        FROM task_tree
+                 LEFT JOIN EMDV4_student_task_book b ON task_tree.block_id = b.p_id
+        WHERE b.id IS NULL OR task_tree.block_level in (1,2)
+        ORDER BY ps_id, pt_id, block_stage, block_level, block_order;
+    </select>
+
+    <select id="getStuTaskMonitor" resultMap="StuMonitor">
+        WITH RECURSIVE task_tree AS(
+            -- 基准条件：查询根节点 + 完整关联信息
+            SELECT
+                pst.id AS pst_id,
+                pst.project_student,
+                pst.task_book_id AS pst_task_book,
+                pt.id AS pt_id,
+                pt.`name` AS pt_name,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`order` AS block_order,
+                block.`name` AS block_name,
+                block.`status` AS block_status,
+                block.start_time AS block_start_time,
+                block.end_time AS block_end_time,
+                block.score AS block_score,
+                block.total_score AS block_total_score,
+                block.weighting AS block_weighting
+            FROM EMDV4_project_studentTask pst
+                     JOIN EMDV4_student_task_book block ON block.id = pst.task_book_id  -- 根节点关联
+                      -- JOIN EMDV4_projectStudent ps ON pst.project_student = ps.id
+                      -- JOIN Student s ON ps.student_id = s.id
+                     JOIN EMDV4_projectTask pt ON pst.project_task = pt.id
+            WHERE pt.project_id = #{projectId} -- 目标课程ID
+
+            UNION ALL
+
+            -- 递归条件：查询子节点 + 继承根节点信息
+            SELECT
+                tt.pst_id,
+                tt.project_student,
+                tt.pst_task_book,
+                tt.pt_id,
+                tt.pt_name,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`order` AS block_order,
+                block.`name` AS block_name,
+                block.`status` AS block_status,
+                block.start_time AS block_start_time,
+                block.end_time AS block_end_time,
+                block.score AS block_score,
+                block.total_score AS block_total_score,
+                block.weighting AS block_weighting
+            FROM EMDV4_student_task_book block
+                     JOIN task_tree tt ON block.p_id = tt.block_id  -- 子节点关联上一层
+        ),
+                       pstu AS (
+                           SELECT ps.id AS ps_id, ps.score AS ps_score, s.student_id AS stu_id, s.student_name AS stu_name
+                           FROM project p
+                                    LEFT JOIN EMDV4_projectStudent ps ON p.id=ps.project_id
+                                    LEFT JOIN Student s ON s.id=ps.student_id
+                           WHERE ps.id=#{psId}
+                       )
+                -- ============ 核心筛选：查询叶子节点 ============
+        SELECT pstu.ps_id, pstu.stu_id, pstu.stu_name, pstu.ps_score, task_tree.pst_id, task_tree.pt_id,
+               task_tree.pt_name, task_tree.block_stage, task_tree.block_level, task_tree.block_order, task_tree.block_name, task_tree.block_status,
+               task_tree.block_start_time, task_tree.block_end_time, task_tree.block_score, task_tree.block_total_score, task_tree.block_weighting
+        FROM pstu
+                 LEFT JOIN task_tree ON pstu.ps_id=task_tree.project_student
+                 LEFT JOIN EMDV4_student_task_book b ON task_tree.block_id = b.p_id
+        WHERE b.id IS NULL OR task_tree.block_level in (1,2)
+        ORDER BY pt_id, block_stage, block_level, block_order;
+    </select>
+
+    <select id="studentSearch" resultMap="StuMonitor">
+        WITH RECURSIVE task_tree AS(
+            -- 基准条件：查询根节点 + 完整关联信息
+            SELECT
+                pst.id AS pst_id,
+                s.`student_name` AS stu_name,
+                s.`student_id` AS stu_id,
+                ps.score AS ps_score,
+                pst.project_student AS ps_id,
+                pst.task_book_id AS pst_task_book,
+                pt.id AS pt_id,
+                pt.`name` AS pt_name,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`order` AS block_order,
+                block.`name` AS block_name,
+                block.`status` AS block_status,
+                block.start_time AS block_start_time,
+                block.end_time AS block_end_time,
+                block.score AS block_score,
+                block.total_score AS block_total_score,
+                block.weighting AS block_weighting
+            FROM EMDV4_project_studentTask pst
+                     JOIN EMDV4_student_task_book block ON block.id = pst.task_book_id  -- 根节点关联
+                     JOIN EMDV4_projectStudent ps ON pst.project_student = ps.id
+                     JOIN Student s ON ps.student_id = s.id
+                     JOIN EMDV4_projectTask pt ON pst.project_task = pt.id
+            WHERE pt.project_id = #{projectId}
+              AND (s.student_name like CONCAT('%', #{val}, '%') OR s.student_id like CONCAT('%', #{val}, '%'))
+            UNION ALL
+            -- 递归条件：查询子节点 + 继承根节点信息
+            SELECT
+                tt.pst_id,
+                tt.stu_name,
+                tt.stu_id,
+                tt.ps_score,
+                tt.ps_id AS ps_id,
+                tt.pst_task_book,
+                tt.pt_id,
+                tt.pt_name,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`order` AS block_order,
+                block.`name` AS block_name,
+                block.`status` AS block_status,
+                block.start_time AS block_start_time,
+                block.end_time AS block_end_time,
+                block.score AS block_score,
+                block.total_score AS block_total_score,
+                block.weighting AS block_weighting
+            FROM EMDV4_student_task_book block
+                     JOIN task_tree tt ON block.p_id = tt.block_id  -- 子节点关联上一层
+        )
+        SELECT * FROM task_tree
+        WHERE block_level in (1,2)
+        ORDER BY  ps_id, pst_id, pt_id, block_stage, block_level, block_order;
+    </select>
+
+    <select id="taskStudentSearch" resultMap="StuMonitor">
+        WITH RECURSIVE task_tree AS(
+            -- 基准条件：查询根节点 + 完整关联信息
+            SELECT
+                pst.id AS pst_id,
+                s.`student_name` AS stu_name,
+                s.`student_id` AS stu_id,
+                ps.score AS ps_score,
+                pst.project_student AS ps_id,
+                pst.task_book_id AS pst_task_book,
+                pt.id AS pt_id,
+                pt.`name` AS pt_name,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`order` AS block_order,
+                block.`name` AS block_name,
+                block.`status` AS block_status,
+                block.start_time AS block_start_time,
+                block.end_time AS block_end_time,
+                block.score AS block_score,
+                block.total_score AS block_total_score,
+                block.weighting AS block_weighting
+            FROM EMDV4_project_studentTask pst
+                     JOIN EMDV4_student_task_book block ON block.id = pst.task_book_id  -- 根节点关联
+                     JOIN EMDV4_projectStudent ps ON pst.project_student = ps.id
+                     JOIN Student s ON ps.student_id = s.id
+                     JOIN EMDV4_projectTask pt ON pst.project_task = pt.id
+            WHERE pt.id=#{ptId}
+              AND (s.student_name like CONCAT('%', #{val}, '%') OR s.student_id like CONCAT('%', #{val}, '%'))-- 目标课程ID
+            UNION ALL
+            -- 递归条件：查询子节点 + 继承根节点信息
+            SELECT
+                tt.pst_id,
+                tt.stu_name,
+                tt.stu_id,
+                tt.ps_score,
+                tt.ps_id,
+                tt.pst_task_book,
+                tt.pt_id,
+                tt.pt_name,
+                block.id AS block_id,
+                block.p_id AS block_p_id,
+                block.source_id AS block_source,
+                block.stage AS block_stage,
+                block.`level` AS block_level,
+                block.`order` AS block_order,
+                block.`name` AS block_name,
+                block.`status` AS block_status,
+                block.start_time AS block_start_time,
+                block.end_time AS block_end_time,
+                block.score AS block_score,
+                block.total_score AS block_total_score,
+                block.weighting AS block_weighting
+            FROM EMDV4_student_task_book block
+                     JOIN task_tree tt ON block.p_id = tt.block_id  -- 子节点关联上一层
+        )
+        SELECT task_tree.*
+        FROM task_tree
+                 LEFT JOIN EMDV4_student_task_book b ON task_tree.block_id = b.p_id
+        WHERE b.id IS NULL OR task_tree.block_level in (1,2)
+        ORDER BY ps_id, pt_id, block_stage, block_level, block_order;
     </select>
 </mapper>
