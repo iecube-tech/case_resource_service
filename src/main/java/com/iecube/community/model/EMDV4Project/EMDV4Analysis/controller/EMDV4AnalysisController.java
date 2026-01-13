@@ -3,15 +3,16 @@ package com.iecube.community.model.EMDV4Project.EMDV4Analysis.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.iecube.community.basecontroller.BaseController;
 import com.iecube.community.baseservice.ex.ServiceException;
+import com.iecube.community.model.EMDV4Project.EMDV4Analysis.dto.AnalysisCatalog;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProgress;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.service.EMDV4AnalysisService;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.vo.AnalysisInfo;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/emdv4/analysis")
@@ -75,6 +76,17 @@ public class EMDV4AnalysisController extends BaseController {
         JsonNode res = service.getPSTData(projectId, type, ptId, psId);
         return new JsonResult<>(OK,res);
     }
+
+    @GetMapping("/screen/list")
+    public JsonResult<List<AnalysisCatalog>> getScreenList(){
+        return new JsonResult<>(OK, service.getCreatorAnalysisCatalog(currentUserId()));
+    }
+
+    @GetMapping("/screen/catalog")
+    public JsonResult<AnalysisCatalog> getScreenCatalog(Integer projectId){
+        return new JsonResult<>(OK, service.getProjectAnalysisCatalog(projectId));
+    }
+
 
 //    @GetMapping("/all")
 //    public JsonResult<Void> allEvaluation(){

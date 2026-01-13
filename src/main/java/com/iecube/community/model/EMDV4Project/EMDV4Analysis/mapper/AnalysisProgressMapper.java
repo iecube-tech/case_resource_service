@@ -1,5 +1,6 @@
 package com.iecube.community.model.EMDV4Project.EMDV4Analysis.mapper;
 
+import com.iecube.community.model.EMDV4Project.EMDV4Analysis.dto.AnalysisCatalog;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProgress;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProgressData;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.vo.AnalysisInfo;
@@ -29,4 +30,7 @@ public interface AnalysisProgressMapper {
 
     List<Integer> getEmdv4ProjectIdInTime();
 
+    List<AnalysisCatalog> getCreatorAnalysisCatalogs(Integer creator);
+
+    AnalysisCatalog getAnalysisCatalog(Integer projectId);
 }

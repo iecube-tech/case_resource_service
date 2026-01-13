@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.iecube.community.baseservice.ex.ServiceException;
+import com.iecube.community.model.EMDV4.TagLink.entity.TagLink;
+import com.iecube.community.model.EMDV4.TagLink.mapper.TagLinkMapper;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.aiAgent.EvaluationAgent;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.dto.AnalysisType;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.dto.CompTargetTagDto;
@@ -16,6 +19,8 @@ import com.iecube.community.model.EMDV4Project.EMDV4Analysis.exception.AnalysisP
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.mapper.AnalysisProgressMapper;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.mapper.DataSourceMapper;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.service.AnalysisDataGenService;
+import com.iecube.community.model.project.entity.Project;
+import com.iecube.community.model.project.service.ProjectService;
 import com.iecube.community.util.uuid.UUIDGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +49,12 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
     @Autowired
     private EvaluationAgent evaluationAgent;
 
+    @Autowired
+    private ProjectService projectService;
+
+    @Autowired
+    private TagLinkMapper tagLinkMapper;
+
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -68,6 +79,8 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
     private final ConcurrentHashMap<Long, List<CompTargetTagDto>> CompTargetTagGroupByPT = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Long, List<CompTargetTagDto>> CompTargetTagGroupByPST = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, String> targetName = new ConcurrentHashMap<>();
+
+    private final ConcurrentHashMap<Long, List<TagLink>> tagLinkMap = new ConcurrentHashMap<>();
 
     //课程数据总览
     private final ObjectNode courseNode = objectMapper.createObjectNode();
@@ -108,7 +121,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
     @Override
     public void dataTest(Integer projectId,  AnalysisProgress progress){
         this.dataClean(projectId); //数据清洗
-        AnalysisType type = AnalysisType.STU_P_TARGET;
+        AnalysisType type = AnalysisType.PST_SUG;
         try{
             this.genChildData(projectId, progress.getId(), type);
             log.info("[{}][{}] 数据已生成", projectId, type.getDesc());
@@ -140,6 +153,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         this.CompTargetTagGroupByStu.clear();
         this.CompTargetTagGroupByPT.clear();
         this.CompTargetTagGroupByPST.clear();
+        this.tagLinkMap.clear();
         this.targetName.clear();
         this.courseNode.removeAll();
         this.studentsNode.removeAll();
@@ -173,6 +187,9 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         CompTargetTagGroupByStu.putAll(CompTargetTagDtoList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getStudentId)));
         CompTargetTagGroupByPT.putAll(CompTargetTagDtoList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getPtId)));
         CompTargetTagGroupByPST.putAll(CompTargetTagDtoList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getPstId)));
+
+        List<Long> tagList = CompTargetTagDtoList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getTagId)).keySet().stream().toList();
+        tagLinkMap.putAll(tagLinkMapper.getByTagIds(tagList).stream().collect(Collectors.groupingBy(TagLink::getTagId)));
 
         targetName.putAll(CompTargetTagDtoList.stream().collect(Collectors.toMap(CompTargetTagDto::getTargetId, CompTargetTagDto::getTargetName, (v1,v2)->v1)));
 
@@ -288,7 +305,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
 
             //能力标签成绩分布
             ArrayNode tagsNode = objectMapper.createArrayNode();
-            Map<Integer, List<CompTargetTagDto>> taskTagMap = CompTargetTagGroupByPT.get(ptId)
+            Map<Long, List<CompTargetTagDto>> taskTagMap = CompTargetTagGroupByPT.get(ptId)
                     .stream()
                     .collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
             taskTagMap.forEach((tagId, compList)->{
@@ -399,7 +416,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 double rage = numWith2Decimal(score*100/totalScore);
 
                 ArrayNode targetTagNodes = objectMapper.createArrayNode();
-                Map<Integer, List<CompTargetTagDto>> stuTargetTagCompMap = compList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
+                Map<Long, List<CompTargetTagDto>> stuTargetTagCompMap = compList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
                 stuTargetTagCompMap.forEach((tagId, list)->{
                     ObjectNode tagNode = objectMapper.createObjectNode();
                     double tagScore = list.stream().filter(c->c.getCompScore()!=null).mapToDouble(CompTargetTagDto::getCompScore).sum();
@@ -426,7 +443,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             stuTaskMap.forEach((ptId, pst)->{
                 double score = numWith2Decimal(pst.getTaskScore()*100/pst.getTaskTotalScore());
                 int aiUsedTimes = PSTAIGroupByPt.get(ptId).stream().filter(a-> Objects.equals(a.getStudentId(), stuId)).toList().size();
-                Map<Integer, List<CompTargetTagDto>> pstTagMap = CompTargetTagGroupByPST.get(pst.getPstId())
+                Map<Long, List<CompTargetTagDto>> pstTagMap = CompTargetTagGroupByPST.get(pst.getPstId())
                         .stream()
                         .collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
 
@@ -497,10 +514,28 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         rateOfCourse.put("done", doneNum.get());
         rateOfCourse.put("total", PSTGroupByTask.size());
 
+
+
         jsonObject.put("avgGrade", avgGrade);
         jsonObject.put("stuNum", stuNum);
         jsonObject.put("aiUsedNum", aiUsedNum);
         jsonObject.set("rateOfCourse", rateOfCourse);
+        jsonObject.set("lastSemester",null);
+        Integer lastSemesterProjectId = this.getLastSemesterProject(projectId);
+        if(lastSemesterProjectId!=null){
+            AnalysisProgress progress = progressMapper.getApLatestSuccessByProjectId(lastSemesterProjectId);
+            if(progress != null && progress.getFinished()){
+                AnalysisType analysisType = AnalysisType.getByValue(type.getValue());
+                if (analysisType != null) {
+                    AnalysisProgressData apd = progressMapper.getAPD(progress.getId(), analysisType.getValue());
+                    try {
+                        jsonObject.set("lastSemester",objectMapper.readTree(apd.getData()));
+                    } catch (Exception e) {
+                        jsonObject.set("lastSemester",null);
+                    }
+                }
+            }
+        }
         this.saveProgressData(type, progressId, jsonObject);
     }
     private void T_OVERVIEW_RATE(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
@@ -687,12 +722,29 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         // TODO AI互动主题分析 DONE
         jsonObject.set("thematic", thematic);
 
+        jsonObject.set("lastSemester",null);
+        Integer lastSemesterProjectId = this.getLastSemesterProject(projectId);
+        if(lastSemesterProjectId!=null){
+            AnalysisProgress progress = progressMapper.getApLatestSuccessByProjectId(lastSemesterProjectId);
+            if(progress != null && progress.getFinished()){
+                AnalysisType analysisType = AnalysisType.getByValue(type.getValue());
+                if (analysisType != null) {
+                    AnalysisProgressData apd = progressMapper.getAPD(progress.getId(), analysisType.getValue());
+                    try {
+                        jsonObject.set("lastSemester",objectMapper.readTree(apd.getData()));
+                    } catch (Exception e) {
+                        jsonObject.set("lastSemester",null);
+                    }
+                }
+            }
+        }
+
         this.saveProgressData(type, progressId, jsonObject);
     }
     private void T_EA_OVERVIEW(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
         ArrayNode jsonNode = objectMapper.createArrayNode();
         PSTGroupByTask.forEach((key,pstList)->{
-            HashMap<Integer, CompTargetTagDto> taskTagMap = CompTargetTagGroupByPT.get(key).stream()  // 收集 task 中的 tag 列表， tagId 取唯一 <tagId, CompTargetTagDto>
+            HashMap<Long, CompTargetTagDto> taskTagMap = CompTargetTagGroupByPT.get(key).stream()  // 收集 task 中的 tag 列表， tagId 取唯一 <tagId, CompTargetTagDto>
                     .collect(
                             Collectors.toMap(
                                     CompTargetTagDto::getTagId,
@@ -700,7 +752,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                                     (com1,com2)->com1,
                                     LinkedHashMap::new)
                     );
-            Map<Integer, CompTargetTagDto> sortedTaskTagMap = taskTagMap.entrySet().stream()  // 根据tagId 升序
+            Map<Long, CompTargetTagDto> sortedTaskTagMap = taskTagMap.entrySet().stream()  // 根据tagId 升序
                     .sorted(Map.Entry.comparingByKey())
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
@@ -821,7 +873,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
 
             // 能力评价 ability
             ArrayNode abilityNode = objectMapper.createArrayNode();
-            Map<Integer, List<CompTargetTagDto>> ptTagMap = ptStuComp
+            Map<Long, List<CompTargetTagDto>> ptTagMap = ptStuComp
                     .stream()
                     .collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
             ptTagMap.forEach( (tagId,compList)->{
@@ -1130,7 +1182,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                     .sum();
             double achievement = numWith2Decimal(achievementScore*100 / totalScore);
 
-            Map<Integer, List<CompTargetTagDto>> abilitMap = compList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
+            Map<Long, List<CompTargetTagDto>> abilitMap = compList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
             ArrayNode abilityNode = objectMapper.createArrayNode();
             abilitMap.forEach((tagId, list)->{
                 ObjectNode ability = objectMapper.createObjectNode();
@@ -1162,7 +1214,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         ArrayNode experiments = objectMapper.createArrayNode();
         CompTargetTagGroupByPT.forEach((ptId, compList)->{
             ObjectNode experiment = objectMapper.createObjectNode();
-            Map<Integer, List<CompTargetTagDto>> abilitMap = compList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
+            Map<Long, List<CompTargetTagDto>> abilitMap = compList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
             ArrayNode abilityNode = objectMapper.createArrayNode();
             abilitMap.forEach((tagId, list)->{
                 ObjectNode ability = objectMapper.createObjectNode();
@@ -1206,7 +1258,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                     .sum();
             double achievement = numWith2Decimal(achievementScore*100 / totalScore);
 
-            Map<Integer, List<CompTargetTagDto>> abilitMap = compList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
+            Map<Long, List<CompTargetTagDto>> abilitMap = compList.stream().collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
             ArrayNode abilityNode = objectMapper.createArrayNode();
             abilitMap.forEach((tagId, list)->{
                 ObjectNode ability = objectMapper.createObjectNode();
@@ -1533,7 +1585,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
     private void TASK_D_ABILITY(AnalysisType type, String progressId, Integer projectId) throws JsonProcessingException {
         List<AnalysisProgressData> list = new ArrayList<>();
         CompTargetTagGroupByPT.forEach((ptId, ptCompList)->{
-            Map<Integer, List<CompTargetTagDto>> tagCompMap = ptCompList.stream()
+            Map<Long, List<CompTargetTagDto>> tagCompMap = ptCompList.stream()
                     .collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
             //能力掌握分布
 
@@ -1632,7 +1684,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
 
             ArrayNode ptTagArrayNode = objectMapper.createArrayNode();
             int allTagSize = ptTagList.size();
-            Map<Integer, List<CompTargetTagDto>> tagMap = ptTagList.stream()
+            Map<Long, List<CompTargetTagDto>> tagMap = ptTagList.stream()
                     .collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
             tagMap.forEach((tagId, list)->{
                 ObjectNode item = objectMapper.createObjectNode();
@@ -1983,7 +2035,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             Map<Long, List<PSTDto>> stuTaskMap = pstList.stream().collect(Collectors.groupingBy(PSTDto::getPtId));
             stuTaskMap.forEach((ptId, list)->{
                 ObjectNode task = objectMapper.createObjectNode();
-                Map<Integer, List<CompTargetTagDto>> tagMap = CompTargetTagGroupByPT.get(ptId).stream()
+                Map<Long, List<CompTargetTagDto>> tagMap = CompTargetTagGroupByPT.get(ptId).stream()
                         .collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
 
                 ArrayNode tagArray = objectMapper.createArrayNode();
@@ -2057,7 +2109,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                 double rage = numWith2Decimal(score*100/totalScore);
 
                 // 分析监测点
-                Map<Integer, List<CompTargetTagDto>> targetTagMap = list.stream()
+                Map<Long, List<CompTargetTagDto>> targetTagMap = list.stream()
                         .collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
 
                 ArrayNode tagArray = objectMapper.createArrayNode();
@@ -2252,6 +2304,39 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                             ObjectNode jsonNode = objectMapper.createObjectNode();
                             jsonNode.set("report", res1);
                             jsonNode.set("suggestion", res2);
+                            // todo 取tag达成度低于80的
+                            Map<Long, Double> stuTagGrade = new HashMap<>();
+                            CompTargetTagGroupByStu.get(student.get("studentId").asText()).stream()
+                                    .filter(comp -> comp.getTagId() != null && comp.getCompStatus().equals(1))
+                                    .collect(Collectors.groupingBy(CompTargetTagDto::getTagId))
+                                    .forEach((tageId, list)->{
+                                        double total = list.stream().mapToDouble(CompTargetTagDto::getCompTotalScore).sum();
+                                        double score  = list.stream().mapToDouble(CompTargetTagDto::getCompScore).sum();
+                                        stuTagGrade.put(tageId, numWith2Decimal(score*100/total));
+                                    });
+                            List<Long> sortedTagByTagGrade = stuTagGrade.entrySet()
+                                    .stream()
+                                    // 按value升序排序（若需降序，替换为 comparingDouble(Entry::getValue).reversed()）
+                                    .sorted(Comparator.comparing(Map.Entry::getValue))
+                                    // 提取排序后的key
+                                    .map(Map.Entry::getKey)
+                                    // 转换为List
+                                    .toList();
+                            ArrayNode arrayNode = objectMapper.createArrayNode();
+                            for(int i=0; i<sortedTagByTagGrade.size(); i++){
+                                if(stuTagGrade.get(sortedTagByTagGrade.get(i))<80){
+                                    JsonNode linkNode = objectMapper.valueToTree(tagLinkMap.get(sortedTagByTagGrade.get(i)));
+
+                                    arrayNode.add(linkNode);
+                                }else {
+                                    if(arrayNode.size()<2){
+                                        JsonNode linkNode = objectMapper.valueToTree(tagLinkMap.get(sortedTagByTagGrade.get(i)));
+                                        arrayNode.add(linkNode);
+                                    }
+                                }
+                            }
+                            jsonNode.set("learn", arrayNode);
+
                             return genAPD(type, progressId, jsonNode, null, null, student.get("studentId").asText());
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException("[%s][%s]数据失败：".formatted(type.getDesc(), student.get("studentId").asText()), e);
@@ -2309,7 +2394,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             taskStuPstMap.forEach((psId, pst)->{
                 ObjectNode stuNode = objectMapper.createObjectNode();
                 List<CompTargetTagDto> pstCompList = CompTargetTagGroupByPST.get(pst.getPstId());
-                Map<Integer, List<CompTargetTagDto>> pstTagMap = pstCompList.stream()
+                Map<Long, List<CompTargetTagDto>> pstTagMap = pstCompList.stream()
                         .filter(c->c.getTagId()!=null)
                         .collect(Collectors.groupingBy(CompTargetTagDto::getTagId));
                 Map<Integer, List<CompTargetTagDto>> pstStageMap = pstCompList.stream()
@@ -2410,6 +2495,40 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
                                 // 组装当前DTO的最终数据
                                 ObjectNode jsonNode = objectMapper.createObjectNode();
                                 jsonNode.set("suggestion", res1);
+
+                                Map<Long, Double> stuTagGrade = new HashMap<>();
+                                CompTargetTagGroupByStu.get(student.get("studentId").asText()).stream()
+                                        .filter(comp->comp.getPtId()==ptId)
+                                        .filter(comp -> comp.getTagId() != null && comp.getCompStatus().equals(1))
+                                        .collect(Collectors.groupingBy(CompTargetTagDto::getTagId))
+                                        .forEach((tageId, list)->{
+                                            double total = list.stream().mapToDouble(CompTargetTagDto::getCompTotalScore).sum();
+                                            double score  = list.stream().mapToDouble(CompTargetTagDto::getCompScore).sum();
+                                            stuTagGrade.put(tageId, numWith2Decimal(score*100/total));
+                                        });
+                                List<Long> sortedTagByTagGrade = stuTagGrade.entrySet()
+                                        .stream()
+                                        // 按value升序排序（若需降序，替换为 comparingDouble(Entry::getValue).reversed()）
+                                        .sorted(Comparator.comparing(Map.Entry::getValue))
+                                        // 提取排序后的key
+                                        .map(Map.Entry::getKey)
+                                        // 转换为List
+                                        .toList();
+                                ArrayNode arrayNode = objectMapper.createArrayNode();
+                                for(int i=0; i<sortedTagByTagGrade.size(); i++){
+                                    if(stuTagGrade.get(sortedTagByTagGrade.get(i))<80){
+                                        JsonNode linkNode = objectMapper.valueToTree(tagLinkMap.get(sortedTagByTagGrade.get(i)));
+                                        arrayNode.add(linkNode);
+                                    }else {
+                                        if(arrayNode.size()<2){
+                                            JsonNode linkNode = objectMapper.valueToTree(tagLinkMap.get(sortedTagByTagGrade.get(i)));
+                                            arrayNode.add(linkNode);
+                                        }
+                                    }
+                                }
+                                jsonNode.set("learn", arrayNode);
+
+
                                 return genAPD(type, progressId, jsonNode, ptId, psId, null);
                             } catch (JsonProcessingException e) {
                                 throw new RuntimeException("[%s][student:%s][task:%s]数据失败："
@@ -2546,6 +2665,22 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
             throw new AnalysisProgressGenChildDataException(e.getMessage());
         }
     }
+    private Integer getLastSemesterProject(Integer projectId){
+        Project project = projectService.findProjectById(projectId);
+        try{
+            long semester = Long.parseLong(project.getSemester());
+            long lastSemester;
+            if(semester%2==0){ //偶数
+                lastSemester = semester-1;
+            }else{
+                lastSemester= semester-100;
+            }
+            return dataSourceMapper.getLastSemesterProjectId(project.getCaseId(), project.getCreator(), String.valueOf(lastSemester));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
     private void updateProgress(String progressId, Integer completedCount, Boolean finished, String msg){
         AnalysisProgress progress = progressMapper.getAPById(progressId);
         progress.setCompletedCount(completedCount);

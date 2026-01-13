@@ -14,4 +14,6 @@ public interface DataSourceMapper {
     List<PSTAIDto> getProjectPSTAIDTO(Integer projectId);
 
     List<CompTargetTagDto> getCompTargetTagDtoByProject(Integer projectId);
+
+    Integer getLastSemesterProjectId(Integer caseId, Integer creator, String semester);
 }

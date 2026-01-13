@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iecube.community.baseservice.ex.ServiceException;
+import com.iecube.community.model.EMDV4Project.EMDV4Analysis.dto.AnalysisCatalog;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.dto.AnalysisType;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProgress;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProgressData;
@@ -224,5 +225,37 @@ public class EMDV4AnalysisServiceImpl implements EMDV4AnalysisService {
             }
 
         }
+    }
+
+    @Override
+    public List<AnalysisCatalog> getCreatorAnalysisCatalog(Integer creator) {
+        List<AnalysisCatalog> res = progressMapper.getCreatorAnalysisCatalogs(creator);
+        ObjectMapper objectMapper = new ObjectMapper();
+        res.forEach(a->{
+            if(a.getApdData() != null){
+                try {
+                    a.setApd(objectMapper.readTree(a.getApdData()));
+                } catch (JsonProcessingException e) {
+                    a.setApd(null);
+                }
+            }
+        });
+        return res;
+    }
+
+    @Override
+    public AnalysisCatalog getProjectAnalysisCatalog(Integer projectId) {
+        AnalysisCatalog res = progressMapper.getAnalysisCatalog(projectId);
+        if(res!=null){
+            if(res.getApdData() != null){
+                ObjectMapper objectMapper = new ObjectMapper();
+                try{
+                    res.setApd(objectMapper.readTree(res.getApdData()));
+                }catch (JsonProcessingException e){
+                    res.setApd(null);
+                }
+            }
+        }
+        return res;
     }
 }

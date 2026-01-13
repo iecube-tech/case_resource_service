@@ -198,4 +198,8 @@
             tt.block_order,
             comp.`order`
     </select>
+
+    <select id="getLastSemesterProjectId" resultType="java.lang.Integer">
+        SELECT id FROM project WHERE `case_id`=#{caseId} AND `is_delete`=0 AND `version`=4 AND creator=#{creator} AND semester=#{semester}
+    </select>
 </mapper>

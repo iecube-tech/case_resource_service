@@ -1,9 +1,12 @@
 package com.iecube.community.model.EMDV4Project.EMDV4Analysis.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.iecube.community.model.EMDV4Project.EMDV4Analysis.dto.AnalysisCatalog;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.entity.AnalysisProgress;
 import com.iecube.community.model.EMDV4Project.EMDV4Analysis.vo.AnalysisInfo;
 import org.json.JSONObject;
+
+import java.util.List;
 
 public interface EMDV4AnalysisService {
     AnalysisProgress createGenProgress(Integer projectId);
@@ -23,4 +26,8 @@ public interface EMDV4AnalysisService {
     AnalysisInfo getStuInfo(Integer projectId, String studentId);
 
     void allEvaluationGen();
+
+    List<AnalysisCatalog> getCreatorAnalysisCatalog(Integer creator);
+
+    AnalysisCatalog getProjectAnalysisCatalog(Integer projectId);
 }

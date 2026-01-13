@@ -21,7 +21,7 @@ public class CompTargetTagDto {
     private Double compTotalScore;
     private String compPayload;
     private Integer compOrder;
-    private Integer tagId;
+    private Long tagId;
     private String tagName;
     private Integer targetId;
     private boolean keyNode;

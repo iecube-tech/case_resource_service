@@ -26,6 +26,14 @@
         <result property="updateTime" column="progress_update_time"></result>
     </resultMap>
 
+    <resultMap id="AnalysisCatalog" type="com.iecube.community.model.EMDV4Project.EMDV4Analysis.dto.AnalysisCatalog">
+        <result column="project_name" property="projectName"></result>
+        <result column="start_time" property="startTime"></result>
+        <result column="end_time" property="endTime"></result>
+        <result column="apd_data" property="apdData"></result>
+        <result column="stu_num" property="stuNum"></result>
+    </resultMap>
+
     <insert id="createAP">
         INSERT INTO AP_analysis_progress (`id`,`project_id`,`total_count`,`completed_count`, `finished`,
                                           `percent`,`message`,`create_time`,`update_time`)
@@ -152,6 +160,69 @@
                   WHERE version >=4
                     AND NOW() BETWEEN DATE_ADD(start_time,INTERVAL 1 DAY) AND DATE_ADD(end_time,INTERVAL 1 DAY)
                     AND is_delete=0
+    </select>
+
+    <select id="getCreatorAnalysisCatalogs" resultMap="AnalysisCatalog">
+        WITH RECURSIVE APDATA AS (
+            SELECT t1.project_id, ad.`data` AS apd_data
+            FROM AP_analysis_progress t1
+                     LEFT JOIN AP_data ad ON t1.id=ad.ap_id
+            WHERE t1.update_time = (
+                -- 子查询直接取当前project_id的最新时间，无需分组
+                SELECT MAX(update_time)
+                FROM AP_analysis_progress t2
+                WHERE t2.project_id = t1.project_id
+            )
+              AND ad.`type`="t_overview_overview"
+        )
+        SELECT
+            p.id,
+            p.project_name,
+            p.semester,
+            p.start_time,
+            p.end_time,  -- 查询project表的所有字段
+            apd.apd_data,
+            COALESCE(SUM(pt.classhour), 0) AS classhour,  -- 求和，无数据时返回0
+            COALESCE(COUNT(DISTINCT ps.id), 0) AS stu_num
+        FROM project p
+                 LEFT JOIN APDATA apd ON p.id=apd.project_id
+                 LEFT JOIN EMDV4_projectTask pt ON p.id = pt.project_id  -- 关联两张表
+                 LEFT JOIN EMDV4_projectStudent ps ON p.id=ps.project_id
+        WHERE p.creator=#{creator} AND p.version=4 AND p.is_delete=0
+        -- WHERE p.id=246
+        GROUP BY
+            p.id, apd.project_id, apd.apd_data  -- 按project的主键分组
+    </select>
+
+    <select id="getAnalysisCatalog" resultMap="AnalysisCatalog">
+        WITH RECURSIVE APDATA AS (
+            SELECT t1.project_id, ad.`data` AS apd_data
+            FROM AP_analysis_progress t1
+                     LEFT JOIN AP_data ad ON t1.id=ad.ap_id
+            WHERE t1.update_time = (
+                -- 子查询直接取当前project_id的最新时间，无需分组
+                SELECT MAX(update_time)
+                FROM AP_analysis_progress t2
+                WHERE t2.project_id = t1.project_id
+            )
+              AND ad.`type`="t_overview_overview"
+        )
+        SELECT
+            p.id,
+            p.project_name,
+            p.semester,
+            p.start_time,
+            p.end_time,  -- 查询project表的所有字段
+            apd.apd_data,
+            COALESCE(SUM(pt.classhour), 0) AS classhour,  -- 求和，无数据时返回0
+            COALESCE(COUNT(DISTINCT ps.id), 0) AS stu_num
+        FROM project p
+                 LEFT JOIN APDATA apd ON p.id=apd.project_id
+                 LEFT JOIN EMDV4_projectTask pt ON p.id = pt.project_id  -- 关联两张表
+                 LEFT JOIN EMDV4_projectStudent ps ON p.id=ps.project_id
+        WHERE p.id=#{projectId}
+        GROUP BY
+            p.id, apd.project_id, apd.apd_data  -- 按project的主键分组
     </select>
 
 </mapper>

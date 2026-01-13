@@ -12,4 +12,5 @@ public interface TagLinkMapper {
     int deleteById(Long id);
     TagLink getById(Long id);
     List<TagLink> getByTagId(Long tagId);
+    List<TagLink> getByTagIds(List<Long> tagIds);
 }

@@ -35,4 +35,11 @@
     <select id="getByTagId" resultMap="TagLink">
         SELECT `id`, `tag_id`, `name`, `link`, `style`, `config`, `payload` FROM BLT_tag_link WHERE `tag_id`=#{tagId}
     </select>
+
+    <select id="getByTagIds" resultMap="TagLink">
+        SELECT `id`, `tag_id`, `name`, `link`, `style`, `config`, `payload` FROM BLT_tag_link WHERE `tag_id` in
+            <foreach collection="tagIds" item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+    </select>
 </mapper>
