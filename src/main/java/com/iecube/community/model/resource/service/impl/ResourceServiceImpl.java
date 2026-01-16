@@ -196,6 +196,11 @@ public class ResourceServiceImpl implements ResourceService {
         return resource;
     }
 
+    @Override
+    public Resource getResourceById(Integer id) {
+        return resourceMapper.getById(id);
+    }
+
     private void deleteResource(Resource resource){
         if(resource == null){
             throw new ResourceNotFoundException("文件未找到");

@@ -16,6 +16,8 @@ public interface ResourceService {
 
     Resource getResourceByFilename(String filename);
 
+    Resource getResourceById(Integer id);
+
     Resource buildResourceDTO(String originalFilename, String fileName, String type);
 
     Resource addResource(Resource resource, Integer createUser);
