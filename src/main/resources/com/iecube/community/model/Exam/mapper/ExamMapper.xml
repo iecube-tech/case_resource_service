@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.Exam.mapper.ExamMapper">
+
+    <resultMap id="ExamQuesContentResultMap" type="com.iecube.community.model.Exam.entity.QuesContentEntity">
+        <id column="content_id" property="id"/>
+        <result column="content_p_id" property="pId"/>
+        <result column="title" property="title"/>
+        <result column="options_string" property="optionsString"/>
+        <result column="answer" property="answer"/>
+        <result column="knowledge_str" property="knowledgeStr"/>
+    </resultMap>
+
+    <resultMap id="ExamQuestionResultMap" type="com.iecube.community.model.Exam.entity.QuestionEntity">
+        <id column="question_id" property="id"/>
+        <result column="question_p_id" property="pId"/>
+        <result column="ques_type" property="quesType"/>
+        <result column="order" property="order"/>
+        <result column="is_random" property="isRandom"/>
+        <result column="random_num" property="randomNum"/>
+        <result column="difficulty" property="difficulty"/>
+        <result column="score" property="score"/>
+        <!-- 嵌套题目内容列表 -->
+        <collection property="examQuesContents" ofType="com.iecube.community.model.Exam.entity.QuesContentEntity"
+                    resultMap="ExamQuesContentResultMap"/>
+    </resultMap>
+
+    <resultMap id="ExamInfoWithAllResultMap" type="com.iecube.community.model.Exam.entity.ExamInfoEntity">
+        <id column="exam_id" property="id"/>
+        <result column="project_id" property="projectId"></result>
+        <result column="total_score" property="totalScore"></result>
+        <result column="pass_score" property="passScore"></result>
+        <result column="start_time" property="startTime"></result>
+        <result column="end_time" property="endTime"></result>
+        <result column="use_random_option" property="useRandomOption"></result>
+        <result column="use_random_question" property="useRandomQuestion"></result>
+        <result column="ai_auto_check" property="aiAutoCheck"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+        <!-- 嵌套题目列表 -->
+        <collection property="examQuestions" ofType="com.iecube.community.model.Exam.entity.ExamInfoEntity"
+                    resultMap="ExamQuestionResultMap"/>
+    </resultMap>
+
+    <insert id="insertExamEntity" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO
+            ExamInfo (`id`, `project_id`, `name`, `duration`, `total_score`, `pass_score`, `start_time`,
+                      `end_time`, `create_time`, `creator`, `last_modified_user`, `last_modified_time`)
+        VALUES (NULL, #{projectId}, #{name}, #{duration}, #{totalScore}, #{passScore}, #{startTime},
+                #{endTime}, #{createTime}, #{creator}, #{lastModifiedUser}, #{lastModifiedTime})
+    </insert>
+
+    <insert id="batchInsertQuestion">
+        INSERT INTO
+            Exam_question (`id`, `p_id`, `ques_type`, `order`, `is_random`, `random_num`, `difficulty`, `score`)
+        VALUES
+            <foreach collection="list" separator="," item="item">
+                (
+                 #{item.id}, #{item.pId}, #{item.quesType}, #{item.order}, #{item.isRandom},
+                 #{item.randomNum}, #{item.difficulty}, #{item.score}
+                )
+            </foreach>
+    </insert>
+
+    <insert id="batchInsertQuesContent">
+        INSERT INTO Exam_ques_content  (id, p_id, title, options_string, answer, knowledge_str)
+        VALUES
+            <foreach collection="list" separator="," item="item">
+                (
+                 #{item.id}, #{item.pId}, #{item.title}, #{item.optionsString}, #{item.answer},
+                 #{item.knowledgeStr}
+                )
+            </foreach>
+    </insert>
+
+    <!-- 核心SQL：一次联表查询所有数据 -->
+    <select id="selectExamWithQuestionsAndContent" resultMap="ExamInfoWithAllResultMap">
+        SELECT
+            ei.id AS exam_id,
+            ei.project_id,
+            ei.name,
+            ei.duration,
+            ei.total_score,
+            ei.pass_score,
+            ei.start_time,
+            ei.end_time,
+            ei.create_time,
+            ei.creator,
+            ei.last_modified_user,
+            ei.last_modified_time,
+            eq.id AS question_id,
+            eq.p_id AS question_p_id,
+            eq.ques_type,
+            eq.`order`,
+            eq.is_random,
+            eq.random_num,
+            eq.difficulty,
+            eq.score,
+            eqc.id AS content_id,
+            eqc.p_id AS content_p_id,
+            eqc.title,
+            eqc.options_string,
+            eqc.answer,
+            eqc.knowledge_str
+        FROM ExamInfo ei
+                 LEFT JOIN Exam_question eq ON ei.id = eq.p_id
+                 LEFT JOIN Exam_ques_content eqc ON eq.id = eqc.p_id
+        WHERE ei.id = #{id}
+        ORDER BY eq.`ques_type`, eq.`order` ASC; -- 按题目排序，保证顺序一致
+    </select>
+
+    <select id="selectProjectStudentId" resultType="java.lang.Integer">
+        SELECT student_id FROM EMDV4_projectStudent WHERE project_id=#{projectId};
+    </select>
+
+
+</mapper>

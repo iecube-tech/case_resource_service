@@ -3,16 +3,15 @@ package com.iecube.community.model.Exam.controller;
 import com.iecube.community.basecontroller.BaseController;
 import com.iecube.community.baseservice.ex.ServiceException;
 import com.iecube.community.model.Exam.Service.ExamService;
+import com.iecube.community.model.Exam.qo.ExamSaveQo;
+import com.iecube.community.model.Exam.vo.ExamParseVo;
 import com.iecube.community.model.resource.service.ResourceService;
 import com.iecube.community.util.DownloadUtil;
 import com.iecube.community.util.JsonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -50,10 +49,14 @@ public class ExamController extends BaseController {
     }
 
     @PostMapping("/parse")
-    public JsonResult<Void> testExcelParse(Integer projectId, String filename){
-        examService.parseExcel(projectId, filename);
-        return new JsonResult<>(OK);
+    public JsonResult<ExamParseVo> testExcelParse(Integer projectId, String filename){
+        ExamParseVo res = examService.parseExcel(projectId, filename);
+        return new JsonResult<>(OK, res);
     }
 
-
+    @PostMapping("/save")
+    public JsonResult<Void> saveExam(@RequestBody ExamSaveQo qo){
+        Long examId = examService.savaExam(qo, currentUserId());
+        return new JsonResult<>(OK);
+    }
 }

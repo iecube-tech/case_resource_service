@@ -8,17 +8,29 @@ import com.iecube.community.model.Exam.Dto.QuesType;
 import com.iecube.community.model.Exam.Dto.QuestionDto;
 import com.iecube.community.model.Exam.Service.ExamService;
 import com.iecube.community.model.Exam.entity.ExamInfoEntity;
+import com.iecube.community.model.Exam.entity.QuesContentEntity;
+import com.iecube.community.model.Exam.entity.QuestionEntity;
 import com.iecube.community.model.Exam.exception.ExcelCellParseException;
+import com.iecube.community.model.Exam.mapper.ExamMapper;
+import com.iecube.community.model.Exam.qo.ExamSaveQo;
+import com.iecube.community.model.Exam.vo.ExamParseVo;
+import com.iecube.community.model.auth.service.ex.InsertException;
+import com.iecube.community.util.list.ListUtil;
+import com.iecube.community.util.uuid.UUIDGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -29,15 +41,28 @@ public class ExamServiceImpl implements ExamService {
     // 存储单元格解析异常信息（key: sheet名称, value: 异常信息列表）
     private static final Map<String, List<String>> cellParseErrors = new HashMap<>();
 
+    private static final Map<String, List<String>> quesParseErrors = new HashMap<>();
+
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private static final String FLAG="EXAM_EXCEL_PARSE_";
+
     @Value("${resource-location}/file")
     private String fileLocation;
 
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private ExamMapper examMapper;
+
+    public ExamServiceImpl(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
+
     //解析EXCEL // 返回vo对象
     @Override
-    public void parseExcel(Integer projectId, String filename){
+    public ExamParseVo parseExcel(Integer projectId, String filename){
         resetErrors();
         File excel = new File(fileLocation  + File.separator + filename);
         if(!excel.exists()){
@@ -62,17 +87,206 @@ public class ExamServiceImpl implements ExamService {
                     }
                 }
             }
-            System.out.println(exam);
-            questionDtoList.forEach(q->{
-                System.out.println(q.toString());
-            });
+//            System.out.println(exam);
+//            questionDtoList.forEach(q->{
+//                System.out.println(q.toString());
+//            });
             checkCellParseErrors();
-            // todo 整理为vo 处理总分 以及 随机规则
+            // 需求中有多个题目随机出几道的场景
+            // 整理为vo 处理总分 以及 随机规则
+            Map<QuesType, List<ExamParseVo.QuesVo>> questions = new HashMap<>();
+            questionDtoList.stream()
+                    .collect(Collectors.groupingBy(QuestionDto::getType))
+                    .forEach((type,list)->{
+                        List<ExamParseVo.QuesVo> quesVoList = new ArrayList<>();
+                        // 非随机题目
+                        list.stream().filter(q->!q.getIsRandom()).forEach(q->{
+                            String quesVoId = UUIDGenerator.generateUUID();
+                            QuesContentEntity ques = new QuesContentEntity();
+                            ques.setId(UUIDGenerator.generateUUID());
+                            ques.setPId(quesVoId);
+                            ques.setTitle(q.getQuestion());
+                            ques.setOptions(q.getOptions());
+                            ques.setAnswer(q.getAnswer());
+                            ques.setKnowledge(q.getKnowledge());
 
+                            ExamParseVo.QuesVo<QuesContentEntity> quesVo = new ExamParseVo.QuesVo<>();
+                            quesVo.setId(quesVoId);
+                            quesVo.setQuesType(type);
+                            quesVo.setScore(q.getScore());
+                            quesVo.setOrder(q.getOrder());
+                            quesVo.setDifficulty(q.getDifficulty());
+                            quesVo.setIsRandom(false);
+                            quesVo.setRandomNum(1);
+                            quesVo.setQuesContent(ques);
+
+                            quesVoList.add(quesVo);
+                        });
+
+                        // 随机题目
+                        Map<Integer, List<QuestionDto>> randomTypeMap = list.stream()
+                                .filter(QuestionDto::getIsRandom)
+                                .collect(Collectors.groupingBy(QuestionDto::getRandomType));
+                        randomTypeMap.forEach((rType, rList)->{
+                            OptionalInt maxRNum = rList.stream().mapToInt(QuestionDto::getRandomNumber).max(); //  题目数量 取最大值
+                            OptionalDouble maxScore = rList.stream().mapToDouble(QuestionDto::getScore).max(); // 题目分数 取最大值
+                            OptionalInt maxDifficulty = rList.stream().mapToInt(QuestionDto::getDifficulty).max(); // 题目难度 取最大值
+                            // 检查分数
+                            if(!ListUtil.isAllAttributesSame(rList, QuestionDto::getScore)){
+                                // 同一个随机规则内的题目分数不相同
+                                String errStr = "[%s]：随机规则[%s]中的题目分数不相等(%s)；".formatted(
+                                        type.getDescription(),
+                                        rType,
+                                        Arrays.toString(rList.stream().mapToDouble(QuestionDto::getScore).toArray()));
+                                quesParseErrors.computeIfAbsent(type.getDescription(), k->new ArrayList<>());
+                                quesParseErrors.get(type.getDescription()).add(errStr);
+                            }
+                            if(!ListUtil.isAllAttributesSame(rList, QuestionDto::getDifficulty)){
+                                // 同一个随机规则内的题目难度不相同
+                                String errStr = "[%s]：随机规则[%s]中的题目难度不相等(%s)；".formatted(
+                                        type.getDescription(),
+                                        rType,
+                                        Arrays.toString(rList.stream().mapToInt(QuestionDto::getDifficulty).toArray()));
+                                quesParseErrors.computeIfAbsent(type.getDescription(), k->new ArrayList<>());
+                                quesParseErrors.get(type.getDescription()).add(errStr);
+                            }
+
+                            String quesVoId = UUIDGenerator.generateUUID();
+                            List<QuesContentEntity> quesList = new ArrayList<>();
+                            rList.forEach(q->{
+                                QuesContentEntity ques = new QuesContentEntity();
+                                ques.setId(UUIDGenerator.generateUUID());
+                                ques.setPId(quesVoId);
+                                ques.setTitle(q.getQuestion());
+                                ques.setOptions(q.getOptions());
+                                ques.setAnswer(q.getAnswer());
+                                ques.setKnowledge(q.getKnowledge());
+                                quesList.add(ques);
+                            });
+                            ExamParseVo.QuesVo<List<QuesContentEntity>> quesVo = new ExamParseVo.QuesVo<>();
+                            quesVo.setQuesType(type);
+                            quesVo.setId(quesVoId);
+                            quesVo.setScore(maxScore.isPresent()?maxScore.getAsDouble():0);
+                            quesVo.setIsRandom(true);
+                            quesVo.setRandomNum(maxRNum.isPresent()?maxRNum.getAsInt():0);
+                            quesVo.setDifficulty(maxDifficulty.isPresent()?maxDifficulty.getAsInt():0);
+                            quesVo.setQuesContent(quesList);
+                            quesVo.setOrder(rList.get(0).getOrder());
+                            quesVoList.add(quesVo);
+                        });
+                        questions.computeIfAbsent(type, k->new ArrayList<>());
+                        questions.get(type).addAll(quesVoList);
+//                        questions.get(type).sort(Comparator.comparingInt(ExamParseVo.QuesVo::getOrder));
+                    });
+            //计算总分
+            AtomicReference<Double> totalScore = new AtomicReference<>((double) 0);
+            questions.forEach((type, list)->{
+                if(list!=null && !list.isEmpty()){
+                    list.sort(Comparator.comparingInt(ExamParseVo.QuesVo::getOrder));
+                    list.forEach(q->{
+                        totalScore.updateAndGet(v ->v + q.getRandomNum() * q.getScore());
+                    });
+                }
+            });
+//            System.out.println(questions.toString());
+            if (exam != null && !Objects.equals(totalScore.get(), exam.getTotalScore())) {
+                // 题目总分和考试信息总分不匹配
+                String errStr = "[总分]：考试信息中的设计总分[%s]与题目分数之和[%s]不相等；".formatted(exam.getTotalScore(), totalScore.get());
+                quesParseErrors.computeIfAbsent("总分", k->new ArrayList<>());
+                quesParseErrors.get("总分").add(errStr);
+            }
+            checkQuesParseErrors();
+            ExamParseVo examParseVo = new ExamParseVo();
+            examParseVo.setExam(exam);
+            examParseVo.setQuestions(questions);
+            examParseVo.setId(UUIDGenerator.generateUUID());
+            redisTemplate.opsForValue().set(FLAG+examParseVo.getId(), examParseVo, 7, TimeUnit.DAYS);
+            return examParseVo;
         } catch (IOException e) {
             log.error("解析EXCEL文件异常：{}",e.getMessage(),e);
             throw new ServiceException(e);
         }
+    }
+
+    public Long savaExam(ExamSaveQo qo, Integer currentUser){
+        Object data = redisTemplate.opsForValue().get(FLAG+qo.getParseId());
+        if(data==null){
+            throw new ServiceException("解析数据已过期或不存在，请重新上传并解析");
+        }
+        ExamParseVo examParseVo = (ExamParseVo) data;
+
+        // 存储examInfoEntity 返回id
+        ExamInfoEntity examInfoEntity = examParseVo.getExam();
+        examInfoEntity.setProjectId(qo.getProjectId());
+        examInfoEntity.setCreator(currentUser);
+        examInfoEntity.setCreateTime(new Date());
+        examInfoEntity.setLastModifiedTime(new Date());
+        examInfoEntity.setLastModifiedUser(currentUser);
+        examInfoEntity.setUseRandomOption(qo.isUseRandomOption());
+        examInfoEntity.setUseRandomQuestion(qo.isUseRandomQuestion());
+        examInfoEntity.setAiAutoCheck(qo.isAiAutoCheck());
+        int res = examMapper.insertExamEntity(examInfoEntity);
+        if(res!=1){
+            throw new InsertException("保存数据异常：exam entity");
+        }
+        // 存储questions batchInsert
+        List<QuestionEntity> questionEntityList = new ArrayList<>();
+        List<QuesContentEntity> quesContentEntityList = new ArrayList<>();
+
+        examParseVo.getQuestions().values().forEach(qL->{
+            qL.forEach(q->{
+                questionEntityList.add(QuesVoToQuestionEntity(q));
+                if(q.getIsRandom()){
+                    @SuppressWarnings("unchecked")
+                    List<QuesContentEntity> quesContentList = (List<QuesContentEntity>) q.getQuesContent();
+                    quesContentEntityList.addAll(quesContentList);
+                }else {
+                    QuesContentEntity quesContent = (QuesContentEntity) q.getQuesContent();
+                    quesContentEntityList.add(quesContent);
+                }
+            });
+        });
+
+        if(!questionEntityList.isEmpty()){
+            questionEntityList.forEach(q->{
+                q.setPId(examInfoEntity.getId());
+            });
+            int res1 = examMapper.batchInsertQuestion(questionEntityList);
+            if(res1 != questionEntityList.size()){
+                throw new InsertException("保存数据异常：question entity");
+            }
+        }
+        if(!quesContentEntityList.isEmpty()){
+            int res2 = examMapper.batchInsertQuesContent(quesContentEntityList);
+            if (res2!=quesContentEntityList.size()){
+                throw new InsertException("保存数据异常：question content entity");
+            }
+        }
+        redisTemplate.delete(FLAG+qo.getParseId());
+
+        return examInfoEntity.getId();
+    }
+
+    public void publishExam(List<Integer> studentIdList, Long examId){
+        ExamInfoEntity examInfoEntity = examMapper.selectExamWithQuestionsAndContent(examId);
+        System.out.println(examInfoEntity);
+        if(!studentIdList.isEmpty()){
+            // 构建试卷
+        }
+    }
+
+
+
+    private QuestionEntity QuesVoToQuestionEntity(ExamParseVo.QuesVo quesVo){
+        QuestionEntity questionEntity = new QuestionEntity();
+        questionEntity.setId(quesVo.getId());
+        questionEntity.setQuesType(quesVo.getQuesType());
+        questionEntity.setOrder(quesVo.getOrder());
+        questionEntity.setIsRandom(quesVo.getIsRandom());
+        questionEntity.setRandomNum(quesVo.getRandomNum());
+        questionEntity.setDifficulty(quesVo.getDifficulty());
+        questionEntity.setScore(quesVo.getScore());
+        return questionEntity;
     }
 
     private List<QuestionDto>  parseQuesSheet(Sheet sheet){
@@ -104,7 +318,7 @@ public class ExamServiceImpl implements ExamService {
             questionDto.setScore(getCellValue(row.getCell(7),sheet.getSheetName(),rowIndex, 7,Double.class));
             questionDto.setDifficulty(getCellValue(row.getCell(8),sheet.getSheetName(),rowIndex, 8,Integer.class));
             String knowledge = getCellValue(row.getCell(9),sheet.getSheetName(),rowIndex, 9,String.class);
-            questionDto.setKnowledge(splitString(knowledge, "，", true));
+            questionDto.setKnowledge(splitString(knowledge, ",", true));
             if(row.getCell(10)==null){
                 questionDto.setIsRandom(false);
             }else {
@@ -141,7 +355,7 @@ public class ExamServiceImpl implements ExamService {
             questionDto.setScore(getCellValue(row.getCell(3),sheet.getSheetName(),rowIndex, 3,Double.class));
             questionDto.setDifficulty(getCellValue(row.getCell(4),sheet.getSheetName(),rowIndex, 4,Integer.class));
             String knowledge = getCellValue(row.getCell(5),sheet.getSheetName(),rowIndex, 5,String.class);
-            questionDto.setKnowledge(splitString(knowledge, "，", true));
+            questionDto.setKnowledge(splitString(knowledge, ",", true));
             if(row.getCell(6)==null){
                 questionDto.setIsRandom(false);
             }else {
@@ -199,7 +413,6 @@ public class ExamServiceImpl implements ExamService {
         examInfoEntity.setEndTime(getCellValue(row.getCell(5), sheet.getSheetName(), 1, 5, Date.class));
         return examInfoEntity;
     }
-
 
     /**
      * 优化后的单元格值获取方法
@@ -327,8 +540,24 @@ public class ExamServiceImpl implements ExamService {
         }
     }
 
-    // 重置异常列表（可选，防止多次解析时异常累积）
+    /**
+     * 检查考试信息，考试题目合理性异常，有异常抛出自定义异常
+     */
+    private static void checkQuesParseErrors(){
+        List<String> allErrors = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : quesParseErrors.entrySet()){
+            allErrors.addAll(entry.getValue());
+        }
+        if(!allErrors.isEmpty()){
+            throw new ExcelCellParseException("Excel单元格解析错误，共" + allErrors.size() + "处错误:"+allErrors);
+        }
+    }
+
+    /**
+     *重置异常列表（可选，防止多次解析时异常累积）
+     */
     private static void resetErrors() {
         cellParseErrors.clear();
+        quesParseErrors.clear();
     }
 }

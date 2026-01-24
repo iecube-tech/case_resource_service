@@ -121,7 +121,7 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
     @Override
     public void dataTest(Integer projectId,  AnalysisProgress progress){
         this.dataClean(projectId); //数据清洗
-        AnalysisType type = AnalysisType.PST_SUG;
+        AnalysisType type = AnalysisType.T_TR_OVERVIEW;
         try{
             this.genChildData(projectId, progress.getId(), type);
             log.info("[{}][{}] 数据已生成", projectId, type.getDesc());
@@ -201,7 +201,8 @@ public class AnalysisDataGenServiceImpl implements AnalysisDataGenService {
         // 5. 课程实验难度 String
         ArrayNode courseGrades = objectMapper.createArrayNode();
         Map<String, Integer> gradeMap = new HashMap<>();
-        PSTDtoWithoutStage.values().forEach(pst->{
+        PSTGroupByStu.values().forEach(pstDtoList -> {
+            PSTDto pst = pstDtoList.get(0);
             if(pst.getPsScore()<60){
                 gradeMap.compute("<60",(k,v)->v==null?1:v+1);
             } else if (pst.getPsScore()>=60&&pst.getPsScore()<70) {
