@@ -11,4 +11,6 @@ public interface ExamService {
     Long savaExam(ExamSaveQo qo, Integer currentUser);
 
     void publishExam(List<Integer> studentIdList, Long examId);
+
+    void publishExamToProject(Integer projectId, Long examId);
 }

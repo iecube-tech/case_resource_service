@@ -328,6 +328,11 @@ public class ProjectServiceImpl implements ProjectService {
         return projectList.stream().filter(Project::getShowTheGrade).toList();
     }
 
+    @Override
+    public List<Project> getMyWhichCreatedExam(Integer teacherId) {
+        return projectMapper.findByCreatorWhichCreatedExam(teacherId);
+    }
+
     private void createEMDTask(ProjectDto projectDto, Project project, Integer teacherId) {
         // projectDto 中 用户teacher携带的task ==> 创建task -> task表 &&  -> e_md_task_proc表
         List<Task> EMDTaskList = new ArrayList<>();

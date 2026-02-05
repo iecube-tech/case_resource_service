@@ -1,5 +1,6 @@
 package com.iecube.community.model.Exam.Service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -7,15 +8,14 @@ import com.iecube.community.baseservice.ex.ServiceException;
 import com.iecube.community.model.Exam.Dto.QuesType;
 import com.iecube.community.model.Exam.Dto.QuestionDto;
 import com.iecube.community.model.Exam.Service.ExamService;
-import com.iecube.community.model.Exam.entity.ExamInfoEntity;
-import com.iecube.community.model.Exam.entity.QuesContentEntity;
-import com.iecube.community.model.Exam.entity.QuestionEntity;
+import com.iecube.community.model.Exam.entity.*;
 import com.iecube.community.model.Exam.exception.ExcelCellParseException;
 import com.iecube.community.model.Exam.mapper.ExamMapper;
 import com.iecube.community.model.Exam.qo.ExamSaveQo;
 import com.iecube.community.model.Exam.vo.ExamParseVo;
 import com.iecube.community.model.auth.service.ex.InsertException;
 import com.iecube.community.util.list.ListUtil;
+import com.iecube.community.util.random.RandomUtil;
 import com.iecube.community.util.uuid.UUIDGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -208,6 +208,7 @@ public class ExamServiceImpl implements ExamService {
         }
     }
 
+    @Override
     public Long savaExam(ExamSaveQo qo, Integer currentUser){
         Object data = redisTemplate.opsForValue().get(FLAG+qo.getParseId());
         if(data==null){
@@ -262,20 +263,134 @@ public class ExamServiceImpl implements ExamService {
                 throw new InsertException("保存数据异常：question content entity");
             }
         }
-        redisTemplate.delete(FLAG+qo.getParseId());
+        // redisTemplate.delete(FLAG+qo.getParseId());
 
         return examInfoEntity.getId();
     }
 
+    @Override
     public void publishExam(List<Integer> studentIdList, Long examId){
         ExamInfoEntity examInfoEntity = examMapper.selectExamWithQuestionsAndContent(examId);
-        System.out.println(examInfoEntity);
+
         if(!studentIdList.isEmpty()){
-            // 构建试卷
+            List<ExamStudent> examStudents = new ArrayList<>();
+            studentIdList.forEach(s->{
+                ExamStudent examStudent = new ExamStudent();
+                examStudent.setStudentId(s);
+                examStudent.setExamId(examId);
+                examStudent.setScore(0.0);
+                examStudents.add(examStudent);
+            });
+            int res = examMapper.batchInsertExamStudent(examStudents);
+            if(res!=examStudents.size()){
+                throw new InsertException("保存数据异常: exam students 数量不匹配");
+            }
+            List<ExamPaper> examPapers = new ArrayList<>();
+            examStudents.forEach(examStudent->{
+                examInfoEntity.getExamQuestions().forEach(questionEntity -> {
+                    if(questionEntity.getIsRandom()){
+                        int randomNum = questionEntity.getRandomNum();
+                        int qSize = questionEntity.getExamQuesContents().size();
+                        List<Integer> randomIndex = new ArrayList<>();
+                        if(examInfoEntity.getUseRandomQuestion()){
+                            randomIndex.addAll(RandomUtil.generateUniqueRandomNumbers(0,qSize-1,randomNum));
+                        }else{
+                            for(int i=0;i<randomNum;i++){
+                                randomIndex.add(i);
+                            }
+                        }
+                        for(Integer index:randomIndex){
+                            // 构建试卷
+                            ExamPaper examPaper = new ExamPaper();
+                            examPaper.setId(UUIDGenerator.generateUUID());
+                            examPaper.setEsId(examStudent.getId());
+                            examPaper.setQuesType(questionEntity.getQuesType());
+                            examPaper.setOrder(questionEntity.getOrder()+index);
+                            examPaper.setTotalScore(questionEntity.getScore());
+                            examPaper.setScore(0.0);
+                            examPaper.setTitle(questionEntity.getExamQuesContents().get(index).getTitle());
+                            examPaper.setOptions(questionEntity.getExamQuesContents().get(index).getOptions()); // 随机处理
+                            examPaper.setAnswer(questionEntity.getExamQuesContents().get(index).getAnswer());
+                            examPaper.setKnowledge(questionEntity.getExamQuesContents().get(index).getKnowledge());
+                            if(examInfoEntity.getUseRandomOption()){
+                                examPapers.add(this.randomOptions(examPaper));
+                            }else {
+                                examPapers.add(examPaper);
+                            }
+
+                        }
+                    }else{
+                        ExamPaper examPaper = new ExamPaper();
+                        examPaper.setId(UUIDGenerator.generateUUID());
+                        examPaper.setEsId(examStudent.getId());
+                        examPaper.setQuesType(questionEntity.getQuesType());
+                        examPaper.setOrder(questionEntity.getOrder());
+                        examPaper.setTotalScore(questionEntity.getScore());
+                        examPaper.setScore(0.0);
+                        examPaper.setTitle(questionEntity.getExamQuesContents().get(0).getTitle());
+                        examPaper.setOptions(questionEntity.getExamQuesContents().get(0).getOptions()); // 随机处理
+                        examPaper.setAnswer(questionEntity.getExamQuesContents().get(0).getAnswer());
+                        examPaper.setKnowledge(questionEntity.getExamQuesContents().get(0).getKnowledge());
+                        if(examInfoEntity.getUseRandomOption()){
+                            examPapers.add(this.randomOptions(examPaper));
+                        }else {
+                            examPapers.add(examPaper);
+                        }
+                    }
+                });
+            });
+            int res1 = examMapper.batchInsertExamPaper(examPapers);
+            if(res1!=examPapers.size()){
+                throw new InsertException("保存数据异常：exam papers 数量不匹配");
+            }
         }
     }
 
+    @Override
+    public void publishExamToProject(Integer projectId, Long examId){
+        List<Integer> studentIdList = examMapper.selectProjectStudentId(projectId);
+        this.publishExam(studentIdList, examId);
+    }
 
+    private ExamPaper randomOptions(ExamPaper examPaper){
+        if(examPaper.getQuesType()!=QuesType.CHOICE && examPaper.getQuesType()!=QuesType.MultipleCHOICE){
+            return examPaper;
+        }
+        ArrayNode arrayNode = (ArrayNode) examPaper.getOptions();
+        String answer = examPaper.getAnswer();
+        List<String> answerList = answer==null? new ArrayList<>() : Arrays.stream(answer.split(","))
+                .map(String::trim)
+                .toList();
+        // 建立「选项值 - 原始标签」的映射（如：热敏性 → A）
+        Map<String, String> valueToOriginalLabel = new HashMap<>();
+        for (JsonNode option : arrayNode) {
+            valueToOriginalLabel.put(option.get("value").asText(), option.get("label").asText());
+        }
+
+        // 随机打乱选项列表（创建新列表，避免修改原对象）
+        List<String> shuffledValues = new ArrayList<>(valueToOriginalLabel.keySet());
+        Collections.shuffle(shuffledValues);
+
+        List<String> labels = new ArrayList<>(valueToOriginalLabel.values());
+        labels.sort(Comparator.naturalOrder());
+
+        ArrayNode arrayNode1 = objectMapper.createArrayNode();
+        List<String> answerList1 = new ArrayList<>();
+        for(int i=0; i<labels.size(); i++){
+            ObjectNode objectNode = objectMapper.createObjectNode();
+            objectNode.put("label", labels.get(i));
+            objectNode.put("value", shuffledValues.get(i));
+            if(answerList.contains(valueToOriginalLabel.get(shuffledValues.get(i)))){
+                answerList1.add(labels.get(i));
+            }
+            arrayNode1.add(objectNode);
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        answerList1.forEach(l-> stringBuilder.append(l).append(","));
+        examPaper.setOptions(arrayNode1);
+        examPaper.setAnswer(stringBuilder.toString());
+        return examPaper;
+    }
 
     private QuestionEntity QuesVoToQuestionEntity(ExamParseVo.QuesVo quesVo){
         QuestionEntity questionEntity = new QuestionEntity();

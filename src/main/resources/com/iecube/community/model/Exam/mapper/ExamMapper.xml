@@ -39,6 +39,9 @@
         <result column="create_time" property="createTime"></result>
         <result column="last_modified_user" property="lastModifiedUser"></result>
         <result column="last_modified_time" property="lastModifiedTime"></result>
+        <result column="use_random_option" property="useRandomOption"></result>
+        <result column="use_random_question" property="useRandomQuestion"></result>
+        <result column="ai_auto_check" property="aiAutoCheck"></result>
         <!-- 嵌套题目列表 -->
         <collection property="examQuestions" ofType="com.iecube.community.model.Exam.entity.ExamInfoEntity"
                     resultMap="ExamQuestionResultMap"/>
@@ -47,9 +50,11 @@
     <insert id="insertExamEntity" keyProperty="id" useGeneratedKeys="true">
         INSERT INTO
             ExamInfo (`id`, `project_id`, `name`, `duration`, `total_score`, `pass_score`, `start_time`,
-                      `end_time`, `create_time`, `creator`, `last_modified_user`, `last_modified_time`)
+                      `end_time`, `create_time`, `creator`, `last_modified_user`, `last_modified_time`,
+                      `use_random_option`, `use_random_question`, `ai_auto_check`)
         VALUES (NULL, #{projectId}, #{name}, #{duration}, #{totalScore}, #{passScore}, #{startTime},
-                #{endTime}, #{createTime}, #{creator}, #{lastModifiedUser}, #{lastModifiedTime})
+                #{endTime}, #{createTime}, #{creator}, #{lastModifiedUser}, #{lastModifiedTime},
+                #{useRandomOption}, #{useRandomQuestion}, #{aiAutoCheck})
     </insert>
 
     <insert id="batchInsertQuestion">
@@ -65,7 +70,7 @@
     </insert>
 
     <insert id="batchInsertQuesContent">
-        INSERT INTO Exam_ques_content  (id, p_id, title, options_string, answer, knowledge_str)
+        INSERT INTO Exam_ques_content  (`id`, `p_id`, `title`, `options_string`, `answer`, `knowledge_str`)
         VALUES
             <foreach collection="list" separator="," item="item">
                 (
@@ -78,42 +83,63 @@
     <!-- 核心SQL：一次联表查询所有数据 -->
     <select id="selectExamWithQuestionsAndContent" resultMap="ExamInfoWithAllResultMap">
         SELECT
-            ei.id AS exam_id,
-            ei.project_id,
-            ei.name,
-            ei.duration,
-            ei.total_score,
-            ei.pass_score,
-            ei.start_time,
-            ei.end_time,
-            ei.create_time,
-            ei.creator,
-            ei.last_modified_user,
-            ei.last_modified_time,
-            eq.id AS question_id,
-            eq.p_id AS question_p_id,
-            eq.ques_type,
+            ei.`id` AS exam_id,
+            ei.`project_id`,
+            ei.`name`,
+            ei.`duration`,
+            ei.`total_score`,
+            ei.`pass_score`,
+            ei.`start_time`,
+            ei.`end_time`,
+            ei.`create_time`,
+            ei.`creator`,
+            ei.`last_modified_user`,
+            ei.`last_modified_time`,
+            ei.`use_random_option`,
+            ei.`use_random_question`,
+            ei.`ai_auto_check`,
+            eq.`id` AS question_id,
+            eq.`p_id` AS question_p_id,
+            eq.`ques_type`,
             eq.`order`,
-            eq.is_random,
-            eq.random_num,
-            eq.difficulty,
-            eq.score,
-            eqc.id AS content_id,
-            eqc.p_id AS content_p_id,
-            eqc.title,
-            eqc.options_string,
-            eqc.answer,
-            eqc.knowledge_str
+            eq.`is_random`,
+            eq.`random_num`,
+            eq.`difficulty`,
+            eq.`score`,
+            eqc.`id` AS content_id,
+            eqc.`p_id` AS content_p_id,
+            eqc.`title`,
+            eqc.`options_string`,
+            eqc.`answer`,
+            eqc.`knowledge_str`
         FROM ExamInfo ei
-                 LEFT JOIN Exam_question eq ON ei.id = eq.p_id
-                 LEFT JOIN Exam_ques_content eqc ON eq.id = eqc.p_id
-        WHERE ei.id = #{id}
+                 LEFT JOIN Exam_question eq ON ei.`id` = eq.`p_id`
+                 LEFT JOIN Exam_ques_content eqc ON eq.`id` = eqc.`p_id`
+        WHERE ei.`id` = #{id}
         ORDER BY eq.`ques_type`, eq.`order` ASC; -- 按题目排序，保证顺序一致
     </select>
 
     <select id="selectProjectStudentId" resultType="java.lang.Integer">
-        SELECT student_id FROM EMDV4_projectStudent WHERE project_id=#{projectId};
+        SELECT `student_id` FROM EMDV4_projectStudent WHERE `project_id`=#{projectId};
     </select>
+
+    <insert id="batchInsertExamStudent" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO Exam_student (`id`, `exam_id`, `student_id`, `score`, `start_time` ,`end_time`)
+        VALUES
+            <foreach collection="list" separator="," item="item">
+                (NULL, #{item.examId}, #{item.studentId}, #{item.score}, #{item.startTime}, #{item.endTime})
+            </foreach>
+    </insert>
+
+    <insert id="batchInsertExamPaper">
+        INSERT INTO Exam_paper (`id`, `es_id`, `ques_type`, `order`, `total_score`, `score`, `title`, `options_string`,
+                                `answer`, `knowledge_str`, `response`)
+        VALUES
+            <foreach collection="list" separator="," item="item">
+                (#{item.id}, #{item.esId}, #{item.quesType}, #{item.order}, #{item.totalScore}, #{item.score},
+                 #{item.title}, #{item.optionsString}, #{item.answer}, #{item.knowledgeStr}, #{item.response})
+            </foreach>
+    </insert>
 
 
 </mapper>

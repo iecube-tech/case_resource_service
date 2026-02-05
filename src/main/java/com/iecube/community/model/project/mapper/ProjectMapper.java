@@ -48,4 +48,6 @@ public interface ProjectMapper {
 
     void publishProjectGrade(Integer projectId);
     void cancelPublishProjectGrade(Integer projectId);
+
+    List<Project> findByCreatorWhichCreatedExam(Integer creatorId);
 }

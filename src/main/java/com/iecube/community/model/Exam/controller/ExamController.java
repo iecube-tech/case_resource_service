@@ -5,6 +5,8 @@ import com.iecube.community.baseservice.ex.ServiceException;
 import com.iecube.community.model.Exam.Service.ExamService;
 import com.iecube.community.model.Exam.qo.ExamSaveQo;
 import com.iecube.community.model.Exam.vo.ExamParseVo;
+import com.iecube.community.model.project.entity.Project;
+import com.iecube.community.model.project.service.ProjectService;
 import com.iecube.community.model.resource.service.ResourceService;
 import com.iecube.community.util.DownloadUtil;
 import com.iecube.community.util.JsonResult;
@@ -16,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/exam")
@@ -26,6 +29,9 @@ public class ExamController extends BaseController {
 
     @Autowired
     private ResourceService resourceService;
+
+    @Autowired
+    private ProjectService projectService;
 
     private final Resource examTemplate = new ClassPathResource("templates/exam_template.xlsx");
 
@@ -57,6 +63,15 @@ public class ExamController extends BaseController {
     @PostMapping("/save")
     public JsonResult<Void> saveExam(@RequestBody ExamSaveQo qo){
         Long examId = examService.savaExam(qo, currentUserId());
+        examService.publishExamToProject(qo.getProjectId(), examId);
         return new JsonResult<>(OK);
     }
+
+    @GetMapping("/course")
+    public JsonResult<List<Project>> getMyExamCourse(){
+        return new JsonResult<>(OK, projectService.getMyWhichCreatedExam(currentUserId()));
+    }
+
+
+
 }

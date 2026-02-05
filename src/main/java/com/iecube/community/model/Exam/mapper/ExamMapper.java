@@ -1,8 +1,6 @@
 package com.iecube.community.model.Exam.mapper;
 
-import com.iecube.community.model.Exam.entity.ExamInfoEntity;
-import com.iecube.community.model.Exam.entity.QuesContentEntity;
-import com.iecube.community.model.Exam.entity.QuestionEntity;
+import com.iecube.community.model.Exam.entity.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -20,5 +18,7 @@ public interface ExamMapper {
 
     List<Integer> selectProjectStudentId(@Param("projectId") Integer projectId);
 
+    int batchInsertExamStudent(List<ExamStudent> list);
 
+    int batchInsertExamPaper(List<ExamPaper> list);
 }

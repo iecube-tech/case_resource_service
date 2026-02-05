@@ -45,4 +45,6 @@ public interface ProjectService {
     Project publishGrade(Integer projectId);
 
     List<Project> getStudentGrades(Integer studentId);
+
+    List<Project> getMyWhichCreatedExam(Integer teacherId);
 }

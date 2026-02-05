@@ -160,4 +160,13 @@
         UPDATE project SET show_the_grade=0 WHERE id=#{projectId}
     </update>
 
+    <select id="findByCreatorWhichCreatedExam" resultMap="ProjectEntity">
+        SELECT p.*
+        FROM ExamInfo e LEFT JOIN project p
+            ON e.project_id=p.id
+        WHERE p.creator=#{creatorId} AND p.is_delete=0 AND p.version=4
+        GROUP BY p.id
+        ORDER BY create_time;
+    </select>
+
 </mapper>
