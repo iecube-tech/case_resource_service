@@ -10,6 +10,7 @@ public class ExamStudent {
     private Long examId;
     private Integer studentId;
     private Double score;
+    private Double aiScore;
     private Date startTime;
     private Date endTime;
 }

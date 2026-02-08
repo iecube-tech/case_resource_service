@@ -3,10 +3,10 @@ package com.iecube.community.model.Exam.controller;
 import com.iecube.community.basecontroller.BaseController;
 import com.iecube.community.baseservice.ex.ServiceException;
 import com.iecube.community.model.Exam.Service.ExamService;
+import com.iecube.community.model.Exam.entity.ExamInfoEntity;
+import com.iecube.community.model.Exam.entity.ExamPaper;
 import com.iecube.community.model.Exam.qo.ExamSaveQo;
-import com.iecube.community.model.Exam.vo.ExamParseVo;
-import com.iecube.community.model.project.entity.Project;
-import com.iecube.community.model.project.service.ProjectService;
+import com.iecube.community.model.Exam.vo.*;
 import com.iecube.community.model.resource.service.ResourceService;
 import com.iecube.community.util.DownloadUtil;
 import com.iecube.community.util.JsonResult;
@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/exam")
@@ -29,9 +30,6 @@ public class ExamController extends BaseController {
 
     @Autowired
     private ResourceService resourceService;
-
-    @Autowired
-    private ProjectService projectService;
 
     private final Resource examTemplate = new ClassPathResource("templates/exam_template.xlsx");
 
@@ -68,10 +66,38 @@ public class ExamController extends BaseController {
     }
 
     @GetMapping("/course")
-    public JsonResult<List<Project>> getMyExamCourse(){
-        return new JsonResult<>(OK, projectService.getMyWhichCreatedExam(currentUserId()));
+    public JsonResult<List<ExamCourseVo>> getMyExamCourse(){
+        return new JsonResult<>(OK, examService.getExamCourses(currentUserId()));
     }
 
+    @GetMapping("/{projectId}/examList")
+    public JsonResult<Map<String, List<ExamInfoVo>>> getCourseExamList(@PathVariable Integer projectId){
+        return new JsonResult<>(OK, examService.getCourseExamList(projectId));
+    }
 
+    @GetMapping("/examinfo")
+    public JsonResult<ExamInfoVo> getExamInfo(Long examId){
+        return new JsonResult<>(OK, examService.getExamInfo(examId));
+    }
 
+    @DeleteMapping("/del/{projectId}/{examId}")
+    public JsonResult<Map<String, List<ExamInfoVo>>> delCourseExam(@PathVariable Integer projectId, @PathVariable Long examId){
+        return new JsonResult<>(OK, examService.delCourseExam(projectId, examId));
+    }
+
+    @GetMapping("/{examId}/students")
+    public JsonResult<List<ExamStudentVo>> getExamStudents(@PathVariable Long examId, Integer page, Integer pageSize){
+        return new JsonResult<>(OK, examService.getExamStudentList(examId, page, pageSize));
+    }
+
+    @GetMapping("/{esId}/exam_paper")
+    public JsonResult<StuExamPaperVo> getExamStudentPaper(@PathVariable Long esId){
+        return new JsonResult<>(OK, examService.getStudentExamPaperVo(esId));
+    }
+
+    @PostMapping("/{esId}/scoreup")
+    public JsonResult<Void> scoreUp(@PathVariable Long esId, String quesId, Boolean upRemark, String remark, Double score){
+        examService.upQuesScore(esId,quesId,upRemark,remark, score);
+        return new JsonResult<>(OK);
+    }
 }

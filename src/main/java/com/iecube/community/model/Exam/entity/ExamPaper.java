@@ -24,6 +24,10 @@ public class ExamPaper {
     private String knowledgeStr;
     private List<String> knowledge;
     private String response;
+    private Double aiScore;
+    private String payloadStr;
+    private JsonNode payload;
+
 
     public void setOptions(JsonNode options) {
         this.options = options;
@@ -72,6 +76,17 @@ public class ExamPaper {
             }
         }
         this.knowledge = k;
+    }
+
+    public void setPayloadStr(String payloadStr) {
+        this.payloadStr = payloadStr;
+        if(payloadStr != null && !payloadStr.isEmpty()){
+            try{
+                this.payload = new ObjectMapper().readTree(payloadStr);
+            }catch (JsonProcessingException e){
+                this.payload = null;
+            }
+        }
     }
 
 }

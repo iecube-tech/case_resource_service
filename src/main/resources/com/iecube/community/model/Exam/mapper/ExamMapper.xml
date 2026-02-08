@@ -47,6 +47,61 @@
                     resultMap="ExamQuestionResultMap"/>
     </resultMap>
 
+    <resultMap id="ExamCourseVo" type="com.iecube.community.model.Exam.vo.ExamCourseVo">
+        <result column="id" property="projectId"/>
+        <result column="project_name" property="projectName"/>
+        <result column="create_time" property="createTime"/>
+        <result column="stu_num" property="stuNum"/>
+    </resultMap>
+
+    <resultMap id="ExamStudent" type="com.iecube.community.model.Exam.entity.ExamStudent">
+        <result column="es_id" property="id" />
+        <result column="exam_id" property="examId" />
+        <result column="student_id" property="studentId" />
+        <result column="score" property="score" />
+        <result column="ai_score" property="aiScore" />
+        <result column="start_time" property="startTime" />
+        <result column="end_time" property="endTime" />
+    </resultMap>
+
+    <resultMap id="ExamWithStudentDto" type="com.iecube.community.model.Exam.Dto.ExamWithStudentDto">
+        <id column="exam_id" property="id"/>
+        <result column="project_id" property="projectId" />
+        <result column="project_name" property="projectName" />
+        <result column="semester" property="semester" />
+        <result column="name" property="name" />
+        <result column="duration" property="duration" />
+        <result column="total_score" property="totalScore" />
+        <result column="pass_score" property="passScore" />
+        <result column="exam_start_time" property="startTime" />
+        <result column="exam_end_time" property="endTime" />
+        <collection property="examStudentList"  ofType="com.iecube.community.model.Exam.Dto.ExamWithStudentDto"
+                    resultMap="ExamStudent"/>
+    </resultMap>
+
+    <resultMap id="ExamStudentVo" type="com.iecube.community.model.Exam.vo.ExamStudentVo">
+        <result column="id" property="esId"/>
+        <result column="exam_id" property="examId"/>
+        <result column="student_id" property="stuId"/>
+        <result column="student_name" property="stuName"/>
+        <result column="score" property="score"/>
+        <result column="remark" property="remark"/>
+        <result column="ai_score" property="aiScore"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+    </resultMap>
+
+    <resultMap id="ExamPaper" type="com.iecube.community.model.Exam.entity.ExamPaper">
+        <result column="id" property="id"/>
+        <result column="es_id" property="esId"/>
+        <result column="ques_type" property="quesType"/>
+        <result column="total_score" property="totalScore"/>
+        <result column="options_string" property="optionsString"/>
+        <result column="knowledge_str" property="knowledgeStr"/>
+        <result column="ai_score" property="aiScore"/>
+        <result column="payload_str" property="payloadStr"/>
+    </resultMap>
+
     <insert id="insertExamEntity" keyProperty="id" useGeneratedKeys="true">
         INSERT INTO
             ExamInfo (`id`, `project_id`, `name`, `duration`, `total_score`, `pass_score`, `start_time`,
@@ -56,6 +111,10 @@
                 #{endTime}, #{createTime}, #{creator}, #{lastModifiedUser}, #{lastModifiedTime},
                 #{useRandomOption}, #{useRandomQuestion}, #{aiAutoCheck})
     </insert>
+
+    <delete id="delExamById">
+        DELETE FROM ExamInfo WHERE id=#{id}
+    </delete>
 
     <insert id="batchInsertQuestion">
         INSERT INTO
@@ -124,10 +183,10 @@
     </select>
 
     <insert id="batchInsertExamStudent" keyProperty="id" useGeneratedKeys="true">
-        INSERT INTO Exam_student (`id`, `exam_id`, `student_id`, `score`, `start_time` ,`end_time`)
+        INSERT INTO Exam_student (`id`, `exam_id`, `student_id`, `score`, `ai_score`, `start_time` ,`end_time`)
         VALUES
             <foreach collection="list" separator="," item="item">
-                (NULL, #{item.examId}, #{item.studentId}, #{item.score}, #{item.startTime}, #{item.endTime})
+                (NULL, #{item.examId}, #{item.studentId}, 0.00, 0.00, #{item.startTime}, #{item.endTime})
             </foreach>
     </insert>
 
@@ -141,5 +200,151 @@
             </foreach>
     </insert>
 
+    <select id="selectTeacherExamCourse" resultMap="ExamCourseVo">
+        SELECT
+            p.id,
+            p.project_name,
+            p.semester,
+            p.cover,
+            p.create_time,
+            COUNT(DISTINCT ps.id) AS stu_num
+        FROM ExamInfo e
+                 LEFT JOIN project p  ON e.project_id=p.id
+                 LEFT JOIN EMDV4_projectStudent ps ON p.id=ps.project_id
+        WHERE p.creator=#{creator} AND p.is_delete=0 AND p.version=4
+        GROUP BY p.id
+        ORDER BY create_time;
+    </select>
+
+    <select id="selectExamWithStudentDto" resultMap="ExamWithStudentDto">
+        SELECT
+            ei.`id`AS exam_id,
+            ei.`project_id`,
+            p.project_name,
+            p.semester,
+            ei.`name`,
+            ei.`duration`,
+            ei.`total_score`,
+            ei.`pass_score`,
+            ei.`start_time` AS exam_start_time,
+            ei.`end_time` AS exam_end_time,
+            es.`id` AS es_id,
+            es.`exam_id`,
+            es.`student_id`,
+            es.`score`,
+            es.`ai_score`,
+            es.`start_time`,
+            es.`end_time`
+        FROM ExamInfo ei
+            LEFT JOIN Exam_student es
+                ON ei.`id`=es.`exam_id`
+            LEFT JOIN project p
+                ON p.id=ei.project_id
+        WHERE ei.`project_id`=#{projectId};
+    </select>
+
+    <select id="selectExamWithStudentDtoById" resultMap="ExamWithStudentDto">
+        SELECT
+            ei.`id`AS exam_id,
+            ei.`project_id`,
+            p.project_name,
+            p.semester,
+            ei.`name`,
+            ei.`duration`,
+            ei.`total_score`,
+            ei.`pass_score`,
+            ei.`start_time` AS exam_start_time,
+            ei.`end_time` AS exam_end_time,
+            es.`id` AS es_id,
+            es.`exam_id`,
+            es.`student_id`,
+            es.`score`,
+            es.`ai_score`,
+            es.`start_time`,
+            es.`end_time`
+        FROM ExamInfo ei
+            LEFT JOIN Exam_student es
+                ON ei.`id`=es.`exam_id`
+            LEFT JOIN project p
+                ON p.id=ei.project_id
+        WHERE ei.`id`=#{examId};
+    </select>
+
+    <delete id="deleteExamInfoByExamId">
+        DELETE FROM ExamInfo WHERE id=#{id}
+    </delete>
+
+    <select id="selectExamStudentVoByExamId" resultMap="ExamStudentVo">
+        SELECT
+            es.id,
+            es.exam_id,
+            s.student_id,
+            s.student_name,
+            es.score,
+            es.ai_score,
+            es.start_time,
+            es.end_time
+        FROM Exam_student es LEFT JOIN Student s ON es.student_id=s.id
+        WHERE es.exam_id=#{examId}
+        ORDER BY s.student_id
+        LIMIT #{offset},#{pageSize}
+    </select>
+
+    <select id="selectEsIdByExamId" resultType="java.lang.Long">
+        SELECT
+            es.id
+        FROM Exam_student es LEFT JOIN Student s ON es.student_id=s.id
+        WHERE es.exam_id=#{examId}
+        ORDER BY s.student_id
+    </select>
+
+    <select id="selectExamStudentVoByEsId" resultMap="ExamStudentVo">
+        SELECT
+            es.id,
+            es.exam_id,
+            s.student_id,
+            s.student_name,
+            es.score,
+            es.ai_score,
+            es.start_time,
+            es.end_time,
+            es.remark
+        FROM Exam_student es LEFT JOIN Student s ON es.student_id=s.id
+        WHERE es.id=#{esId}
+    </select>
+
+    <select id="selectExamStudentPaper" resultMap="ExamPaper">
+        SELECT `id`, `es_id`, `ques_type`, `order`, `total_score`, `score`, `title`, `options_string`,
+               `answer`, `knowledge_str`, `response`, `ai_score`, `payload_str`
+        FROM Exam_paper
+        WHERE es_id=#{esId}
+        ORDER BY `ques_type`, `order`
+    </select>
+
+    <update id="updateQuesScore">
+        UPDATE Exam_paper SET `score`=#{score} WHERE id=#{quesId}
+    </update>
+
+    <update id="updateQuesAiScore">
+        UPDATE Exam_paper SET `ai_score`=#{aiScore},
+                              `payload_str`=#{payloadStr}
+                          WHERE id=#{quesId}
+    </update>
+
+    <update id="updateEsScoreAndRemark">
+        UPDATE Exam_student SET score=#{score},
+                                remark=#{remark}
+                            WHERE id=#{esId}
+    </update>
+
+    <update id="updateEsScore">
+        UPDATE Exam_student SET score=#{score}
+        WHERE id=#{esId}
+    </update>
+
+    <update id="updateEsAiScore">
+        UPDATE Exam_student SET ai_score=#{aiScore}
+        WHERE id=#{esId}
+    </update>
 
 </mapper>

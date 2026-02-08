@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.iecube.community.baseservice.ex.ServiceException;
+import com.iecube.community.model.Exam.Dto.ExamWithStudentDto;
 import com.iecube.community.model.Exam.Dto.QuesType;
 import com.iecube.community.model.Exam.Dto.QuestionDto;
 import com.iecube.community.model.Exam.Service.ExamService;
@@ -12,8 +13,9 @@ import com.iecube.community.model.Exam.entity.*;
 import com.iecube.community.model.Exam.exception.ExcelCellParseException;
 import com.iecube.community.model.Exam.mapper.ExamMapper;
 import com.iecube.community.model.Exam.qo.ExamSaveQo;
-import com.iecube.community.model.Exam.vo.ExamParseVo;
+import com.iecube.community.model.Exam.vo.*;
 import com.iecube.community.model.auth.service.ex.InsertException;
+import com.iecube.community.model.direction.service.ex.DeleteException;
 import com.iecube.community.util.list.ListUtil;
 import com.iecube.community.util.random.RandomUtil;
 import com.iecube.community.util.uuid.UUIDGenerator;
@@ -25,6 +27,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -281,9 +285,15 @@ public class ExamServiceImpl implements ExamService {
                 examStudent.setScore(0.0);
                 examStudents.add(examStudent);
             });
-            int res = examMapper.batchInsertExamStudent(examStudents);
-            if(res!=examStudents.size()){
-                throw new InsertException("保存数据异常: exam students 数量不匹配");
+            try{
+                int res = examMapper.batchInsertExamStudent(examStudents);
+                if(res!=examStudents.size()){
+                    throw new InsertException("保存数据异常: exam students 数量不匹配");
+                }
+            }catch (Exception e){
+                log.error(e.getMessage(),e);
+                examMapper.delExamById(examId);
+                throw new InsertException("保存数据异常");
             }
             List<ExamPaper> examPapers = new ArrayList<>();
             examStudents.forEach(examStudent->{
@@ -339,9 +349,15 @@ public class ExamServiceImpl implements ExamService {
                     }
                 });
             });
-            int res1 = examMapper.batchInsertExamPaper(examPapers);
-            if(res1!=examPapers.size()){
-                throw new InsertException("保存数据异常：exam papers 数量不匹配");
+            try{
+                int res1 = examMapper.batchInsertExamPaper(examPapers);
+                if(res1!=examPapers.size()){
+                    throw new InsertException("保存数据异常：exam papers 数量不匹配");
+                }
+            }catch (Exception e){
+                log.error(e.getMessage(),e);
+                examMapper.delExamById(examId);
+                throw new InsertException("保存数据异常");
             }
         }
     }
@@ -350,6 +366,163 @@ public class ExamServiceImpl implements ExamService {
     public void publishExamToProject(Integer projectId, Long examId){
         List<Integer> studentIdList = examMapper.selectProjectStudentId(projectId);
         this.publishExam(studentIdList, examId);
+    }
+
+    @Override
+    public List<ExamCourseVo> getExamCourses(Integer creator) {
+        return examMapper.selectTeacherExamCourse(creator);
+    }
+
+    @Override
+    public Map<String, List<ExamInfoVo>> getCourseExamList(Integer projectId) {
+        List<ExamWithStudentDto> examWithStudentDtoList = examMapper.selectExamWithStudentDto(projectId);
+        Map<String, List<ExamInfoVo>> examInfoListMap = new HashMap<>();
+        examInfoListMap.put("doing", new ArrayList<>());
+        examInfoListMap.put("willStart", new ArrayList<>());
+        examInfoListMap.put("done", new ArrayList<>());
+        examWithStudentDtoList.forEach(examWithStudentDto -> {
+            ExamInfoVo examInfoVo = genExamInfoVo(examWithStudentDto);
+            if(examWithStudentDto.getStartTime()!=null
+                    && examWithStudentDto.getEndTime()!=null
+                    && examWithStudentDto.getStartTime().before(examWithStudentDto.getEndTime())){
+                if(examWithStudentDto.getStartTime().after(new Date()) ){
+                    // 未开始
+                    examInfoListMap.get("willStart").add(examInfoVo);
+                }
+                if(examWithStudentDto.getStartTime().before(new Date()) && examWithStudentDto.getEndTime().after(new Date())){
+                    // 进行中
+                    examInfoListMap.get("doing").add(examInfoVo);
+                }
+                if(examWithStudentDto.getEndTime().before(new Date())){
+                    // 已结束
+                    examInfoListMap.get("done").add(examInfoVo);
+                }
+            }
+        });
+        return examInfoListMap;
+    }
+
+    private ExamInfoVo genExamInfoVo(ExamWithStudentDto examWithStudentDto){
+        ExamInfoVo examInfoVo = new ExamInfoVo();
+        examInfoVo.setExamId(examWithStudentDto.getId());
+        examInfoVo.setProjectId(examWithStudentDto.getProjectId());
+        examInfoVo.setProjectName(examWithStudentDto.getProjectName());
+        examInfoVo.setSemester(examWithStudentDto.getSemester());
+        examInfoVo.setExamName(examWithStudentDto.getName());
+        examInfoVo.setDuration(examWithStudentDto.getDuration());
+        examInfoVo.setTotalScore(examWithStudentDto.getTotalScore());
+        examInfoVo.setPassScore(examWithStudentDto.getPassScore());
+        examInfoVo.setStartTime(examWithStudentDto.getStartTime());
+        examInfoVo.setEndTime(examWithStudentDto.getEndTime());
+        examInfoVo.setStuNum(examWithStudentDto.getExamStudentList().size());
+        Integer notStart = examWithStudentDto.getExamStudentList()
+                .stream()
+                .filter(examStudent -> examStudent.getStartTime()==null)
+                .toList().size();
+        Integer doing = examWithStudentDto.getExamStudentList()
+                .stream()
+                .filter(examStudent -> examStudent.getStartTime()!=null && examStudent.getEndTime()==null)
+                .toList().size();
+        Integer done = examWithStudentDto.getExamStudentList()
+                .stream()
+                .filter(examStudent -> examStudent.getEndTime()!=null)
+                .toList().size();
+        OptionalDouble max = examWithStudentDto.getExamStudentList()
+                .stream()
+                .mapToDouble(ExamStudent::getScore)
+                .max();
+        int passNum = examWithStudentDto.getExamStudentList()
+                .stream()
+                .filter(examStudent -> examStudent.getScore()>=examInfoVo.getPassScore())
+                .toList()
+                .size();
+        examInfoVo.setDoingNum(doing);
+        examInfoVo.setDoneNum(done);
+        examInfoVo.setNotStartedNum(notStart);
+        examInfoVo.setMaxScore(max.isPresent() ? max.getAsDouble() : 0.0);
+        examInfoVo.setPassRate(numWith2Decimal((double)passNum * 100 /examWithStudentDto.getExamStudentList().size()));
+        OptionalDouble avgScore = examWithStudentDto.getExamStudentList().stream().mapToDouble(ExamStudent::getScore).average();
+        examInfoVo.setAvgScore(avgScore.isPresent()?numWith2Decimal(avgScore.getAsDouble()):0.0);
+        return examInfoVo;
+    }
+
+    @Override
+    public ExamInfoVo getExamInfo(Long examId) {
+        ExamWithStudentDto examWithStudentDto = examMapper.selectExamWithStudentDtoById(examId);
+        return genExamInfoVo(examWithStudentDto);
+    }
+
+    @Override
+    public Map<String, List<ExamInfoVo>> delCourseExam(Integer projectId, Long examId) {
+        // 删除未开始的考试
+        ExamInfoEntity examInfoEntity = examMapper.selectExamWithQuestionsAndContent(examId);
+        if(examInfoEntity == null){
+            throw new DeleteException("未找到相关数据");
+        }
+        if(examInfoEntity.getStartTime().before(new Date())){
+            throw new DeleteException("考试已开始，不允许删除");
+        }
+        int res = examMapper.deleteExamInfoByExamId(examId);
+        if(res != 1){
+            throw new DeleteException("删除数据时出错");
+        }
+        return getCourseExamList(projectId);
+    }
+
+    @Override
+    public List<ExamStudentVo> getExamStudentList(Long examId, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        List<ExamStudentVo> examStudentVoList = examMapper.selectExamStudentVoByExamId(examId, offset, pageSize);
+        examStudentVoList.forEach(this::fillExamStudentVo);
+        return examStudentVoList;
+    }
+
+    private ExamStudentVo fillExamStudentVo(ExamStudentVo examStudentVo) {
+        if(examStudentVo.getStartTime()==null){
+            examStudentVo.setStatus("notStart");
+        }
+        if(examStudentVo.getStartTime()!=null && examStudentVo.getEndTime()==null){
+            examStudentVo.setStatus("doing");
+            examStudentVo.setTimeSpent(calculateMinuteDiff(examStudentVo.getStartTime(),new Date()));
+        }
+        if(examStudentVo.getEndTime()!=null){
+            examStudentVo.setStatus("done");
+            examStudentVo.setTimeSpent(calculateMinuteDiff(examStudentVo.getStartTime(),examStudentVo.getEndTime()));
+        }
+        return examStudentVo;
+    }
+
+    @Override
+    public StuExamPaperVo getStudentExamPaperVo(Long esId) {
+        StuExamPaperVo stuExamPaperVo = new StuExamPaperVo();
+        List<ExamPaper> examPaperList = examMapper.selectExamStudentPaper(esId);
+        ExamStudentVo examStudentVo = this.fillExamStudentVo(examMapper.selectExamStudentVoByEsId(esId));
+        ExamInfoVo examInfoVo = this.getExamInfo(examStudentVo.getExamId());
+        List<Long> esIdList = examMapper.selectEsIdByExamId(examStudentVo.getExamId());
+        stuExamPaperVo.setExamInfo(examInfoVo);
+        stuExamPaperVo.setExamStudent(examStudentVo);
+        stuExamPaperVo.setExamPapers(examPaperList);
+        stuExamPaperVo.setEsIdList(esIdList);
+        return stuExamPaperVo;
+    }
+
+    @Override
+    public void upQuesScore(Long esId, String quesId, Boolean upRemark, String remark, Double score) {
+        System.out.println(esId);
+        System.out.println(quesId);
+        System.out.println(upRemark);
+        System.out.println(remark);
+        System.out.println(score);
+        if(quesId!=null && score!=null){
+            examMapper.updateQuesScore(quesId,score);
+        }
+        List<ExamPaper> examPaperList = examMapper.selectExamStudentPaper(esId);
+        Double tScore = examPaperList.stream().mapToDouble(ExamPaper::getScore).sum();
+        if(upRemark){
+            examMapper.updateEsScoreAndRemark(esId, tScore, remark);
+        }else {
+            examMapper.updateEsScore(esId, score);
+        }
     }
 
     private ExamPaper randomOptions(ExamPaper examPaper){
@@ -674,5 +847,35 @@ public class ExamServiceImpl implements ExamService {
     private static void resetErrors() {
         cellParseErrors.clear();
         quesParseErrors.clear();
+    }
+
+    /**
+     * 传入一个带小数的数字
+     * @param num 数字
+     * @return 保留两位小数的值
+     */
+    private static double numWith2Decimal(double num){
+        return BigDecimal.valueOf(num)
+                .setScale(2, RoundingMode.HALF_UP)
+                .doubleValue();
+    }
+
+    /**
+     * 计算两个Date的时间差（分钟）
+     * @param start 开始时间
+     * @param end   结束时间
+     * @return 时间差（分钟）：end - start，正数=end在start之后，负数=end在start之前；若需绝对差则返回Math.abs(result)
+     * @throws IllegalArgumentException 入参为null时抛出
+     */
+    public static long calculateMinuteDiff(Date start, Date end) {
+        // 空值校验，避免NullPointerException
+        if (start == null || end == null) {
+            throw new IllegalArgumentException("开始时间和结束时间不能为null");
+        }
+        // 1. 获取两个Date的毫秒时间戳
+        long startMs = start.getTime();
+        long endMs = end.getTime();
+        // 2. 计算毫秒差 → 转换为分钟（1分钟=60*1000=60000毫秒）
+        return (endMs - startMs) / 60000L;
     }
 }
