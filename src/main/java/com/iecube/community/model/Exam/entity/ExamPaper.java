@@ -89,4 +89,15 @@ public class ExamPaper {
         }
     }
 
+    public void setPayload(JsonNode payload) {
+        this.payload = payload;
+        if(payload != null){
+            try{
+                this.payloadStr = new ObjectMapper().writeValueAsString(options);
+            }catch (JsonProcessingException e){
+                this.payloadStr = null;
+            }
+        }
+    }
+
 }

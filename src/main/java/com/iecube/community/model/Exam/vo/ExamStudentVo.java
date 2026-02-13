@@ -9,6 +9,7 @@ import java.util.Objects;
 public class ExamStudentVo {
     private Long esId;
     private Long examId;
+    private Integer studentId;
     private String stuId;
     private String stuName;
     private Double score;

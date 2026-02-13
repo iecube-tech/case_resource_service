@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.Exam_timing.Mapper.TimingTaskMapper">
+    <resultMap id="BaseResultMap" type="com.iecube.community.model.Exam_timing.Dto.TimingTask">
+        <id column="id" property="id"/>
+        <result column="es_id" property="esId"/>
+        <result column="exam_id" property="examId"/>
+        <result column="project_id" property="projectId"/>
+        <result column="student_id" property="studentId"/>
+        <result column="start_time" property="startTime"/>
+        <result column="duration_minutes" property="durationMinutes"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+    <insert id="insert" parameterType="com.iecube.community.model.Exam_timing.Dto.TimingTask" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO EXAM_timing_task (
+            es_id, exam_id, project_id, student_id,
+            start_time, duration_minutes, status
+        ) VALUES (
+                     #{esId}, #{examId}, #{projectId}, #{studentId},
+                     #{startTime}, #{durationMinutes}, #{status}
+                 )
+    </insert>
+
+    <select id="selectByEsIdAndStatus" resultMap="BaseResultMap">
+        SELECT * FROM EXAM_timing_task
+        WHERE es_id = #{esId} AND status = #{status}
+    </select>
+
+    <select id="selectAllRunningTasks" resultMap="BaseResultMap">
+        SELECT * FROM EXAM_timing_task WHERE status = 'RUNNING'
+    </select>
+
+    <update id="updateStatus">
+        UPDATE EXAM_timing_task
+        SET status = #{status}, update_time = NOW()
+        WHERE es_id = #{esId}
+    </update>
+
+    <select id="selectByEsId" resultMap="BaseResultMap">
+        SELECT * FROM EXAM_timing_task WHERE es_id = #{esId}
+    </select>
+
+    <select id="selectByStudentAndExam" resultMap="BaseResultMap">
+        SELECT * FROM EXAM_timing_task
+        WHERE student_id = #{studentId} AND exam_id = #{examId}
+    </select>
+</mapper>

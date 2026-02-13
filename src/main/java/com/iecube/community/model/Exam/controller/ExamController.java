@@ -100,4 +100,31 @@ public class ExamController extends BaseController {
         examService.upQuesScore(esId,quesId,upRemark,remark, score);
         return new JsonResult<>(OK);
     }
+
+    @GetMapping("/stu/exam_course")
+    public JsonResult<List<ExamCourseVo>> getStudentExamCourses(){
+        return new JsonResult<>(OK, examService.getStudentExamCourses(currentUserId()));
+    }
+
+    @GetMapping("/stu/{projectId}/exam_list")
+    public JsonResult<Map<String, List<StuExamInfoVo>>> getExamList(@PathVariable Integer projectId){
+        return new JsonResult<>(OK, examService.getCourseExamList(projectId, currentUserId()));
+    }
+
+    @GetMapping("/stu/{esId}/exam_paper")
+    public JsonResult<StuExamPaperVo> stuGetExamStudentPaper(@PathVariable Long esId){
+        return new JsonResult<>(OK, examService.getStudentExamPaperVo(esId, currentUserId()));
+    }
+
+    @PostMapping("/stu/{esId}/start_exam")
+    public JsonResult<StuExamInfoVo> startExam(@PathVariable Long esId){
+        StuExamInfoVo res = examService.startExam(esId, currentUserId());
+        return new JsonResult<>(OK, res);
+    }
+
+    @PostMapping("/stu/up_ques")
+    public JsonResult<Void> upQues(@RequestBody ExamPaper examPaper){
+        examService.updateExamPaper(examPaper);
+        return new JsonResult<>(OK);
+    }
 }

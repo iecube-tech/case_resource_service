@@ -7,6 +7,7 @@ import com.iecube.community.model.Exam.vo.ExamStudentVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Date;
 import java.util.List;
 
 @Mapper
@@ -43,13 +44,28 @@ public interface ExamMapper {
 
     List<ExamPaper> selectExamStudentPaper(@Param("esId")Long esId);
 
+    void updateExamPaper(ExamPaper examPaper);
+
     void updateQuesScore(String quesId, Double score);
 
     void updateQuesAiScore(String quesId, Double aiScore, String payloadStr);
+
+    void batchUpdateQuesAiScore(List<ExamPaper> list);
 
     void updateEsScoreAndRemark(Long esId, Double score ,String remark);
 
     void updateEsScore(Long esId, Double score);
 
     void updateEsAiScore(Long esId, Double aiScore);
+
+    List<ExamCourseVo> selectStudentExamCourse(Integer studentId);
+
+    List<ExamWithStudentDto> selectExamWithStudentDtoByStudent(Integer projectId, Integer studentId);
+
+    ExamWithStudentDto selectExamWithStudentDtoByEsId(Long esId);
+
+    void updateExamStudentStartTime(Long esId, Date startTime);
+
+    void updateExamStudentEndTime(Long esId, Date endTime);
+
 }

@@ -28,6 +28,20 @@ public interface ExamService {
 
     StuExamPaperVo getStudentExamPaperVo(Long esId);
 
+    StuExamPaperVo getStudentExamPaperVo(Long esId, Integer studentId);
+
     void upQuesScore(Long esId, String quesId, Boolean upRemark, String remark, Double score);
+
+    List<ExamCourseVo> getStudentExamCourses(Integer studentId);
+
+    Map<String, List<StuExamInfoVo>> getCourseExamList(Integer projectId, Integer studentId);
     // todo 计算成绩
+
+    StuExamInfoVo startExam(Long esId, Integer studentId);
+
+    void updateExamPaper(ExamPaper examPaper);
+
+    StuExamInfoVo submitExam(Long esId);
+
+    void computeScore(Long esId);
 }

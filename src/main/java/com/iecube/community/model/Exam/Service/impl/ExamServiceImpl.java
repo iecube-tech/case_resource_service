@@ -13,8 +13,11 @@ import com.iecube.community.model.Exam.entity.*;
 import com.iecube.community.model.Exam.exception.ExcelCellParseException;
 import com.iecube.community.model.Exam.mapper.ExamMapper;
 import com.iecube.community.model.Exam.qo.ExamSaveQo;
+import com.iecube.community.model.Exam.util.AiCheckQaScoreService;
 import com.iecube.community.model.Exam.vo.*;
+import com.iecube.community.model.Exam_timing.Service.TimingTaskService;
 import com.iecube.community.model.auth.service.ex.InsertException;
+import com.iecube.community.model.auth.service.ex.UpdateException;
 import com.iecube.community.model.direction.service.ex.DeleteException;
 import com.iecube.community.util.list.ListUtil;
 import com.iecube.community.util.random.RandomUtil;
@@ -24,6 +27,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -32,6 +36,7 @@ import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -59,6 +64,12 @@ public class ExamServiceImpl implements ExamService {
 
     @Autowired
     private ExamMapper examMapper;
+
+    @Autowired
+    private TimingTaskService examTimingTaskService;
+
+    @Autowired
+    private AiCheckQaScoreService aiCheckQaScoreService;
 
     public ExamServiceImpl(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
@@ -507,12 +518,22 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    public StuExamPaperVo getStudentExamPaperVo(Long esId, Integer studentId) {
+        StuExamPaperVo stuExamPaperVo = new StuExamPaperVo();
+        List<ExamPaper> examPaperList = examMapper.selectExamStudentPaper(esId);
+        ExamStudentVo examStudentVo = this.fillExamStudentVo(examMapper.selectExamStudentVoByEsId(esId));
+        if(!examStudentVo.getStudentId().equals(studentId)){
+            throw new UpdateException("无权查看非本人试卷");
+        }
+        ExamInfoVo examInfoVo = this.getExamInfo(examStudentVo.getExamId());
+        stuExamPaperVo.setExamInfo(examInfoVo);
+        stuExamPaperVo.setExamStudent(examStudentVo);
+        stuExamPaperVo.setExamPapers(examPaperList);
+        return stuExamPaperVo;
+    }
+
+    @Override
     public void upQuesScore(Long esId, String quesId, Boolean upRemark, String remark, Double score) {
-        System.out.println(esId);
-        System.out.println(quesId);
-        System.out.println(upRemark);
-        System.out.println(remark);
-        System.out.println(score);
         if(quesId!=null && score!=null){
             examMapper.updateQuesScore(quesId,score);
         }
@@ -523,6 +544,198 @@ public class ExamServiceImpl implements ExamService {
         }else {
             examMapper.updateEsScore(esId, score);
         }
+    }
+
+    @Override
+    public List<ExamCourseVo> getStudentExamCourses(Integer studentId) {
+        return examMapper.selectStudentExamCourse(studentId);
+    }
+
+    @Override
+    public Map<String, List<StuExamInfoVo>> getCourseExamList(Integer projectId, Integer studentId) {
+        List<ExamWithStudentDto> examWithStudentDtoList = examMapper.selectExamWithStudentDtoByStudent(projectId, studentId);
+        List<StuExamInfoVo>  stuExamInfoVoList = new ArrayList<>();
+        examWithStudentDtoList.forEach(examWithStudentDto -> {
+            stuExamInfoVoList.add(generateStuExamInfo(examWithStudentDto));
+        });
+        return stuExamInfoVoList.stream().collect(Collectors.groupingBy(StuExamInfoVo::getExamTimeStatus));
+    }
+
+    @Override
+    public StuExamInfoVo startExam(Long esId, Integer studentId) {
+        ExamWithStudentDto examWithStudentDto = examMapper.selectExamWithStudentDtoByEsId(esId);
+        if(!Objects.equals(examWithStudentDto.getExamStudentList().get(0).getStudentId(), studentId)){
+            throw new UpdateException("考试信息错误");
+        }
+        StuExamInfoVo stuExamInfoVo = generateStuExamInfo(examWithStudentDto);
+        if(stuExamInfoVo.getStartTime()!=null){
+            throw new UpdateException("该考试已开始，请刷新");
+        }
+        Date date = new Date();
+        stuExamInfoVo.setStartTime(date);
+        examTimingTaskService.startExamTask(stuExamInfoVo); // 考试计时
+        examMapper.updateExamStudentStartTime(esId, date);
+        return stuExamInfoVo;
+    }
+
+    @Override
+    public void updateExamPaper(ExamPaper examPaper) {
+
+    }
+
+    @Override
+    public StuExamInfoVo submitExam(Long esId) {
+        Date now = new Date();
+        examMapper.updateExamStudentEndTime(esId, now);
+        ExamWithStudentDto examWithStudentDto = examMapper.selectExamWithStudentDtoByEsId(esId);
+        return generateStuExamInfo(examWithStudentDto);
+    }
+
+    @Override
+    @Async
+    public void computeScore(Long esId) {
+        List<ExamPaper> examPaperList = examMapper.selectExamStudentPaper(esId);
+        examPaperList.forEach(examPaper -> {
+            if(examPaper.getQuesType().equals(QuesType.CHOICE)||examPaper.getQuesType().equals(QuesType.MultipleCHOICE)){
+                examPaper.setAiScore(gradeChoiceQuestion(examPaper));
+            }
+            else {
+                // 计算问答题分数
+                CompletableFuture<JsonNode> completableFuture = aiCheckQaScoreService.computeQaScore(examPaper);
+                JsonNode result = completableFuture.join();
+                if(result!=null){
+                    examPaper.setAiScore(result.get("score").asDouble());
+                    examPaper.setPayload(result);
+                }
+            }
+        });
+        examMapper.batchUpdateQuesAiScore(examPaperList);
+        AtomicReference<Double> tScore = new AtomicReference<>(0.0);
+        examPaperList.forEach(examPaper -> {
+            tScore.updateAndGet(v -> v + examPaper.getAiScore());
+        });
+        examMapper.updateEsAiScore(examPaperList.get(0).getEsId(), tScore.get());
+    }
+
+    /**
+     * 选择题判分核心方法
+     * @param examPaper 题目实体（需包含 quesType、totalScore、answer、response 字段）
+     * @return 该题最终得分（正确返回 totalScore，错误/异常返回 0.0）
+     */
+    public static Double gradeChoiceQuestion(ExamPaper examPaper) {
+        // 1. 入参校验：防止空指针
+        if (examPaper == null) {
+            log.warn("判分失败：传入的 ExamPaper 对象为 null");
+            return 0.0;
+        }
+
+        // 2. 基础数据校验：总分、题型、参考答案不能为空
+        Double totalScore = examPaper.getTotalScore();
+        QuesType quesType = examPaper.getQuesType();
+        String standardAnswerStr = examPaper.getAnswer();
+        String studentAnswerStr = examPaper.getResponse();
+        String questionId = examPaper.getId() == null ? "未知ID" : examPaper.getId();
+
+        if (totalScore == null || quesType == null || isEmpty(standardAnswerStr)) {
+            log.warn("题目{}判分失败：缺少必要信息（总分={}，题型={}，参考答案={}）",
+                    questionId, totalScore, quesType, standardAnswerStr);
+            return 0.0;
+        }
+
+        // 3. 解析参考答案和学生答案为有序集合（去重、排序，消除顺序影响）
+        Set<String> standardAnswers = parseAnswer(standardAnswerStr);
+        Set<String> studentAnswers = parseAnswer(studentAnswerStr);
+
+        // 4. 空答案直接返回 0 分
+        if (studentAnswers.isEmpty()) {
+            log.info("题目{}学生未作答，得 0 分", questionId);
+            return 0.0;
+        }
+
+        // 5. 按题型判断是否正确
+        boolean isCorrect = false;
+        switch (quesType) {
+            case CHOICE: // 单选题：必须仅1个选项，且与参考答案完全一致
+                if (standardAnswers.size() == 1 && studentAnswers.size() == 1) {
+                    isCorrect = standardAnswers.equals(studentAnswers);
+                } else {
+                    log.warn("题目{}为单选题，但参考答案/学生答案选项数量异常（参考答案数={}，学生答案数={}）",
+                            questionId, standardAnswers.size(), studentAnswers.size());
+                }
+                break;
+            case MultipleCHOICE: // 多选题：选项完全匹配（无遗漏、无多余）
+                isCorrect = standardAnswers.equals(studentAnswers);
+                break;
+            default:
+                log.warn("题目{}题型{}不支持选择题判分", questionId, quesType);
+                return 0.0;
+        }
+
+        // 6. 返回最终得分
+        Double finalScore = isCorrect ? totalScore : 0.0;
+        log.info("题目{}判分完成：{}，得分={}", questionId, isCorrect ? "正确" : "错误", finalScore);
+        return finalScore;
+    }
+
+    /**
+     * 辅助方法：解析答案字符串为有序集合
+     * @param answerStr 答案字符串（如 "A"、"C,D"、"B,A"）
+     * @return 去重、排序后的选项集合（TreeSet 保证顺序一致）
+     */
+    private static Set<String> parseAnswer(String answerStr) {
+        if (isEmpty(answerStr)) {
+            return Collections.emptySet();
+        }
+        return Arrays.stream(answerStr.split(","))
+                .map(String::trim) // 去除选项前后空格（兼容 "A, B" 这种格式）
+                .filter(str -> !str.isEmpty()) // 过滤空字符串（兼容 ",A" 这种异常格式）
+                .collect(Collectors.toCollection(TreeSet::new)); // 排序+去重
+    }
+
+    /**
+     * 辅助方法：判断字符串是否为空（null/空字符串/全空格）
+     */
+    private static boolean isEmpty(String str) {
+        return str == null || str.trim().isEmpty();
+    }
+
+
+    private  StuExamInfoVo generateStuExamInfo(ExamWithStudentDto examWithStudentDto){
+        StuExamInfoVo stuExamInfoVo = new StuExamInfoVo();
+        stuExamInfoVo.setExamId(examWithStudentDto.getId());
+        stuExamInfoVo.setProjectId(examWithStudentDto.getProjectId());
+        stuExamInfoVo.setProjectName(examWithStudentDto.getProjectName());
+        stuExamInfoVo.setSemester(examWithStudentDto.getSemester());
+        stuExamInfoVo.setExamName(examWithStudentDto.getName());
+        stuExamInfoVo.setDuration(examWithStudentDto.getDuration());
+        stuExamInfoVo.setTotalScore(examWithStudentDto.getTotalScore());
+        stuExamInfoVo.setPassScore(examWithStudentDto.getPassScore());
+        stuExamInfoVo.setExamStartTime(examWithStudentDto.getStartTime());
+        stuExamInfoVo.setExamEndTime(examWithStudentDto.getEndTime());
+        ExamStudent examStudent =
+                examWithStudentDto.getExamStudentList().isEmpty()?null:examWithStudentDto.getExamStudentList().get(0);
+        stuExamInfoVo.setStartTime(examStudent!=null?examStudent.getStartTime():null);
+        stuExamInfoVo.setEndTime(examStudent!=null?examStudent.getEndTime():null);
+        stuExamInfoVo.setEsId(examStudent!=null?examStudent.getId():null);
+        stuExamInfoVo.setStudentId(examStudent!=null?examStudent.getStudentId():null);
+        if(stuExamInfoVo.getExamStartTime().after(new Date())){
+            stuExamInfoVo.setExamTimeStatus("notStart");
+        }else if(stuExamInfoVo.getExamEndTime().after(new Date())){
+            stuExamInfoVo.setExamTimeStatus("doing");
+        }else {
+            stuExamInfoVo.setExamTimeStatus("done");
+        }
+        if(stuExamInfoVo.getStartTime()==null){
+            stuExamInfoVo.setExamSubmitStatus("notStart");
+        }else{
+            if(stuExamInfoVo.getEndTime()==null){
+                stuExamInfoVo.setExamSubmitStatus("doing");
+            }
+            else {
+                stuExamInfoVo.setExamSubmitStatus("done");
+            }
+        }
+        return stuExamInfoVo;
     }
 
     private ExamPaper randomOptions(ExamPaper examPaper){

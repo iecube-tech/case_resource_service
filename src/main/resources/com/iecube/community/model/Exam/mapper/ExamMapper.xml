@@ -81,6 +81,7 @@
 
     <resultMap id="ExamStudentVo" type="com.iecube.community.model.Exam.vo.ExamStudentVo">
         <result column="id" property="esId"/>
+        <result column="s_id" property="studentId"/>
         <result column="exam_id" property="examId"/>
         <result column="student_id" property="stuId"/>
         <result column="student_name" property="stuName"/>
@@ -278,6 +279,7 @@
         SELECT
             es.id,
             es.exam_id,
+            s.id AS s_id,
             s.student_id,
             s.student_name,
             es.score,
@@ -302,6 +304,7 @@
         SELECT
             es.id,
             es.exam_id,
+            s.id AS s_id,
             s.student_id,
             s.student_name,
             es.score,
@@ -321,14 +324,30 @@
         ORDER BY `ques_type`, `order`
     </select>
 
+    <update id="updateExamPaper">
+        UPDATE Exam_paper SET response=#{response} WHERE id=#{id}
+    </update>
+
     <update id="updateQuesScore">
         UPDATE Exam_paper SET `score`=#{score} WHERE id=#{quesId}
     </update>
 
     <update id="updateQuesAiScore">
         UPDATE Exam_paper SET `ai_score`=#{aiScore},
+                              `score`=#{aiScore},
                               `payload_str`=#{payloadStr}
                           WHERE id=#{quesId}
+    </update>
+
+    <update id="batchUpdateQuesAiScore">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE Exam_paper
+            SET
+                `ai_score`=#{item.aiScore},
+                `score`=#{item.aiScore},
+                `payload_str`=#{item.payloadStr}
+            WHERE id = #{item.id}
+        </foreach>
     </update>
 
     <update id="updateEsScoreAndRemark">
@@ -343,8 +362,82 @@
     </update>
 
     <update id="updateEsAiScore">
-        UPDATE Exam_student SET ai_score=#{aiScore}
+        UPDATE Exam_student SET ai_score=#{aiScore}, score=#{aiScore}
         WHERE id=#{esId}
     </update>
+    
+    <select id="selectStudentExamCourse" resultMap="ExamCourseVo">
+        SELECT
+            p.id,
+            p.project_name,
+            p.semester,
+            p.cover,
+            p.create_time
+        FROM project p
+                 LEFT JOIN ExamInfo e ON p.id=e.project_id
+                 LEFT JOIN Exam_student es ON e.id=es.exam_id
+        WHERE es.student_id=#{studentId}
+          AND p.version=4
+          AND p.is_delete=0
+        GROUP BY p.id
+        ORDER BY create_time;
+    </select>
 
+    <select id="selectExamWithStudentDtoByStudent" resultMap="ExamWithStudentDto">
+        SELECT
+            ei.`id`AS exam_id,
+            ei.`project_id`,
+            p.project_name,
+            p.semester,
+            ei.`name`,
+            ei.`duration`,
+            ei.`total_score`,
+            ei.`pass_score`,
+            ei.`start_time` AS exam_start_time,
+            ei.`end_time` AS exam_end_time,
+            es.`id` AS es_id,
+            es.`exam_id`,
+            es.`student_id`,
+            es.`score`,
+            es.`ai_score`,
+            es.`start_time`,
+            es.`end_time`
+        FROM ExamInfo ei
+                 LEFT JOIN project p ON p.id=ei.`project_id`
+                 LEFT JOIN Exam_student es ON ei.id=es.exam_id
+        WHERE ei.project_id=#{projectId} AND es.student_id=#{studentId};
+    </select>
+
+    <select id="selectExamWithStudentDtoByEsId" resultMap="ExamWithStudentDto">
+        SELECT
+            ei.`id`AS exam_id,
+            ei.`project_id`,
+            p.project_name,
+            p.semester,
+            ei.`name`,
+            ei.`duration`,
+            ei.`total_score`,
+            ei.`pass_score`,
+            ei.`start_time` AS exam_start_time,
+            ei.`end_time` AS exam_end_time,
+            es.`id` AS es_id,
+            es.`exam_id`,
+            es.`student_id`,
+            es.`score`,
+            es.`ai_score`,
+            es.`start_time`,
+            es.`end_time`
+        FROM ExamInfo ei
+                 LEFT JOIN project p ON p.id=ei.`project_id`
+                 LEFT JOIN Exam_student es ON ei.id=es.exam_id
+        WHERE es.id=#{esId};
+    </select>
+
+    <update id="updateExamStudentStartTime">
+        UPDATE Exam_student SET `start_time`=#{startTime} WHERE id=#{esId}
+    </update>
+
+    <update id="updateExamStudentEndTime">
+        UPDATE Exam_student SET `end_time`=#{endTime} WHERE id=#{esId}
+    </update>
 </mapper>
