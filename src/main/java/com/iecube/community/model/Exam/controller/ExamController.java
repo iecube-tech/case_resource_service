@@ -111,7 +111,7 @@ public class ExamController extends BaseController {
         return new JsonResult<>(OK, examService.getCourseExamList(projectId, currentUserId()));
     }
 
-    @GetMapping("/stu/{esId}/exam_paper")
+    @GetMapping("/stu/{esId}/paper")
     public JsonResult<StuExamPaperVo> stuGetExamStudentPaper(@PathVariable Long esId){
         return new JsonResult<>(OK, examService.getStudentExamPaperVo(esId, currentUserId()));
     }

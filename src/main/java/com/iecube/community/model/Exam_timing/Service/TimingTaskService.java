@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -15,6 +16,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +34,9 @@ public class TimingTaskService implements ApplicationListener<ContextRefreshedEv
 
     private final TimingTaskMapper timingTaskMapper;
     private final ThreadPoolTaskExecutor taskExecutor;
-    private final RabbitTemplate rabbitTemplate;
+
+    @Resource
+    private RabbitTemplate rabbitTemplate;
 
     @Value("${timing.task.rabbitmq.routing-key}")
     private String routingKey;
@@ -142,7 +146,7 @@ public class TimingTaskService implements ApplicationListener<ContextRefreshedEv
                 TimeUnit.SECONDS.sleep(10);
             }
         } catch (InterruptedException e) {
-            log.warn("考试计时任务执行被中断，esId: {}", esId, e);
+            log.warn("考试计时任务执行被中断，esId:{}", esId);
             Thread.currentThread().interrupt(); // 恢复中断状态
         } catch (Exception e) {
             log.error("考试计时任务执行异常，esId: {}", esId, e);
@@ -164,6 +168,7 @@ public class TimingTaskService implements ApplicationListener<ContextRefreshedEv
         message.setTriggerType(triggerType);
 
         try {
+            // 发送消息：交换机 + 路由键 + 消息体
             rabbitTemplate.convertAndSend(exchangeName, routingKey, message);
             log.info("考试结束消息发送成功，esId: {}, 触发类型: {}", esId, triggerType);
         } catch (Exception e) {

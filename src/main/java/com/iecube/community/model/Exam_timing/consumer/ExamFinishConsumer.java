@@ -20,8 +20,9 @@ public class ExamFinishConsumer {
     /**
      * 消费考试结束消息，执行核心业务逻辑
      */
-    @RabbitListener(queues = "${timing.task.rabbitmq.queue}")
+    @RabbitListener(queues = "${timing.task.rabbitmq.queue}", containerFactory = "rabbitListenerContainerFactory")
     public void handleExamFinishMessage(ExamFinishMessage message) {
+        System.out.println("Received exam finish message: " + message);
         try {
             Long esId = message.getEsId();
             Long examId = message.getExamId();

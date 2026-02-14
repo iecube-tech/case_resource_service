@@ -9,11 +9,7 @@ import java.io.Serializable;
  * 考试计时结束消息
  */
 @Data
-public class ExamFinishMessage implements Serializable {
-    // 建议添加序列化版本号（可选但推荐）
-    @Serial
-    private static final long serialVersionUID = 1L;
-
+public class ExamFinishMessage{
     private Long esId;
     private Long examId;
     private Integer studentId;
