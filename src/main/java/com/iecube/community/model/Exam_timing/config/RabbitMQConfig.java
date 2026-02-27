@@ -10,6 +10,7 @@ import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 /**
  * RabbitMQ配置
@@ -80,7 +81,7 @@ public class RabbitMQConfig {
 
     // ❸ 生产者 RabbitTemplate（关联 JSON 转换器，确保发送的是 JSON 消息）
     @Bean
-    public AmqpTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+    public AmqpTemplate myRabbitTemplate(ConnectionFactory connectionFactory) {
         org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate = new org.springframework.amqp.rabbit.core.RabbitTemplate(connectionFactory);
         // 关键：生产者也用 JSON 转换器
         rabbitTemplate.setMessageConverter(jackson2JsonMessageConverter());

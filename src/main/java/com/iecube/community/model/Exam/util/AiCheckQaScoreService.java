@@ -36,12 +36,12 @@ public class AiCheckQaScoreService{
         question.put("id", examPaper.getId());
         question.put("type", "QA");
         question.put("question", examPaper.getTitle());
-        question.put("answer", examPaper.getResponse());
-        question.put("score", examPaper.getScore());
+        question.put("answer", examPaper.getAnswer());
+        question.put("score", examPaper.getTotalScore());
         question.put("hintWhenWrong","");
         question.put("analysis","");
 
-        answer.put("answer", examPaper.getAnswer());
+        answer.put("answer", examPaper.getResponse());
         answer.put("image","");
 
         requestBodyMap.put("question", question);
@@ -49,17 +49,18 @@ public class AiCheckQaScoreService{
 
         RestTemplate restTemplate = new RestTemplate();
         // 创建 ObjectMapper 实例用于将 Java 对象转换为 JSON 字符串
-        ObjectMapper objectMapper = new ObjectMapper();
+//        ObjectMapper objectMapper = new ObjectMapper();
         try{
             // 将请求体对象转换为 JSON 字符串
-            String requestBody = objectMapper.writeValueAsString(requestBodyMap);
+//            String requestBody = objectMapper.writeValueAsString(requestBodyMap);
 //            System.out.println(requestBody);
-            HttpEntity<String> httpEntity = new HttpEntity<>(requestBody);
+            HttpEntity<Map<String,Object>> httpEntity = new HttpEntity<>(requestBodyMap);
             ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, httpEntity, String.class);
             CheckHttpResponse.CheckResult checkResult = new CheckHttpResponse().responseNormal(response);
             if(!checkResult.isNormal()){
                 throw new AiAPiResponseException("访问AI资源失败(响应错误)："+checkResult.getErrorReason());
             }
+//            System.out.println(checkResult.getBodyData());
             return CompletableFuture.completedFuture(checkResult.getBodyData());
         }catch (Exception e){
             log.error("校验(Exam QA):{};{}",examPaper.getId(),examPaper.getTitle());

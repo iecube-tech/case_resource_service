@@ -525,6 +525,11 @@ public class ExamServiceImpl implements ExamService {
         if(!examStudentVo.getStudentId().equals(studentId)){
             throw new UpdateException("无权查看非本人试卷");
         }
+        if(examStudentVo.getEndTime()==null){
+            examPaperList.forEach(item->{
+                item.setAnswer(null);
+            });
+        }
         ExamInfoVo examInfoVo = this.getExamInfo(examStudentVo.getExamId());
         stuExamPaperVo.setExamInfo(examInfoVo);
         stuExamPaperVo.setExamStudent(examStudentVo);
@@ -580,7 +585,7 @@ public class ExamServiceImpl implements ExamService {
 
     @Override
     public void updateExamPaper(ExamPaper examPaper) {
-
+        examMapper.updateExamPaper(examPaper);
     }
 
     @Override
@@ -615,6 +620,7 @@ public class ExamServiceImpl implements ExamService {
             tScore.updateAndGet(v -> v + examPaper.getAiScore());
         });
         examMapper.updateEsAiScore(examPaperList.get(0).getEsId(), tScore.get());
+        log.info("成绩计算完成，esId: {}",esId);
     }
 
     /**
@@ -625,7 +631,7 @@ public class ExamServiceImpl implements ExamService {
     public static Double gradeChoiceQuestion(ExamPaper examPaper) {
         // 1. 入参校验：防止空指针
         if (examPaper == null) {
-            log.warn("判分失败：传入的 ExamPaper 对象为 null");
+//            log.warn("判分失败：传入的 ExamPaper 对象为 null");
             return 0.0;
         }
 
@@ -637,8 +643,8 @@ public class ExamServiceImpl implements ExamService {
         String questionId = examPaper.getId() == null ? "未知ID" : examPaper.getId();
 
         if (totalScore == null || quesType == null || isEmpty(standardAnswerStr)) {
-            log.warn("题目{}判分失败：缺少必要信息（总分={}，题型={}，参考答案={}）",
-                    questionId, totalScore, quesType, standardAnswerStr);
+//            log.warn("题目{}判分失败：缺少必要信息（总分={}，题型={}，参考答案={}）",
+//                    questionId, totalScore, quesType, standardAnswerStr);
             return 0.0;
         }
 
@@ -648,7 +654,7 @@ public class ExamServiceImpl implements ExamService {
 
         // 4. 空答案直接返回 0 分
         if (studentAnswers.isEmpty()) {
-            log.info("题目{}学生未作答，得 0 分", questionId);
+//            log.info("题目{}学生未作答，得 0 分", questionId);
             return 0.0;
         }
 
@@ -659,21 +665,21 @@ public class ExamServiceImpl implements ExamService {
                 if (standardAnswers.size() == 1 && studentAnswers.size() == 1) {
                     isCorrect = standardAnswers.equals(studentAnswers);
                 } else {
-                    log.warn("题目{}为单选题，但参考答案/学生答案选项数量异常（参考答案数={}，学生答案数={}）",
-                            questionId, standardAnswers.size(), studentAnswers.size());
+//                    log.warn("题目{}为单选题，但参考答案/学生答案选项数量异常（参考答案数={}，学生答案数={}）",
+//                            questionId, standardAnswers.size(), studentAnswers.size());
                 }
                 break;
             case MultipleCHOICE: // 多选题：选项完全匹配（无遗漏、无多余）
                 isCorrect = standardAnswers.equals(studentAnswers);
                 break;
             default:
-                log.warn("题目{}题型{}不支持选择题判分", questionId, quesType);
+//                log.warn("题目{}题型{}不支持选择题判分", questionId, quesType);
                 return 0.0;
         }
 
         // 6. 返回最终得分
         Double finalScore = isCorrect ? totalScore : 0.0;
-        log.info("题目{}判分完成：{}，得分={}", questionId, isCorrect ? "正确" : "错误", finalScore);
+//        log.info("题目{}判分完成：{}，得分={}", questionId, isCorrect ? "正确" : "错误", finalScore);
         return finalScore;
     }
 

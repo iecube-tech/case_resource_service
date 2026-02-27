@@ -42,7 +42,7 @@ public class ExamFinishConsumer {
             examService.submitExam(esId);
             examService.computeScore(esId);
 
-            log.info("考试结束业务逻辑执行完成，esId: {}", esId);
+            log.info("考试结束业务逻辑执行完成，开始计算成绩，esId: {}", esId);
         } catch (Exception e) {
             log.error("执行考试结束业务逻辑异常", e);
             // 异常处理：重试、记录失败日志、告警等

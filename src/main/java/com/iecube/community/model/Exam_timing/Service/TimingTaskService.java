@@ -35,8 +35,8 @@ public class TimingTaskService implements ApplicationListener<ContextRefreshedEv
     private final TimingTaskMapper timingTaskMapper;
     private final ThreadPoolTaskExecutor taskExecutor;
 
-    @Resource
-    private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private RabbitTemplate myRabbitTemplate;
 
     @Value("${timing.task.rabbitmq.routing-key}")
     private String routingKey;
@@ -169,7 +169,7 @@ public class TimingTaskService implements ApplicationListener<ContextRefreshedEv
 
         try {
             // 发送消息：交换机 + 路由键 + 消息体
-            rabbitTemplate.convertAndSend(exchangeName, routingKey, message);
+            myRabbitTemplate.convertAndSend(exchangeName, routingKey, message);
             log.info("考试结束消息发送成功，esId: {}, 触发类型: {}", esId, triggerType);
         } catch (Exception e) {
             log.error("考试结束消息发送失败，esId: {}", esId, e);

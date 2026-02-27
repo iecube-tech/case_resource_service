@@ -93,7 +93,7 @@ public class ExamPaper {
         this.payload = payload;
         if(payload != null){
             try{
-                this.payloadStr = new ObjectMapper().writeValueAsString(options);
+                this.payloadStr = new ObjectMapper().writeValueAsString(payload);
             }catch (JsonProcessingException e){
                 this.payloadStr = null;
             }

@@ -340,13 +340,26 @@
     </update>
 
     <update id="batchUpdateQuesAiScore">
-        <foreach collection="list" item="item" separator=";">
-            UPDATE Exam_paper
-            SET
-                `ai_score`=#{item.aiScore},
-                `score`=#{item.aiScore},
-                `payload_str`=#{item.payloadStr}
-            WHERE id = #{item.id}
+        UPDATE Exam_paper
+        SET
+        `ai_score` = CASE
+        <foreach collection="list" item="item" separator="">
+            WHEN id = #{item.id} THEN #{item.aiScore}
+        </foreach>
+        END,
+        `score` = CASE
+        <foreach collection="list" item="item" separator="">
+            WHEN id = #{item.id} THEN #{item.aiScore}
+        </foreach>
+        END,
+        `payload_str` = CASE
+        <foreach collection="list" item="item" separator="">
+            WHEN id = #{item.id} THEN #{item.payloadStr}
+        </foreach>
+        END
+        WHERE id IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.id}
         </foreach>
     </update>
 
