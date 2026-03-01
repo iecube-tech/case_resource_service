@@ -5,6 +5,7 @@ import com.iecube.community.baseservice.ex.ServiceException;
 import com.iecube.community.model.EMDV4Report.entity.ReportTempChapter;
 import com.iecube.community.model.EMDV4Report.qo.ReportTempQo;
 import com.iecube.community.model.EMDV4Report.service.EMDV4ReportService;
+import com.iecube.community.model.EMDV4Report.vo.ReportTempVo;
 import com.iecube.community.model.resource.service.ResourceService;
 import com.iecube.community.util.DownloadUtil;
 import com.iecube.community.util.JsonResult;
@@ -55,7 +56,13 @@ public class EMDV4ReportController extends BaseController {
     }
 
     @PostMapping("/temp/save")
-    public JsonResult<Void> reportTempSave(@RequestBody ReportTempQo reportTempQo){
+    public JsonResult<ReportTempVo> reportTempSave(@RequestBody ReportTempQo reportTempQo){
+        return new JsonResult<>(OK, reportService.updateReportTemp(reportTempQo, currentUserId()));
+    }
+
+    @PostMapping("/temp/publish")
+    public JsonResult<Void> publishTemp(){
+        //todo
         return new JsonResult<>(OK);
     }
 

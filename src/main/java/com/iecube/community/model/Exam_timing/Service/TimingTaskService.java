@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -185,7 +186,12 @@ public class TimingTaskService implements ApplicationListener<ContextRefreshedEv
         // 避免重复执行（Spring容器初始化完成后执行一次）
         if (event.getApplicationContext().getParent() == null) {
             log.info("开始恢复应用重启前的考试计时任务...");
-            List<TimingTask> unfinishedTasks = timingTaskMapper.selectAllRunningTasks();
+            List<TimingTask> unfinishedTasks=new ArrayList<>();
+            try{
+                unfinishedTasks = timingTaskMapper.selectAllRunningTasks();
+            }catch (Exception e){
+                log.info("查询要恢复数据异常", e);
+            }
 
             for (TimingTask task : unfinishedTasks) {
                 Long esId = task.getEsId();

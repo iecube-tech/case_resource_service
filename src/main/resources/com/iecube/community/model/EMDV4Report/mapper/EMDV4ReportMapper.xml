@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iecube.community.model.EMDV4Report.mapper.EMDV4ReportMapper">
+
+    <resultMap id="ReportTemp" type="com.iecube.community.model.EMDV4Report.entity.ReportTemp">
+        <result column="project_id" property="projectId"></result>
+        <result column="chapter_size" property="chapterSize"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="last_modified_user" property="lastModifiedUser"></result>
+        <result column="last_modified_time" property="lastModifiedTime"></result>
+    </resultMap>
+
+    <resultMap id="ReportTempChapter" type="com.iecube.community.model.EMDV4Report.entity.ReportTempChapter">
+        <result column="report_temp_id" property="reportTempId"></result>
+    </resultMap>
+
+    <insert id="insertReportTemp" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO EMDV4_Report_Temp (`id`, `project_id`, `name`, `chapter_size`, `status`,
+                                       `create_time`, `creator`, `last_modified_user`, `last_modified_time`)
+        VALUES (NULL, #{projectId}, #{name}, #{chapterSize}, #{status},
+                #{createTime}, #{creator}, #{lastModifiedUser}, #{lastModifiedTime})
+    </insert>
+
+    <insert id="batchInsertReportTempChapter" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO EMDV4_Report_Temp_Chapter
+        (`id`, `report_temp_id`, `type`, `title`, `order`, `required`)
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (#{item.id}, #{item.reportTempId}, #{item.type}, #{item.title}, #{item.order}, #{item.icon}, #{item.required})
+        </foreach>
+    </insert>
+
+    <select id="selectReportTempById" resultMap="ReportTemp">
+        SELECT `id`, `project_id`, `name`, `chapter_size`, `status`,
+               `create_time`, `creator`, `last_modified_user`, `last_modified_time`
+        FROM EMDV4_Report_Temp
+        WHERE id=#{id}
+    </select>
+
+    <select id="selectReportTempByProject" resultMap="ReportTemp">
+        SELECT `id`, `project_id`, `name`, `chapter_size`, `status`,
+               `create_time`, `creator`, `last_modified_user`, `last_modified_time`
+        FROM EMDV4_Report_Temp
+        WHERE project_id=#{projectId}
+        ORDER BY last_modified_time
+    </select>
+
+    <select id="selectReportTempChapterByTemp" resultMap="ReportTempChapter">
+        SELECT `id`, `report_temp_id`, `type`, `title`, `order`, `required`
+        FROM EMDV4_Report_Temp_Chapter
+        WHERE report_temp_id=#{reportTempId}
+        ORDER BY `order`
+    </select>
+
+    <update id="updateReportTempById">
+        UPDATE EMDV4_Report_Temp SET name=#{name},
+                                     chapter_size=#{chapterSize},
+                                     status=#{status},
+                                     last_modified_time=#{lastModifiedTime},
+                                     last_modified_user=#{lastModifiedUser}
+        WHERE id=#{id}
+    </update>
+
+    <delete id="deleteReportTempById">
+        DELETE FROM EMDV4_Report_Temp WHERE id=#{id}
+    </delete>
+
+    <delete id="deleteReportTempChapterById">
+        DELETE FROM EMDV4_Report_Temp_Chapter WHERE id=#{id}
+    </delete>
+
+    <delete id="deleteReportTempChapterByTemp">
+        DELETE FROM EMDV4_Report_Temp_Chapter WHERE report_temp_id=#{reportTempId}
+    </delete>
+
+</mapper>
